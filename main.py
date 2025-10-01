@@ -156,7 +156,8 @@ def main():
         f.write(f"  - Statistics: {stats_file}\n")
         f.write(f"  - PCA plot: {Path(results_dir) / 'pca_plot.png'}\n")
         f.write(f"  - Boxplot: {Path(results_dir) / 'boxplot_glycan_types.png'}\n")
-        f.write(f"  - Heatmap: {Path(results_dir) / 'heatmap_top_glycopeptides.png'}\n")
+        f.write(f"  - Heatmap (Top 50): {Path(results_dir) / 'heatmap_top_glycopeptides.png'}\n")
+        f.write(f"  - Heatmap (Full Profile): {Path(results_dir) / 'heatmap_full_glycan_profile.png'}\n")
         f.write(f"  - Distribution: {Path(results_dir) / 'glycan_type_distribution.png'}\n")
         f.write("="*80 + "\n")
 

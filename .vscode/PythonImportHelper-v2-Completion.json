@@ -42,6 +42,14 @@
         "documentation": {}
     },
     {
+        "label": "stats",
+        "importPath": "scipy",
+        "description": "scipy",
+        "isExtraImport": true,
+        "detail": "scipy",
+        "documentation": {}
+    },
+    {
         "label": "logging",
         "kind": 6,
         "isExtraImport": true,
@@ -115,6 +123,38 @@
         "importPath": "seaborn",
         "description": "seaborn",
         "detail": "seaborn",
+        "documentation": {}
+    },
+    {
+        "label": "Ellipse",
+        "importPath": "matplotlib.patches",
+        "description": "matplotlib.patches",
+        "isExtraImport": true,
+        "detail": "matplotlib.patches",
+        "documentation": {}
+    },
+    {
+        "label": "hierarchy",
+        "importPath": "scipy.cluster",
+        "description": "scipy.cluster",
+        "isExtraImport": true,
+        "detail": "scipy.cluster",
+        "documentation": {}
+    },
+    {
+        "label": "pdist",
+        "importPath": "scipy.spatial.distance",
+        "description": "scipy.spatial.distance",
+        "isExtraImport": true,
+        "detail": "scipy.spatial.distance",
+        "documentation": {}
+    },
+    {
+        "label": "squareform",
+        "importPath": "scipy.spatial.distance",
+        "description": "scipy.spatial.distance",
+        "isExtraImport": true,
+        "detail": "scipy.spatial.distance",
         "documentation": {}
     },
     {

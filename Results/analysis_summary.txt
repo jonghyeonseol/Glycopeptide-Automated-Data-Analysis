@@ -32,10 +32,11 @@ Fucosylated   1618 2.431655e+11 2.800702e+11  5.835972e+12  6.441615e+12     0.8
 
 ================================================================================
 Output Files:
-  - Integrated data: Results/integrated_example.csv
+  - Integrated data: Results/integrated.csv
   - Statistics: Results/glycan_type_statistics.csv
   - PCA plot: Results/pca_plot.png
   - Boxplot: Results/boxplot_glycan_types.png
-  - Heatmap: Results/heatmap_top_glycopeptides.png
+  - Heatmap (Top 50): Results/heatmap_top_glycopeptides.png
+  - Heatmap (Full Profile): Results/heatmap_full_glycan_profile.png
   - Distribution: Results/glycan_type_distribution.png
 ================================================================================

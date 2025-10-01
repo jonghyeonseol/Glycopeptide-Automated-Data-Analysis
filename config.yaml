@@ -4,7 +4,7 @@
 paths:
   dataset_dir: "Dataset"
   results_dir: "Results"
-  output_file: "integrated_example.csv"
+  output_file: "integrated.csv"
 
 # Data processing parameters
 processing:
