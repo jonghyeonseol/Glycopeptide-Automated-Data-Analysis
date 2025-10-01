@@ -37,9 +37,9 @@ class GlycanVisualizer:
         # Default color scheme
         self.colors = colors or {
             'Non': '#CCCCCC',
-            'Sialylated': '#E74C3C',
-            'Fucosylated': '#3498DB',
-            'Both': '#9B59B6'
+            'Sialylated': "#FF00EA",
+            'Fucosylated': "#DB3434",
+            'Both': "#FFB700"
         }
 
         # Set style
@@ -274,14 +274,14 @@ class GlycanVisualizer:
 
                 # Add significance marker if significant
                 if sig_marker != 'ns':
-                    # Position marker above the boxes
-                    y_position = y_max + y_range * 0.05 * (i % 2 + 1)
+                    # Position marker inside the plot area, near the top
+                    y_position = y_max - y_range * 0.02 - (y_range * 0.03 * (i % 2))
                     ax.text(
                         i,
                         y_position,
                         sig_marker,
                         ha='center',
-                        va='bottom',
+                        va='top',
                         fontsize=14,
                         fontweight='bold'
                     )
@@ -301,6 +301,99 @@ class GlycanVisualizer:
         output_file = self.output_dir / 'boxplot_glycan_types.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved boxplot to {output_file}")
+
+        plt.close()
+
+    def plot_boxplot_extended(self, boxplot_data: pd.DataFrame, figsize: tuple = (14, 6)):
+        """
+        Create extended boxplot comparing 5 glycan categories between groups
+
+        Args:
+            boxplot_data: Long-format DataFrame from analyzer (extended)
+            figsize: Figure size
+        """
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # Define fixed order for extended categories
+        category_order = ['HM', 'C/H', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
+
+        # Filter to only include existing categories
+        existing_categories = [cat for cat in category_order if cat in boxplot_data['ExtendedCategory'].unique()]
+
+        # Create boxplot with ordered categories
+        sns.boxplot(
+            data=boxplot_data,
+            x='ExtendedCategory',
+            y='Intensity',
+            hue='Group',
+            order=existing_categories,
+            palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'},
+            ax=ax
+        )
+
+        # Perform statistical tests and add significance markers
+        y_max = boxplot_data['Intensity'].max()
+        y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
+
+        for i, category in enumerate(existing_categories):
+            # Get data for each group
+            cancer_data = boxplot_data[
+                (boxplot_data['ExtendedCategory'] == category) &
+                (boxplot_data['Group'] == 'Cancer')
+            ]['Intensity'].values
+
+            normal_data = boxplot_data[
+                (boxplot_data['ExtendedCategory'] == category) &
+                (boxplot_data['Group'] == 'Normal')
+            ]['Intensity'].values
+
+            # Skip if either group has insufficient data
+            if len(cancer_data) < 3 or len(normal_data) < 3:
+                continue
+
+            # Perform Mann-Whitney U test (non-parametric)
+            try:
+                statistic, p_value = stats.mannwhitneyu(cancer_data, normal_data, alternative='two-sided')
+
+                # Determine significance level
+                if p_value < 0.001:
+                    sig_marker = '***'
+                elif p_value < 0.01:
+                    sig_marker = '**'
+                elif p_value < 0.05:
+                    sig_marker = '*'
+                else:
+                    sig_marker = 'ns'
+
+                # Add significance marker if significant
+                if sig_marker != 'ns':
+                    # Position marker inside the plot area, near the top
+                    y_position = y_max - y_range * 0.02 - (y_range * 0.03 * (i % 2))
+                    ax.text(
+                        i,
+                        y_position,
+                        sig_marker,
+                        ha='center',
+                        va='top',
+                        fontsize=14,
+                        fontweight='bold'
+                    )
+
+                    logger.info(f"{category}: p={p_value:.4f} ({sig_marker})")
+
+            except Exception as e:
+                logger.warning(f"Statistical test failed for {category}: {str(e)}")
+
+        ax.set_xlabel('Glycan Category', fontsize=12)
+        ax.set_ylabel('Log2(Intensity + 1)', fontsize=12)
+        ax.set_title('Extended Glycan Category Distribution (HM, C/H, Fucosylated, Sialylated, Sialofucosylated)', fontsize=14)
+        ax.legend(title='Group', loc='upper left', bbox_to_anchor=(1, 1), frameon=True)
+
+        plt.tight_layout()
+
+        output_file = self.output_dir / 'boxplot_extended_categories.png'
+        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
+        logger.info(f"Saved extended boxplot to {output_file}")
 
         plt.close()
 
@@ -361,7 +454,8 @@ class GlycanVisualizer:
         # Identify sample columns
         metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType']
+                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
+                        'IsHighMannose', 'IsComplexHybrid']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -459,7 +553,8 @@ class GlycanVisualizer:
         # Identify sample columns
         metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType']
+                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
+                        'IsHighMannose', 'IsComplexHybrid']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -538,7 +633,107 @@ class GlycanVisualizer:
 
         plt.close()
 
-    def plot_all(self, df: pd.DataFrame, pca_results: dict, boxplot_data: pd.DataFrame):
+    def plot_histogram_by_sample(self, df: pd.DataFrame, figsize: tuple = (20, 12)):
+        """
+        Create histogram showing glycan type intensities per sample
+
+        Args:
+            df: Annotated DataFrame
+            figsize: Figure size
+        """
+        # Identify sample columns
+        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
+                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
+                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
+                        'IsHighMannose', 'IsComplexHybrid']
+
+        sample_cols = [col for col in df.columns if col not in metadata_cols]
+
+        # Define glycan categories to display
+        # Priority order: High mannose, C/H, Sialylated, Fucosylated, Both
+        categories = []
+
+        # Calculate total intensity per sample per category
+        data_for_plot = []
+
+        for sample in sample_cols:
+            sample_data = {'Sample': sample}
+
+            # Get intensity matrix
+            intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+
+            # High mannose (priority 1)
+            high_mannose_mask = df['IsHighMannose']
+            sample_data['High mannose'] = intensity_col[high_mannose_mask].sum()
+
+            # C/H (priority 2)
+            ch_mask = df['IsComplexHybrid']
+            sample_data['C/H'] = intensity_col[ch_mask].sum()
+
+            # Both (Sialylated AND Fucosylated) (priority 3)
+            both_mask = df['IsSialylated'] & df['IsFucosylated']
+            sample_data['Both'] = intensity_col[both_mask].sum()
+
+            # Sialylated only (priority 4)
+            sia_only_mask = df['IsSialylated'] & ~df['IsFucosylated'] & ~df['IsHighMannose'] & ~df['IsComplexHybrid']
+            sample_data['Sialylated'] = intensity_col[sia_only_mask].sum()
+
+            # Fucosylated only (priority 5)
+            fuc_only_mask = df['IsFucosylated'] & ~df['IsSialylated'] & ~df['IsHighMannose'] & ~df['IsComplexHybrid']
+            sample_data['Fucosylated'] = intensity_col[fuc_only_mask].sum()
+
+            data_for_plot.append(sample_data)
+
+        # Create DataFrame
+        plot_df = pd.DataFrame(data_for_plot)
+        plot_df = plot_df.set_index('Sample')
+
+        # Reorder columns
+        column_order = ['High mannose', 'C/H', 'Fucosylated', 'Sialylated', 'Both']
+        plot_df = plot_df[column_order]
+
+        # Create stacked bar plot
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # Define colors for each category
+        colors = {
+            'High mannose': '#2ECC71',  # Green
+            'C/H': "#1500FF",           # Blue
+            'Fucosylated': "#FF0000",   # Red
+            'Sialylated': "#FF00FB",    # Pink
+            'Both': "#FF9D00"           # Orange
+        }
+
+        plot_df.plot(
+            kind='bar',
+            stacked=True,
+            ax=ax,
+            color=[colors[col] for col in column_order],
+            width=0.8,
+            edgecolor='black',
+            linewidth=0.5
+        )
+
+        ax.set_xlabel('Sample', fontsize=12)
+        ax.set_ylabel('Total Signal Intensity', fontsize=12)
+        ax.set_title('Glycan Type Distribution by Sample (Signal Intensity)', fontsize=14)
+        ax.legend(title='Glycan Type', loc='upper left', bbox_to_anchor=(1, 1), frameon=True)
+
+        # Rotate x-axis labels
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=90, ha='right')
+
+        # Use scientific notation for y-axis
+        ax.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
+
+        plt.tight_layout()
+
+        output_file = self.output_dir / 'histogram_glycan_types_by_sample.png'
+        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
+        logger.info(f"Saved histogram to {output_file}")
+
+        plt.close()
+
+    def plot_all(self, df: pd.DataFrame, pca_results: dict, boxplot_data: pd.DataFrame, boxplot_data_extended: pd.DataFrame = None):
         """
         Generate all plots
 
@@ -546,15 +741,22 @@ class GlycanVisualizer:
             df: Annotated DataFrame
             pca_results: PCA results from analyzer
             boxplot_data: Boxplot data from analyzer
+            boxplot_data_extended: Extended boxplot data from analyzer (optional)
         """
         logger.info("Generating all visualizations...")
 
         self.plot_pca(pca_results)
         self.plot_pca_by_glycan_type(df, pca_results)
         self.plot_boxplot(boxplot_data)
+
+        # Plot extended boxplot if data is provided
+        if boxplot_data_extended is not None:
+            self.plot_boxplot_extended(boxplot_data_extended)
+
         self.plot_glycan_type_distribution(df)
         self.plot_heatmap(df)
         self.plot_heatmap_full_profile(df)
+        self.plot_histogram_by_sample(df)
 
         logger.info(f"All visualizations saved to {self.output_dir}")
 

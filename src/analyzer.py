@@ -43,7 +43,8 @@ class GlycanAnalyzer:
         # Identify sample columns (C1, C2, ..., N1, N2, ...)
         metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType']
+                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
+                        'IsHighMannose', 'IsComplexHybrid']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -127,7 +128,8 @@ class GlycanAnalyzer:
         # Identify sample columns
         metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType']
+                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
+                        'IsHighMannose', 'IsComplexHybrid']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -187,7 +189,8 @@ class GlycanAnalyzer:
         # Identify sample columns
         metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType']
+                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
+                        'IsHighMannose', 'IsComplexHybrid']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -213,6 +216,67 @@ class GlycanAnalyzer:
         df_long = df_long[df_long['Intensity'] > 0]
 
         logger.info(f"Boxplot data prepared: {len(df_long)} observations")
+
+        return df_long
+
+    def prepare_boxplot_data_extended(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Prepare data for extended boxplot visualization with 5 categories
+
+        Args:
+            df: Annotated DataFrame
+
+        Returns:
+            Long-format DataFrame for plotting with extended categories
+        """
+        # Identify sample columns
+        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
+                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
+                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
+                        'IsHighMannose', 'IsComplexHybrid']
+
+        sample_cols = [col for col in df.columns if col not in metadata_cols]
+
+        # Create extended category based on all annotations
+        def determine_extended_category(row):
+            if row['IsHighMannose']:
+                return 'HM'
+            elif row['IsComplexHybrid']:
+                return 'C/H'
+            elif row['IsSialylated'] and row['IsFucosylated']:
+                return 'Sialofucosylated'
+            elif row['IsSialylated']:
+                return 'Sialylated'
+            elif row['IsFucosylated']:
+                return 'Fucosylated'
+            else:
+                return 'Other'
+
+        df_copy = df.copy()
+        df_copy['ExtendedCategory'] = df_copy.apply(determine_extended_category, axis=1)
+
+        # Melt to long format
+        df_long = df_copy.melt(
+            id_vars=['ExtendedCategory'],
+            value_vars=sample_cols,
+            var_name='Sample',
+            value_name='Intensity'
+        )
+
+        # Convert intensity to numeric
+        df_long['Intensity'] = pd.to_numeric(df_long['Intensity'].replace('', 0), errors='coerce').fillna(0)
+
+        # Add group information
+        df_long['Group'] = df_long['Sample'].apply(lambda x: 'Cancer' if x.startswith('C') else 'Normal')
+
+        # Log transform
+        if self.log_transform:
+            df_long['Intensity'] = np.log2(df_long['Intensity'] + 1)
+
+        # Remove zero intensities for better visualization
+        df_long = df_long[df_long['Intensity'] > 0]
+
+        logger.info(f"Extended boxplot data prepared: {len(df_long)} observations")
 
         return df_long
 

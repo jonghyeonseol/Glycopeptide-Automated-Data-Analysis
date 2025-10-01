@@ -70,11 +70,11 @@ def main():
     annotated_data = annotator.annotate_dataframe(integrated_data)
 
     # Prepare clean integrated data for output (only essential columns)
-    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation
+    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid
     sample_columns = [col for col in annotated_data.columns
                      if col.startswith('C') or col.startswith('N')]
 
-    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation']
+    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid']
     clean_integrated_data = annotated_data[output_columns].copy()
 
     # Save clean integrated data
@@ -105,6 +105,9 @@ def main():
     logger.info("Preparing boxplot data...")
     boxplot_data = analyzer.prepare_boxplot_data(annotated_data)
 
+    logger.info("Preparing extended boxplot data...")
+    boxplot_data_extended = analyzer.prepare_boxplot_data_extended(annotated_data)
+
     # Step 4: Create visualizations
     logger.info("\n[5/6] Creating visualizations...")
     visualizer = GlycanVisualizer(
@@ -116,7 +119,8 @@ def main():
     visualizer.plot_all(
         df=annotated_data,
         pca_results=pca_results,
-        boxplot_data=boxplot_data
+        boxplot_data=boxplot_data,
+        boxplot_data_extended=boxplot_data_extended
     )
 
     # Step 5: Summary report

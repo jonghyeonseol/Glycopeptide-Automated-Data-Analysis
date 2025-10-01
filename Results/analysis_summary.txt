@@ -4,8 +4,8 @@ pGlyco Auto Combine - Analysis Summary
 
 Data Integration:
   - Total glycopeptides: 6434
-  - Total samples: 47
-  - Cancer samples: 24
+  - Total samples: 48
+  - Cancer samples: 25
   - Normal samples: 23
 
 Glycan Annotation:
