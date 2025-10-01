@@ -234,7 +234,9 @@ class GlycanVisualizer:
             y='Intensity',
             hue='Group',
             order=existing_types,
+            hue_order=['Normal', 'Cancer'],
             palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'},
+            width=0.6,
             ax=ax
         )
 
@@ -327,7 +329,9 @@ class GlycanVisualizer:
             y='Intensity',
             hue='Group',
             order=existing_categories,
+            hue_order=['Normal', 'Cancer'],
             palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'},
+            width=0.6,
             ax=ax
         )
 
