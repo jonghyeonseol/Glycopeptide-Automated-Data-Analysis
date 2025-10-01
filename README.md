@@ -1,111 +1,111 @@
 # pGlyco Auto Combine
 
-자동 glycoproteomics 데이터 통합 및 분석 파이프라인
+Automated glycoproteomics data integration and analysis pipeline
 
-## 기능
+## Features
 
-1. **데이터 통합**: Dataset 폴더의 모든 CSV 파일을 자동으로 통합
-2. **Glycan Annotation**: Fucosylation 및 Sialylation 여부 자동 주석
-3. **통계 분석**: PCA 및 그룹 간 통계 비교
-4. **시각화**: PCA plot, Boxplot, Heatmap, 분포도 자동 생성
+1. **Data Integration**: Automatically integrates all CSV files from the Dataset folder
+2. **Glycan Annotation**: Automatic annotation of Fucosylation and Sialylation status
+3. **Statistical Analysis**: PCA and statistical comparison between groups
+4. **Visualization**: Automatic generation of PCA plots, Boxplots, Heatmaps, and distribution plots
 
-## 프로젝트 구조
+## Project Structure
 
 ```
 pGlyco_auto_combine/
-├── config.yaml              # 설정 파일
-├── main.py                  # 메인 파이프라인 실행 스크립트
-├── requirements.txt         # Python 패키지 의존성
+├── config.yaml              # Configuration file
+├── main.py                  # Main pipeline execution script
+├── requirements.txt         # Python package dependencies
 ├── src/
-│   ├── data_loader.py       # CSV 통합 모듈
-│   ├── annotator.py         # Glycan annotation 모듈
-│   ├── analyzer.py          # 통계 분석 모듈
-│   └── visualizer.py        # 시각화 모듈
-├── Dataset/                 # 입력 CSV 파일 (C_01.csv ~ N_24.csv)
-└── Results/                 # 출력 결과
-    ├── integrated_example.csv       # 통합 및 주석된 데이터
-    ├── analysis_summary.txt         # 분석 요약 리포트
-    ├── glycan_type_statistics.csv   # Glycan type별 통계
-    ├── pca_plot.png                 # PCA 시각화
-    ├── pca_samples.png              # PCA 샘플 분포
+│   ├── data_loader.py       # CSV integration module
+│   ├── annotator.py         # Glycan annotation module
+│   ├── analyzer.py          # Statistical analysis module
+│   └── visualizer.py        # Visualization module
+├── Dataset/                 # Input CSV files (C_01.csv ~ N_24.csv)
+└── Results/                 # Output results
+    ├── integrated_example.csv       # Integrated and annotated data
+    ├── analysis_summary.txt         # Analysis summary report
+    ├── glycan_type_statistics.csv   # Statistics by glycan type
+    ├── pca_plot.png                 # PCA visualization
+    ├── pca_samples.png              # PCA sample distribution
     ├── boxplot_glycan_types.png     # Boxplot
-    ├── glycan_type_distribution.png # Glycan type 분포
+    ├── glycan_type_distribution.png # Glycan type distribution
     └── heatmap_top_glycopeptides.png # Heatmap
 ```
 
-## 설치
+## Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 사용 방법
+## Usage
 
-### 1. 데이터 준비
-- `Dataset/` 폴더에 CSV 파일들을 배치 (파일명: `C_01.csv`, `C_02.csv`, ..., `N_01.csv`, ...)
-- 각 CSV 파일은 다음 열을 포함해야 함:
-  - `Peptide`: 펩타이드 서열
-  - `GlycanComposition`: Glycan 조성 (예: H(5)N(4)A(2)F(1))
-  - `IsotopeArea`: 정량 값
+### 1. Data Preparation
+- Place CSV files in the `Dataset/` folder (filename format: `C_01.csv`, `C_02.csv`, ..., `N_01.csv`, ...)
+- Each CSV file must contain the following columns:
+  - `Peptide`: Peptide sequence
+  - `GlycanComposition`: Glycan composition (e.g., H(5)N(4)A(2)F(1))
+  - `IsotopeArea`: Quantification value
 
-### 2. 파이프라인 실행
+### 2. Run Pipeline
 
 ```bash
 python3 main.py
 ```
 
-### 3. 결과 확인
-- `Results/` 폴더에 모든 출력 파일이 생성됨
+### 3. Check Results
+- All output files will be generated in the `Results/` folder
 
-## Annotation 규칙
+## Annotation Rules
 
 ### Sialylation
-- GlycanComposition에 `A`가 포함된 경우 → **Sialylated**
-- 예: `H(5)N(4)A(2)` → Sialylated (2개의 sialic acid)
+- If `A` is present in GlycanComposition → **Sialylated**
+- Example: `H(5)N(4)A(2)` → Sialylated (2 sialic acids)
 
 ### Fucosylation
-- GlycanComposition에 `F`가 포함된 경우 → **Fucosylated**
-- 예: `H(5)N(4)F(1)` → Fucosylated (1개의 fucose)
+- If `F` is present in GlycanComposition → **Fucosylated**
+- Example: `H(5)N(4)F(1)` → Fucosylated (1 fucose)
 
 ### Glycan Type
-- `Non`: Sialylation 없음, Fucosylation 없음
-- `Sialylated`: Sialylation만 있음
-- `Fucosylated`: Fucosylation만 있음
-- `Both`: Sialylation과 Fucosylation 둘 다 있음
+- `Non`: No Sialylation, No Fucosylation
+- `Sialylated`: Sialylation only
+- `Fucosylated`: Fucosylation only
+- `Both`: Both Sialylation and Fucosylation present
 
-## 출력 파일 설명
+## Output File Descriptions
 
 ### integrated_example.csv
-- 모든 샘플의 데이터를 통합한 파일
-- 구조:
+- File integrating data from all samples
+- Structure:
   ```
   Peptide | GlycanComposition | C1 | C2 | ... | N1 | N2 | ... | Sialylation | Fucosylation | GlycanType
   ```
 
 ### analysis_summary.txt
-- 전체 분석 결과 요약
-- 샘플 수, Glycan type 분포, PCA 결과, 통계 등
+- Summary of overall analysis results
+- Number of samples, glycan type distribution, PCA results, statistics, etc.
 
-### 시각화 파일
-- **pca_plot.png**: Cancer vs Normal 샘플의 PCA 분포
-- **boxplot_glycan_types.png**: Glycan type별 강도 분포
-- **glycan_type_distribution.png**: Glycan type 개수 분포
-- **heatmap_top_glycopeptides.png**: 상위 50개 glycopeptide heatmap
+### Visualization Files
+- **pca_plot.png**: PCA distribution of Cancer vs Normal samples
+- **boxplot_glycan_types.png**: Intensity distribution by glycan type
+- **glycan_type_distribution.png**: Glycan type count distribution
+- **heatmap_top_glycopeptides.png**: Heatmap of top 50 glycopeptides
 
-## 설정 변경
+## Configuration
 
-`config.yaml` 파일을 수정하여 다양한 파라미터를 조정할 수 있습니다:
+You can adjust various parameters by modifying the `config.yaml` file:
 
-- 경로 설정
-- QC 필터링 기준
-- Annotation 마커
-- PCA 파라미터
-- 시각화 옵션
+- Path settings
+- QC filtering criteria
+- Annotation markers
+- PCA parameters
+- Visualization options
 
-## 개발자
+## Developer
 
-개발 날짜: 2025-10-01
+Development Date: 2025-10-01
 
-## 라이센스
+## License
 
 MIT License
