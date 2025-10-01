@@ -1,0 +1,269 @@
+[
+    {
+        "label": "pandas",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "PCA",
+        "importPath": "sklearn.decomposition",
+        "description": "sklearn.decomposition",
+        "isExtraImport": true,
+        "detail": "sklearn.decomposition",
+        "documentation": {}
+    },
+    {
+        "label": "StandardScaler",
+        "importPath": "sklearn.preprocessing",
+        "description": "sklearn.preprocessing",
+        "isExtraImport": true,
+        "detail": "sklearn.preprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "stats",
+        "importPath": "scipy",
+        "description": "scipy",
+        "isExtraImport": true,
+        "detail": "scipy",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "matplotlib.pyplot",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "matplotlib.pyplot",
+        "description": "matplotlib.pyplot",
+        "detail": "matplotlib.pyplot",
+        "documentation": {}
+    },
+    {
+        "label": "seaborn",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "seaborn",
+        "description": "seaborn",
+        "detail": "seaborn",
+        "documentation": {}
+    },
+    {
+        "label": "yaml",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "yaml",
+        "description": "yaml",
+        "detail": "yaml",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "DataLoader",
+        "importPath": "data_loader",
+        "description": "data_loader",
+        "isExtraImport": true,
+        "detail": "data_loader",
+        "documentation": {}
+    },
+    {
+        "label": "GlycanAnnotator",
+        "importPath": "annotator",
+        "description": "annotator",
+        "isExtraImport": true,
+        "detail": "annotator",
+        "documentation": {}
+    },
+    {
+        "label": "GlycanAnalyzer",
+        "importPath": "analyzer",
+        "description": "analyzer",
+        "isExtraImport": true,
+        "detail": "analyzer",
+        "documentation": {}
+    },
+    {
+        "label": "GlycanVisualizer",
+        "importPath": "visualizer",
+        "description": "visualizer",
+        "isExtraImport": true,
+        "detail": "visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "GlycanAnalyzer",
+        "kind": 6,
+        "importPath": "src.analyzer",
+        "description": "src.analyzer",
+        "peekOfCode": "class GlycanAnalyzer:\n    \"\"\"Perform statistical analysis on glycoproteomics data\"\"\"\n    def __init__(self, n_components: int = 2, log_transform: bool = True):\n        \"\"\"\n        Initialize GlycanAnalyzer\n        Args:\n            n_components: Number of PCA components\n            log_transform: Whether to log-transform intensity values\n        \"\"\"\n        self.n_components = n_components",
+        "detail": "src.analyzer",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.analyzer",
+        "description": "src.analyzer",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanAnalyzer:\n    \"\"\"Perform statistical analysis on glycoproteomics data\"\"\"\n    def __init__(self, n_components: int = 2, log_transform: bool = True):\n        \"\"\"\n        Initialize GlycanAnalyzer\n        Args:\n            n_components: Number of PCA components\n            log_transform: Whether to log-transform intensity values\n        \"\"\"",
+        "detail": "src.analyzer",
+        "documentation": {}
+    },
+    {
+        "label": "GlycanAnnotator",
+        "kind": 6,
+        "importPath": "src.annotator",
+        "description": "src.annotator",
+        "peekOfCode": "class GlycanAnnotator:\n    \"\"\"Annotate glycopeptides based on glycan composition\"\"\"\n    def __init__(self, sialylation_marker: str = \"A\", fucosylation_marker: str = \"F\"):\n        \"\"\"\n        Initialize GlycanAnnotator\n        Args:\n            sialylation_marker: Marker for sialylation (default: 'A' for NeuAc)\n            fucosylation_marker: Marker for fucosylation (default: 'F')\n        \"\"\"\n        self.sialylation_marker = sialylation_marker",
+        "detail": "src.annotator",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.annotator",
+        "description": "src.annotator",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanAnnotator:\n    \"\"\"Annotate glycopeptides based on glycan composition\"\"\"\n    def __init__(self, sialylation_marker: str = \"A\", fucosylation_marker: str = \"F\"):\n        \"\"\"\n        Initialize GlycanAnnotator\n        Args:\n            sialylation_marker: Marker for sialylation (default: 'A' for NeuAc)\n            fucosylation_marker: Marker for fucosylation (default: 'F')\n        \"\"\"",
+        "detail": "src.annotator",
+        "documentation": {}
+    },
+    {
+        "label": "DataLoader",
+        "kind": 6,
+        "importPath": "src.data_loader",
+        "description": "src.data_loader",
+        "peekOfCode": "class DataLoader:\n    \"\"\"Load and integrate glycoproteomics data from multiple CSV files\"\"\"\n    def __init__(self, dataset_dir: str, required_columns: List[str]):\n        \"\"\"\n        Initialize DataLoader\n        Args:\n            dataset_dir: Path to directory containing CSV files\n            required_columns: List of required column names\n        \"\"\"\n        self.dataset_dir = Path(dataset_dir)",
+        "detail": "src.data_loader",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.data_loader",
+        "description": "src.data_loader",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass DataLoader:\n    \"\"\"Load and integrate glycoproteomics data from multiple CSV files\"\"\"\n    def __init__(self, dataset_dir: str, required_columns: List[str]):\n        \"\"\"\n        Initialize DataLoader\n        Args:\n            dataset_dir: Path to directory containing CSV files\n            required_columns: List of required column names\n        \"\"\"",
+        "detail": "src.data_loader",
+        "documentation": {}
+    },
+    {
+        "label": "GlycanVisualizer",
+        "kind": 6,
+        "importPath": "src.visualizer",
+        "description": "src.visualizer",
+        "peekOfCode": "class GlycanVisualizer:\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"\n    def __init__(self, output_dir: str, dpi: int = 300, colors: dict = None):\n        \"\"\"\n        Initialize GlycanVisualizer\n        Args:\n            output_dir: Directory to save plots\n            dpi: Resolution for saved figures\n            colors: Color scheme for glycan types\n        \"\"\"",
+        "detail": "src.visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.visualizer",
+        "description": "src.visualizer",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanVisualizer:\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"\n    def __init__(self, output_dir: str, dpi: int = 300, colors: dict = None):\n        \"\"\"\n        Initialize GlycanVisualizer\n        Args:\n            output_dir: Directory to save plots\n            dpi: Resolution for saved figures\n            colors: Color scheme for glycan types",
+        "detail": "src.visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "load_config",
+        "kind": 2,
+        "importPath": "main",
+        "description": "main",
+        "peekOfCode": "def load_config(config_path: str = 'config.yaml') -> dict:\n    \"\"\"Load configuration from YAML file\"\"\"\n    with open(config_path, 'r') as f:\n        config = yaml.safe_load(f)\n    return config\ndef main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")\n    logger.info(\"=\"*80)",
+        "detail": "main",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "main",
+        "description": "main",
+        "peekOfCode": "def main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")\n    logger.info(\"=\"*80)\n    # Load configuration\n    logger.info(\"\\n[1/6] Loading configuration...\")\n    config = load_config('config.yaml')\n    # Paths\n    dataset_dir = config['paths']['dataset_dir']",
+        "detail": "main",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "main",
+        "description": "main",
+        "peekOfCode": "logger = logging.getLogger(__name__)\ndef load_config(config_path: str = 'config.yaml') -> dict:\n    \"\"\"Load configuration from YAML file\"\"\"\n    with open(config_path, 'r') as f:\n        config = yaml.safe_load(f)\n    return config\ndef main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")",
+        "detail": "main",
+        "documentation": {}
+    }
+]
