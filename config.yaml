@@ -1,0 +1,47 @@
+# pGlyco Auto Combine Configuration
+
+# Input/Output paths
+paths:
+  dataset_dir: "Dataset"
+  results_dir: "Results"
+  output_file: "integrated_example.csv"
+
+# Data processing parameters
+processing:
+  required_columns:
+    - "Peptide"
+    - "GlycanComposition"
+    - "IsotopeArea"
+
+  # Quality control filters
+  qc_filters:
+    min_isotope_area: 0  # Minimum IsotopeArea threshold
+
+# Annotation parameters
+annotation:
+  sialylation_marker: "A"  # Presence of A indicates sialylation
+  fucosylation_marker: "F"  # Presence of F indicates fucosylation
+
+# Analysis parameters
+analysis:
+  pca:
+    n_components: 2
+    log_transform: true  # Log transform intensity values
+
+  statistical_tests:
+    alpha: 0.05  # Significance threshold
+
+# Visualization parameters
+visualization:
+  figsize:
+    pca: [10, 8]
+    boxplot: [12, 6]
+    heatmap: [14, 10]
+
+  dpi: 300
+
+  colors:
+    Non: "#CCCCCC"
+    Sialylated: "#E74C3C"
+    Fucosylated: "#3498DB"
+    Both: "#9B59B6"
