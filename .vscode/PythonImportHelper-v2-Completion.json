@@ -18,6 +18,129 @@
         "documentation": {}
     },
     {
+        "label": "matplotlib.pyplot",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "matplotlib.pyplot",
+        "description": "matplotlib.pyplot",
+        "detail": "matplotlib.pyplot",
+        "documentation": {}
+    },
+    {
+        "label": "seaborn",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "seaborn",
+        "description": "seaborn",
+        "detail": "seaborn",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "stats",
+        "importPath": "scipy",
+        "description": "scipy",
+        "isExtraImport": true,
+        "detail": "scipy",
+        "documentation": {}
+    },
+    {
+        "label": "stats",
+        "importPath": "scipy",
+        "description": "scipy",
+        "isExtraImport": true,
+        "detail": "scipy",
+        "documentation": {}
+    },
+    {
+        "label": "Ellipse",
+        "importPath": "matplotlib.patches",
+        "description": "matplotlib.patches",
+        "isExtraImport": true,
+        "detail": "matplotlib.patches",
+        "documentation": {}
+    },
+    {
         "label": "PCA",
         "importPath": "sklearn.decomposition",
         "description": "sklearn.decomposition",
@@ -50,61 +173,12 @@
         "documentation": {}
     },
     {
-        "label": "stats",
-        "importPath": "scipy",
-        "description": "scipy",
-        "isExtraImport": true,
-        "detail": "scipy",
-        "documentation": {}
-    },
-    {
-        "label": "stats",
-        "importPath": "scipy",
-        "description": "scipy",
-        "isExtraImport": true,
-        "detail": "scipy",
-        "documentation": {}
-    },
-    {
-        "label": "logging",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "logging",
-        "description": "logging",
-        "detail": "logging",
-        "documentation": {}
-    },
-    {
         "label": "re",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "re",
         "description": "re",
         "detail": "re",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
         "documentation": {}
     },
     {
@@ -124,53 +198,51 @@
         "documentation": {}
     },
     {
-        "label": "matplotlib.pyplot",
-        "kind": 6,
+        "label": "PCAPlotMixin",
+        "importPath": "src.plots.pca_plot",
+        "description": "src.plots.pca_plot",
         "isExtraImport": true,
-        "importPath": "matplotlib.pyplot",
-        "description": "matplotlib.pyplot",
-        "detail": "matplotlib.pyplot",
+        "detail": "src.plots.pca_plot",
         "documentation": {}
     },
     {
-        "label": "seaborn",
-        "kind": 6,
+        "label": "BoxplotMixin",
+        "importPath": "src.plots.boxplot",
+        "description": "src.plots.boxplot",
         "isExtraImport": true,
-        "importPath": "seaborn",
-        "description": "seaborn",
-        "detail": "seaborn",
+        "detail": "src.plots.boxplot",
         "documentation": {}
     },
     {
-        "label": "Ellipse",
-        "importPath": "matplotlib.patches",
-        "description": "matplotlib.patches",
+        "label": "HeatmapMixin",
+        "importPath": "src.plots.heatmap",
+        "description": "src.plots.heatmap",
         "isExtraImport": true,
-        "detail": "matplotlib.patches",
+        "detail": "src.plots.heatmap",
         "documentation": {}
     },
     {
-        "label": "hierarchy",
-        "importPath": "scipy.cluster",
-        "description": "scipy.cluster",
+        "label": "HistogramMixin",
+        "importPath": "src.plots.histogram",
+        "description": "src.plots.histogram",
         "isExtraImport": true,
-        "detail": "scipy.cluster",
+        "detail": "src.plots.histogram",
         "documentation": {}
     },
     {
-        "label": "pdist",
-        "importPath": "scipy.spatial.distance",
-        "description": "scipy.spatial.distance",
+        "label": "VIPScorePlotMixin",
+        "importPath": "src.plots.vip_score_plot",
+        "description": "src.plots.vip_score_plot",
         "isExtraImport": true,
-        "detail": "scipy.spatial.distance",
+        "detail": "src.plots.vip_score_plot",
         "documentation": {}
     },
     {
-        "label": "squareform",
-        "importPath": "scipy.spatial.distance",
-        "description": "scipy.spatial.distance",
+        "label": "DistributionPlotMixin",
+        "importPath": "src.plots.distribution_plot",
+        "description": "src.plots.distribution_plot",
         "isExtraImport": true,
-        "detail": "scipy.spatial.distance",
+        "detail": "src.plots.distribution_plot",
         "documentation": {}
     },
     {
@@ -221,6 +293,114 @@
         "description": "visualizer",
         "isExtraImport": true,
         "detail": "visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "BoxplotMixin",
+        "kind": 6,
+        "importPath": "src.plots.boxplot",
+        "description": "src.plots.boxplot",
+        "peekOfCode": "class BoxplotMixin:\n    \"\"\"Mixin class for boxplot-related visualizations\"\"\"\n    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = (12, 6)):\n        \"\"\"\n        Create boxplot comparing glycan types between groups with statistical significance\n        Args:\n            boxplot_data: Long-format DataFrame from analyzer\n            figsize: Figure size\n        \"\"\"\n        fig, ax = plt.subplots(figsize=figsize)",
+        "detail": "src.plots.boxplot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.boxplot",
+        "description": "src.plots.boxplot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass BoxplotMixin:\n    \"\"\"Mixin class for boxplot-related visualizations\"\"\"\n    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = (12, 6)):\n        \"\"\"\n        Create boxplot comparing glycan types between groups with statistical significance\n        Args:\n            boxplot_data: Long-format DataFrame from analyzer\n            figsize: Figure size\n        \"\"\"",
+        "detail": "src.plots.boxplot",
+        "documentation": {}
+    },
+    {
+        "label": "DistributionPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.distribution_plot",
+        "description": "src.plots.distribution_plot",
+        "peekOfCode": "class DistributionPlotMixin:\n    \"\"\"Mixin class for distribution-related plots\"\"\"\n    def plot_glycan_type_distribution(self, df: pd.DataFrame, figsize: tuple = (10, 6)):\n        \"\"\"\n        Create bar plot showing distribution of glycan types\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"\n        fig, ax = plt.subplots(figsize=figsize)",
+        "detail": "src.plots.distribution_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.distribution_plot",
+        "description": "src.plots.distribution_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass DistributionPlotMixin:\n    \"\"\"Mixin class for distribution-related plots\"\"\"\n    def plot_glycan_type_distribution(self, df: pd.DataFrame, figsize: tuple = (10, 6)):\n        \"\"\"\n        Create bar plot showing distribution of glycan types\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"",
+        "detail": "src.plots.distribution_plot",
+        "documentation": {}
+    },
+    {
+        "label": "HeatmapMixin",
+        "kind": 6,
+        "importPath": "src.plots.heatmap",
+        "description": "src.plots.heatmap",
+        "peekOfCode": "class HeatmapMixin:\n    \"\"\"Mixin class for heatmap-related plots\"\"\"\n    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 50):\n        \"\"\"\n        Create clustered heatmap of top glycopeptides with hierarchical clustering\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show\n        \"\"\"",
+        "detail": "src.plots.heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.heatmap",
+        "description": "src.plots.heatmap",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass HeatmapMixin:\n    \"\"\"Mixin class for heatmap-related plots\"\"\"\n    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 50):\n        \"\"\"\n        Create clustered heatmap of top glycopeptides with hierarchical clustering\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show",
+        "detail": "src.plots.heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "HistogramMixin",
+        "kind": 6,
+        "importPath": "src.plots.histogram",
+        "description": "src.plots.histogram",
+        "peekOfCode": "class HistogramMixin:\n    \"\"\"Mixin class for histogram-related plots\"\"\"\n    def plot_histogram_by_sample(self, df: pd.DataFrame, figsize: tuple = (20, 12)):\n        \"\"\"\n        Create histogram showing glycan type intensities per sample (original data)\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"\n        # Identify sample columns",
+        "detail": "src.plots.histogram",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.histogram",
+        "description": "src.plots.histogram",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass HistogramMixin:\n    \"\"\"Mixin class for histogram-related plots\"\"\"\n    def plot_histogram_by_sample(self, df: pd.DataFrame, figsize: tuple = (20, 12)):\n        \"\"\"\n        Create histogram showing glycan type intensities per sample (original data)\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"",
+        "detail": "src.plots.histogram",
+        "documentation": {}
+    },
+    {
+        "label": "PCAPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.pca_plot",
+        "description": "src.plots.pca_plot",
+        "peekOfCode": "class PCAPlotMixin:\n    \"\"\"Mixin class for PCA-related plots\"\"\"\n    def _draw_confidence_ellipse(self, ax, x, y, color, alpha=0.2, n_std=1.96):\n        \"\"\"\n        Draw 95% confidence ellipse for a group of points\n        Args:\n            ax: Matplotlib axis\n            x, y: Data points\n            color: Ellipse color\n            alpha: Transparency",
+        "detail": "src.plots.pca_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.pca_plot",
+        "description": "src.plots.pca_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass PCAPlotMixin:\n    \"\"\"Mixin class for PCA-related plots\"\"\"\n    def _draw_confidence_ellipse(self, ax, x, y, color, alpha=0.2, n_std=1.96):\n        \"\"\"\n        Draw 95% confidence ellipse for a group of points\n        Args:\n            ax: Matplotlib axis\n            x, y: Data points\n            color: Ellipse color",
+        "detail": "src.plots.pca_plot",
+        "documentation": {}
+    },
+    {
+        "label": "VIPScorePlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.vip_score_plot",
+        "description": "src.plots.vip_score_plot",
+        "peekOfCode": "class VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 8)):\n        \"\"\"\n        Plot top 10 VIP scores by glycopeptide (dot plot with Cancer/Normal coloring)\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size\n        \"\"\"",
+        "detail": "src.plots.vip_score_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.vip_score_plot",
+        "description": "src.plots.vip_score_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 8)):\n        \"\"\"\n        Plot top 10 VIP scores by glycopeptide (dot plot with Cancer/Normal coloring)\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size",
+        "detail": "src.plots.vip_score_plot",
         "documentation": {}
     },
     {
@@ -282,7 +462,7 @@
         "kind": 6,
         "importPath": "src.visualizer",
         "description": "src.visualizer",
-        "peekOfCode": "class GlycanVisualizer:\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"\n    def __init__(self, output_dir: str, dpi: int = 300, colors: dict = None):\n        \"\"\"\n        Initialize GlycanVisualizer\n        Args:\n            output_dir: Directory to save plots\n            dpi: Resolution for saved figures\n            colors: Color scheme for glycan types\n        \"\"\"",
+        "peekOfCode": "class GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    DistributionPlotMixin\n):\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"\n    def __init__(self, output_dir: str, dpi: int = 300, colors: dict = None):",
         "detail": "src.visualizer",
         "documentation": {}
     },
@@ -291,7 +471,7 @@
         "kind": 5,
         "importPath": "src.visualizer",
         "description": "src.visualizer",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanVisualizer:\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"\n    def __init__(self, output_dir: str, dpi: int = 300, colors: dict = None):\n        \"\"\"\n        Initialize GlycanVisualizer\n        Args:\n            output_dir: Directory to save plots\n            dpi: Resolution for saved figures\n            colors: Color scheme for glycan types",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    DistributionPlotMixin\n):\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"",
         "detail": "src.visualizer",
         "documentation": {}
     },
