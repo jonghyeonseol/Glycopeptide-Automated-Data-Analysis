@@ -70,11 +70,11 @@ def main():
     annotated_data = annotator.annotate_dataframe(integrated_data)
 
     # Prepare clean integrated data for output (only essential columns)
-    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid
+    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid, PrimaryClassification, SecondaryClassification
     sample_columns = [col for col in annotated_data.columns
                      if col.startswith('C') or col.startswith('N')]
 
-    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid']
+    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid', 'PrimaryClassification', 'SecondaryClassification']
     clean_integrated_data = annotated_data[output_columns].copy()
 
     # Save clean integrated data
@@ -108,6 +108,19 @@ def main():
     logger.info("Preparing extended boxplot data...")
     boxplot_data_extended = analyzer.prepare_boxplot_data_extended(annotated_data)
 
+    # PLS-DA analysis and VIP score calculation
+    logger.info("Performing PLS-DA analysis...")
+    plsda_results = analyzer.perform_plsda(annotated_data, n_components=2)
+
+    # Get VIP scores for summary report (TOP 10 only)
+    logger.info("Calculating VIP scores...")
+    vip_glycopeptide = analyzer.get_top_vip_by_glycopeptide(annotated_data, plsda_results, top_n=10)
+
+    # Save all VIP scores
+    vip_file = Path(results_dir) / 'vip_scores_all.csv'
+    plsda_results['vip_scores'].to_csv(vip_file, index=False)
+    logger.info(f"Saved all VIP scores to {vip_file}")
+
     # Step 4: Create visualizations
     logger.info("\n[5/6] Creating visualizations...")
     visualizer = GlycanVisualizer(
@@ -122,6 +135,31 @@ def main():
         boxplot_data=boxplot_data,
         boxplot_data_extended=boxplot_data_extended
     )
+
+    # Additional visualizations for primary/secondary classification
+    logger.info("Creating primary/secondary classification histograms...")
+    visualizer.plot_histogram_primary_classification(annotated_data, normalization='raw')
+    visualizer.plot_histogram_primary_classification(annotated_data, normalization='aggregated')
+    visualizer.plot_histogram_secondary_classification(annotated_data, normalization='raw')
+    visualizer.plot_histogram_secondary_classification(annotated_data, normalization='aggregated')
+    visualizer.plot_histogram_cancer_vs_normal_primary(annotated_data)
+    visualizer.plot_histogram_cancer_vs_normal_secondary(annotated_data)
+
+    # VIP score visualizations (dot plots with Cancer/Normal coloring)
+    logger.info("Creating VIP score plots...")
+    visualizer.plot_vip_scores_glycopeptide(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_glycan_type(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_peptide_top10(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_peptide_all(annotated_data, plsda_results['vip_scores'])
+
+    # Box plots corresponding to histograms
+    logger.info("Creating box plots...")
+    visualizer.plot_boxplot_primary_classification(annotated_data, normalization='raw')
+    visualizer.plot_boxplot_primary_classification(annotated_data, normalization='aggregated')
+    visualizer.plot_boxplot_secondary_classification(annotated_data, normalization='raw')
+    visualizer.plot_boxplot_secondary_classification(annotated_data, normalization='aggregated')
+    visualizer.plot_boxplot_cancer_vs_normal_primary(annotated_data)
+    visualizer.plot_boxplot_cancer_vs_normal_secondary(annotated_data)
 
     # Step 5: Summary report
     logger.info("\n[6/6] Generating summary report...")
@@ -142,7 +180,15 @@ def main():
         f.write(f"  - Sialylated: {annotated_data['IsSialylated'].sum()} ({annotated_data['IsSialylated'].sum()/len(annotated_data)*100:.1f}%)\n")
         f.write(f"  - Fucosylated: {annotated_data['IsFucosylated'].sum()} ({annotated_data['IsFucosylated'].sum()/len(annotated_data)*100:.1f}%)\n\n")
 
-        f.write("Glycan Type Distribution:\n")
+        f.write("Primary Classification Distribution:\n")
+        for primary_class, count in annotated_data['PrimaryClassification'].value_counts().items():
+            f.write(f"  - {primary_class}: {count} ({count/len(annotated_data)*100:.1f}%)\n")
+
+        f.write("\nSecondary Classification Distribution:\n")
+        for secondary_class, count in annotated_data['SecondaryClassification'].value_counts().items():
+            f.write(f"  - {secondary_class}: {count} ({count/len(annotated_data)*100:.1f}%)\n")
+
+        f.write("\nGlycan Type Distribution (Legacy):\n")
         for glycan_type, count in annotated_data['GlycanType'].value_counts().items():
             f.write(f"  - {glycan_type}: {count} ({count/len(annotated_data)*100:.1f}%)\n")
 
@@ -154,15 +200,41 @@ def main():
         f.write("\nStatistics by Glycan Type:\n")
         f.write(stats_df.to_string(index=False))
 
+        f.write("\n\nTop 10 VIP Scores (Glycopeptide):\n")
+        f.write(vip_glycopeptide[['Peptide', 'GlycanComposition', 'VIP_Score']].to_string(index=False))
+        f.write("\n\nNote: VIP scores by Glycan Type and Peptide are visualized in the corresponding PNG files.")
+
         f.write("\n\n" + "="*80 + "\n")
         f.write("Output Files:\n")
         f.write(f"  - Integrated data: {output_file}\n")
         f.write(f"  - Statistics: {stats_file}\n")
-        f.write(f"  - PCA plot: {Path(results_dir) / 'pca_plot.png'}\n")
-        f.write(f"  - Boxplot: {Path(results_dir) / 'boxplot_glycan_types.png'}\n")
-        f.write(f"  - Heatmap (Top 50): {Path(results_dir) / 'heatmap_top_glycopeptides.png'}\n")
-        f.write(f"  - Heatmap (Full Profile): {Path(results_dir) / 'heatmap_full_glycan_profile.png'}\n")
-        f.write(f"  - Distribution: {Path(results_dir) / 'glycan_type_distribution.png'}\n")
+        f.write(f"  - VIP Scores (all): {vip_file}\n")
+        f.write(f"\nVisualization Files:\n")
+        f.write(f"  - PCA plot: pca_plot.png\n")
+        f.write(f"  - PCA samples: pca_samples.png\n")
+        f.write(f"  - Boxplot: boxplot_glycan_types.png\n")
+        f.write(f"  - Boxplot (extended): boxplot_extended_categories.png\n")
+        f.write(f"  - Heatmap (Top 50): heatmap_top_glycopeptides.png\n")
+        f.write(f"  - Heatmap (Full Profile): heatmap_full_glycan_profile.png\n")
+        f.write(f"  - Distribution: glycan_type_distribution.png\n")
+        f.write(f"  - Histogram (original): histogram_glycan_types_by_sample.png\n")
+        f.write(f"  - Histogram (normalized): histogram_glycan_types_by_sample_normalized.png\n")
+        f.write(f"  - Histogram (primary, raw norm): histogram_primary_raw_normalized.png\n")
+        f.write(f"  - Histogram (primary, agg norm): histogram_primary_aggregated_normalized.png\n")
+        f.write(f"  - Histogram (secondary, raw norm): histogram_secondary_raw_normalized.png\n")
+        f.write(f"  - Histogram (secondary, agg norm): histogram_secondary_aggregated_normalized.png\n")
+        f.write(f"  - Histogram (Cancer vs Normal, primary): histogram_primary_cancer_vs_normal.png\n")
+        f.write(f"  - Histogram (Cancer vs Normal, secondary): histogram_secondary_cancer_vs_normal.png\n")
+        f.write(f"  - Boxplot (primary, raw norm): boxplot_primary_raw_normalized.png\n")
+        f.write(f"  - Boxplot (primary, agg norm): boxplot_primary_aggregated_normalized.png\n")
+        f.write(f"  - Boxplot (secondary, raw norm): boxplot_secondary_raw_normalized.png\n")
+        f.write(f"  - Boxplot (secondary, agg norm): boxplot_secondary_aggregated_normalized.png\n")
+        f.write(f"  - Boxplot (Cancer vs Normal, primary): boxplot_primary_cancer_vs_normal.png\n")
+        f.write(f"  - Boxplot (Cancer vs Normal, secondary): boxplot_secondary_cancer_vs_normal.png\n")
+        f.write(f"  - VIP scores (glycopeptide): vip_score_glycopeptide.png\n")
+        f.write(f"  - VIP scores (glycan type): vip_score_glycan_type.png\n")
+        f.write(f"  - VIP scores (peptide, top 10): vip_score_peptide_top10.png\n")
+        f.write(f"  - VIP scores (peptide, all): vip_score_peptide_all.png\n")
         f.write("="*80 + "\n")
 
     logger.info(f"Saved summary report to {summary_file}")

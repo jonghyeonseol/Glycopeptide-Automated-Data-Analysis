@@ -41,7 +41,20 @@ visualization:
   dpi: 300
 
   colors:
+    # Legacy colors (for backward compatibility)
     Non: "#CCCCCC"
     Sialylated: "#E74C3C"
     Fucosylated: "#3498DB"
     Both: "#9B59B6"
+
+    # Primary classification colors
+    Truncated: "#CCCCCC"
+    "High Mannose": "#2ECC71"
+    ComplexHybrid: "#3498DB"
+    Outlier: "#E67E22"
+
+    # Secondary classification colors
+    "Complex/Hybrid": "#3498DB"
+    Fucosylated_secondary: "#E74C3C"
+    Sialylated_secondary: "#9B59B6"
+    Sialofucosylated: "#F39C12"

@@ -34,6 +34,22 @@
         "documentation": {}
     },
     {
+        "label": "RobustScaler",
+        "importPath": "sklearn.preprocessing",
+        "description": "sklearn.preprocessing",
+        "isExtraImport": true,
+        "detail": "sklearn.preprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "PLSRegression",
+        "importPath": "sklearn.cross_decomposition",
+        "description": "sklearn.cross_decomposition",
+        "isExtraImport": true,
+        "detail": "sklearn.cross_decomposition",
+        "documentation": {}
+    },
+    {
         "label": "stats",
         "importPath": "scipy",
         "description": "scipy",

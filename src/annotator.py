@@ -131,25 +131,90 @@ class GlycanAnnotator:
         n_count = self.extract_monosaccharide_count(glycan_composition, 'N')
         return n_count >= 3
 
+    def get_primary_classification(self, glycan_composition: str) -> str:
+        """
+        Determine primary classification based on N (HexNAc) count
+
+        Args:
+            glycan_composition: Glycan composition string
+
+        Returns:
+            Primary classification: 'Truncated', 'High Mannose', 'ComplexHybrid', or 'Outlier'
+        """
+        if pd.isna(glycan_composition) or glycan_composition == "":
+            return 'Unknown'
+
+        n_count = self.extract_monosaccharide_count(glycan_composition, 'N')
+        has_f = self.is_fucosylated(glycan_composition)
+        has_a = self.is_sialylated(glycan_composition)
+
+        if n_count < 2:
+            return 'Truncated'
+        elif n_count == 2:
+            if has_f or has_a:
+                return 'Outlier'
+            else:
+                return 'High Mannose'
+        else:  # n_count >= 3
+            return 'ComplexHybrid'
+
+    def get_secondary_classification(self, glycan_composition: str) -> str:
+        """
+        Determine secondary classification based on primary type and F/A content
+
+        Args:
+            glycan_composition: Glycan composition string
+
+        Returns:
+            Secondary classification string
+        """
+        if pd.isna(glycan_composition) or glycan_composition == "":
+            return 'Unknown'
+
+        primary = self.get_primary_classification(glycan_composition)
+        has_f = self.is_fucosylated(glycan_composition)
+        has_a = self.is_sialylated(glycan_composition)
+
+        if primary == 'Truncated':
+            return 'Truncated'
+        elif primary == 'Outlier':
+            return 'Outlier'
+        elif primary == 'High Mannose':
+            return 'High Mannose'
+        elif primary == 'ComplexHybrid':
+            if not has_f and not has_a:
+                return 'Complex/Hybrid'
+            elif has_f and not has_a:
+                return 'Fucosylated'
+            elif not has_f and has_a:
+                return 'Sialylated'
+            else:  # has_f and has_a
+                return 'Sialofucosylated'
+        else:
+            return 'Unknown'
+
     def annotate_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Annotate DataFrame with Sialylation and Fucosylation columns
+        Annotate DataFrame with primary and secondary glycan classifications
 
         Args:
             df: DataFrame with 'GlycanComposition' column
 
         Returns:
             DataFrame with added annotation columns:
-            - Sialylation: 'Sialylated' or 'Non-sialylated'
-            - Fucosylation: 'Fucosylated' or 'Non-fucosylated'
-            - SialylationCount: Number of sialic acid residues
-            - FucosylationCount: Number of fucose residues
-            - GlycanType: Combined annotation (Non/Sialylated/Fucosylated/Both)
+            - PrimaryClassification: Truncated/High Mannose/ComplexHybrid/Outlier
+            - SecondaryClassification: Detailed classification based on F/A content
+            - (Legacy columns maintained for compatibility)
         """
         if 'GlycanComposition' not in df.columns:
             raise ValueError("DataFrame must contain 'GlycanComposition' column")
 
         df_annotated = df.copy()
+
+        # Extract N count for classification
+        df_annotated['N_count'] = df_annotated['GlycanComposition'].apply(
+            lambda x: self.extract_monosaccharide_count(x, 'N')
+        )
 
         # Check sialylation
         df_annotated['IsSialylated'] = df_annotated['GlycanComposition'].apply(self.is_sialylated)
@@ -169,7 +234,17 @@ class GlycanAnnotator:
             self.get_fucosylation_count
         )
 
-        # Combined glycan type
+        # Primary classification
+        df_annotated['PrimaryClassification'] = df_annotated['GlycanComposition'].apply(
+            self.get_primary_classification
+        )
+
+        # Secondary classification (final column)
+        df_annotated['SecondaryClassification'] = df_annotated['GlycanComposition'].apply(
+            self.get_secondary_classification
+        )
+
+        # Legacy columns for backward compatibility
         def determine_glycan_type(row):
             sia = row['IsSialylated']
             fuc = row['IsFucosylated']
@@ -185,13 +260,13 @@ class GlycanAnnotator:
 
         df_annotated['GlycanType'] = df_annotated.apply(determine_glycan_type, axis=1)
 
-        # Check High Mannose
+        # Check High Mannose (legacy)
         df_annotated['IsHighMannose'] = df_annotated['GlycanComposition'].apply(self.is_high_mannose)
         df_annotated['HighMannose'] = df_annotated['IsHighMannose'].apply(
             lambda x: 'High mannose' if x else 'Not high mannose'
         )
 
-        # Check Complex/Hybrid
+        # Check Complex/Hybrid (legacy)
         df_annotated['IsComplexHybrid'] = df_annotated['GlycanComposition'].apply(self.is_complex_hybrid)
         df_annotated['ComplexHybrid'] = df_annotated['IsComplexHybrid'].apply(
             lambda x: 'C/H' if x else 'Not C/H'
@@ -199,12 +274,13 @@ class GlycanAnnotator:
 
         # Log statistics
         logger.info(f"Annotation complete:")
+        logger.info(f"\nPrimary Classification:")
+        logger.info(df_annotated['PrimaryClassification'].value_counts())
+        logger.info(f"\nSecondary Classification:")
+        logger.info(df_annotated['SecondaryClassification'].value_counts())
+        logger.info(f"\nLegacy Statistics:")
         logger.info(f"  - Sialylated: {df_annotated['IsSialylated'].sum()} ({df_annotated['IsSialylated'].sum()/len(df_annotated)*100:.1f}%)")
         logger.info(f"  - Fucosylated: {df_annotated['IsFucosylated'].sum()} ({df_annotated['IsFucosylated'].sum()/len(df_annotated)*100:.1f}%)")
-        logger.info(f"  - High Mannose: {df_annotated['IsHighMannose'].sum()} ({df_annotated['IsHighMannose'].sum()/len(df_annotated)*100:.1f}%)")
-        logger.info(f"  - Complex/Hybrid: {df_annotated['IsComplexHybrid'].sum()} ({df_annotated['IsComplexHybrid'].sum()/len(df_annotated)*100:.1f}%)")
-        logger.info(f"\nGlycan Type Distribution:")
-        logger.info(df_annotated['GlycanType'].value_counts())
 
         return df_annotated
 
