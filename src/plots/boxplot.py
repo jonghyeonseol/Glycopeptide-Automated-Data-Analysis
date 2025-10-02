@@ -354,98 +354,198 @@ class BoxplotMixin:
         """
         Create boxplot for Cancer vs Normal comparison (Primary classification)
 
+        Pipeline: TIC Normalization → Non-zero mean → Log2 Transform
+
+        Creates two versions:
+        1. Without QC: All samples, mean of non-zero values
+        2. With QC: Exclude samples with <10% detection rate
+
         Args:
             df: Annotated DataFrame
             figsize: Figure size
         """
-        # Identify sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid']
+        # Step 1: TIC (Total Ion Current) Normalization on entire dataset
+        intensity_matrix = replace_empty_with_zero(df[sample_cols])
+        sample_sums = intensity_matrix.sum(axis=0)
+        median_sum = sample_sums.median()
+        sample_sums_safe = sample_sums.replace(0, 1)
+        intensity_normalized = intensity_matrix / sample_sums_safe * median_sum
 
-        # Prepare data
-        data_for_plot = []
-        for sample in sample_cols:
-            intensity_col = replace_empty_with_zero(df[sample])
-            group = 'Cancer' if sample.startswith('C') else 'Normal'
+        # Create df copy with normalized intensities
+        df_normalized = df.copy()
+        df_normalized[sample_cols] = intensity_normalized
 
-            for idx, row in df.iterrows():
-                if row['PrimaryClassification'] in primary_categories:
-                    data_for_plot.append({
-                        'Group': group,
-                        'Classification': row['PrimaryClassification'],
-                        'Intensity': np.log2(intensity_col.iloc[idx] + 1)
-                    })
+        primary_categories = ['High Mannose', 'ComplexHybrid']
 
-        plot_df = pd.DataFrame(data_for_plot)
+        # Generate both versions
+        for apply_qc in [False, True]:
+            data_for_plot = []
 
-        fig, ax = plt.subplots(figsize=figsize)
+            for classification in primary_categories:
+                subset_df = df_normalized[df_normalized['PrimaryClassification'] == classification]
 
-        sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
-                   palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+                for sample in sample_cols:
+                    group = 'Cancer' if sample.startswith('C') else 'Normal'
 
-        ax.set_xlabel('Primary Classification', fontsize=12)
-        ax.set_ylabel('Log2(Intensity + 1)', fontsize=12)
-        ax.set_title('Primary Classification: Cancer vs Normal', fontsize=14)
-        ax.legend(title='Group')
+                    # Get TIC-normalized intensities for this classification and sample
+                    values = subset_df[sample].values
+                    nonzero_values = values[values > 0]
 
-        plt.tight_layout()
+                    # Calculate detection rate
+                    detection_rate = len(nonzero_values) / len(values) if len(values) > 0 else 0
 
-        output_file = self.output_dir / 'boxplot_primary_cancer_vs_normal.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved primary Cancer vs Normal boxplot to {output_file}")
+                    # Apply QC filter if needed
+                    if apply_qc and detection_rate < 0.1:
+                        continue  # Skip this sample
 
-        plt.close()
+                    # Use mean of non-zero values (Option 2b)
+                    if len(nonzero_values) > 0:
+                        mean_intensity = nonzero_values.mean()
+                        data_for_plot.append({
+                            'Group': group,
+                            'Classification': classification,
+                            'Intensity': np.log2(mean_intensity + 1),
+                            'Sample': sample,
+                            'DetectionRate': detection_rate
+                        })
+
+            if not data_for_plot:
+                logger.warning(f"No data for primary Cancer vs Normal boxplot (QC={apply_qc})")
+                continue
+
+            plot_df = pd.DataFrame(data_for_plot)
+
+            fig, ax = plt.subplots(figsize=figsize)
+
+            sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
+                       palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+
+            ax.set_xlabel('Primary Classification', fontsize=12)
+            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)', fontsize=12)
+
+            title = 'Primary Classification: Cancer vs Normal'
+            if apply_qc:
+                title += '\n(QC: Detection rate ≥10%)'
+                # Add sample count info
+                n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+                n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+                ax.text(0.02, 0.98, f'Samples: Cancer={n_cancer}, Normal={n_normal}',
+                       transform=ax.transAxes, fontsize=9, verticalalignment='top',
+                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+            ax.set_title(title, fontsize=14)
+            ax.legend(title='Group')
+
+            plt.tight_layout()
+
+            suffix = '_qc' if apply_qc else ''
+            output_file = self.output_dir / f'boxplot_primary_cancer_vs_normal{suffix}.png'
+            plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
+            logger.info(f"Saved primary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
+
+            plt.close()
 
     def plot_boxplot_cancer_vs_normal_secondary(self, df: pd.DataFrame, figsize: tuple = (12, 6)):
         """
         Create boxplot for Cancer vs Normal comparison (Secondary classification)
 
+        Pipeline: TIC Normalization → Non-zero mean → Log2 Transform
+
+        Creates two versions:
+        1. Without QC: All samples, mean of non-zero values
+        2. With QC: Exclude samples with <10% detection rate
+
         Args:
             df: Annotated DataFrame
             figsize: Figure size
         """
-        # Identify sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
+        # Step 1: TIC (Total Ion Current) Normalization on entire dataset
+        intensity_matrix = replace_empty_with_zero(df[sample_cols])
+        sample_sums = intensity_matrix.sum(axis=0)
+        median_sum = sample_sums.median()
+        sample_sums_safe = sample_sums.replace(0, 1)
+        intensity_normalized = intensity_matrix / sample_sums_safe * median_sum
+
+        # Create df copy with normalized intensities
+        df_normalized = df.copy()
+        df_normalized[sample_cols] = intensity_normalized
+
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
 
-        # Prepare data
-        data_for_plot = []
-        for sample in sample_cols:
-            intensity_col = replace_empty_with_zero(df[sample])
-            group = 'Cancer' if sample.startswith('C') else 'Normal'
+        # Generate both versions
+        for apply_qc in [False, True]:
+            data_for_plot = []
 
-            for idx, row in df.iterrows():
-                if row['SecondaryClassification'] in secondary_categories:
-                    data_for_plot.append({
-                        'Group': group,
-                        'Classification': row['SecondaryClassification'],
-                        'Intensity': np.log2(intensity_col.iloc[idx] + 1)
-                    })
+            for classification in secondary_categories:
+                subset_df = df_normalized[df_normalized['SecondaryClassification'] == classification]
 
-        plot_df = pd.DataFrame(data_for_plot)
+                for sample in sample_cols:
+                    group = 'Cancer' if sample.startswith('C') else 'Normal'
 
-        fig, ax = plt.subplots(figsize=figsize)
+                    # Get TIC-normalized intensities for this classification and sample
+                    values = subset_df[sample].values
+                    nonzero_values = values[values > 0]
 
-        sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
-                   order=secondary_categories,
-                   palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+                    # Calculate detection rate
+                    detection_rate = len(nonzero_values) / len(values) if len(values) > 0 else 0
 
-        ax.set_xlabel('Secondary Classification', fontsize=12)
-        ax.set_ylabel('Log2(Intensity + 1)', fontsize=12)
-        ax.set_title('Secondary Classification: Cancer vs Normal', fontsize=14)
-        ax.legend(title='Group')
-        plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+                    # Apply QC filter if needed
+                    if apply_qc and detection_rate < 0.1:
+                        continue  # Skip this sample
 
-        plt.tight_layout()
+                    # Use mean of non-zero values (Option 2b)
+                    if len(nonzero_values) > 0:
+                        mean_intensity = nonzero_values.mean()
+                        data_for_plot.append({
+                            'Group': group,
+                            'Classification': classification,
+                            'Intensity': np.log2(mean_intensity + 1),
+                            'Sample': sample,
+                            'DetectionRate': detection_rate
+                        })
 
-        output_file = self.output_dir / 'boxplot_secondary_cancer_vs_normal.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved secondary Cancer vs Normal boxplot to {output_file}")
+            if not data_for_plot:
+                logger.warning(f"No data for secondary Cancer vs Normal boxplot (QC={apply_qc})")
+                continue
 
-        plt.close()
+            plot_df = pd.DataFrame(data_for_plot)
+
+            fig, ax = plt.subplots(figsize=figsize)
+
+            sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
+                       order=secondary_categories,
+                       palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+
+            ax.set_xlabel('Secondary Classification', fontsize=12)
+            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)', fontsize=12)
+
+            title = 'Secondary Classification: Cancer vs Normal'
+            if apply_qc:
+                title += '\n(QC: Detection rate ≥10%)'
+                # Add sample count info
+                n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+                n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+                ax.text(0.02, 0.98, f'Samples: Cancer={n_cancer}, Normal={n_normal}',
+                       transform=ax.transAxes, fontsize=9, verticalalignment='top',
+                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+            ax.set_title(title, fontsize=14)
+            ax.legend(title='Group')
+            plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+
+            plt.tight_layout()
+
+            suffix = '_qc' if apply_qc else ''
+            output_file = self.output_dir / f'boxplot_secondary_cancer_vs_normal{suffix}.png'
+            plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
+            logger.info(f"Saved secondary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
+
+            plt.close()

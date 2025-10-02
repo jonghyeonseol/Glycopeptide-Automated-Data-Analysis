@@ -39,17 +39,27 @@ class CorrelationMatrixPlotMixin:
         """
         Create a single correlation matrix for a group of samples
 
+        Pipeline: TIC Normalization → Log2 Transform → Pearson Correlation
+
         Args:
             df: Annotated DataFrame
             samples: List of sample columns
             group_name: Name of the group (Cancer/Normal)
             color: Color for the group
         """
-        # Prepare intensity matrix (log2 transformed)
+        # Prepare intensity matrix
         intensity_data = replace_empty_with_zero(df[samples])
-        intensity_log = np.log2(intensity_data + 1)
 
-        # Calculate correlation matrix
+        # Step 1: TIC (Total Ion Current) Normalization
+        sample_sums = intensity_data.sum(axis=0)
+        median_sum = sample_sums.median()
+        sample_sums_safe = sample_sums.replace(0, 1)
+        intensity_normalized = intensity_data / sample_sums_safe * median_sum
+
+        # Step 2: Log2 transform
+        intensity_log = np.log2(intensity_normalized + 1)
+
+        # Step 3: Calculate correlation matrix
         corr_matrix = intensity_log.corr(method='pearson')
 
         # Create figure
@@ -110,16 +120,26 @@ class CorrelationMatrixPlotMixin:
         """
         Create a single correlation clustermap
 
+        Pipeline: TIC Normalization → Log2 Transform → Pearson Correlation → Hierarchical Clustering
+
         Args:
             df: Annotated DataFrame
             samples: List of sample columns
             group_name: Name of the group (Cancer/Normal)
         """
-        # Prepare intensity matrix (log2 transformed)
+        # Prepare intensity matrix
         intensity_data = replace_empty_with_zero(df[samples])
-        intensity_log = np.log2(intensity_data + 1)
 
-        # Calculate correlation matrix
+        # Step 1: TIC (Total Ion Current) Normalization
+        sample_sums = intensity_data.sum(axis=0)
+        median_sum = sample_sums.median()
+        sample_sums_safe = sample_sums.replace(0, 1)
+        intensity_normalized = intensity_data / sample_sums_safe * median_sum
+
+        # Step 2: Log2 transform
+        intensity_log = np.log2(intensity_normalized + 1)
+
+        # Step 3: Calculate correlation matrix
         corr_matrix = intensity_log.corr(method='pearson')
 
         # Create clustermap

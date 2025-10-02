@@ -33,8 +33,8 @@ Glycan Type Distribution (Legacy):
 
 PCA Results:
   - PC1 explained variance: 7.15%
-  - PC2 explained variance: 3.52%
-  - Total explained variance: 10.67%
+  - PC2 explained variance: 3.54%
+  - Total explained variance: 10.68%
 
 Statistics by Glycan Type:
  GlycanType  Count  Cancer_Mean  Normal_Mean  Cancer_Total  Normal_Total  Fold_Change  Log2_Fold_Change

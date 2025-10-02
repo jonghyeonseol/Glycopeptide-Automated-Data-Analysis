@@ -21,6 +21,8 @@ class HeatmapMixin:
         """
         Create clustered heatmap of top glycopeptides with hierarchical clustering
 
+        Pipeline: TIC Normalization → Log2 Transform → Hierarchical Clustering
+
         Args:
             df: Annotated DataFrame
             figsize: Figure size
@@ -32,16 +34,24 @@ class HeatmapMixin:
 
         # Get intensity matrix
         intensity_matrix = replace_empty_with_zero(df[sample_cols])
-        # Calculate mean intensity across all samples
+
+        # Step 1: TIC (Total Ion Current) Normalization
+        sample_sums = intensity_matrix.sum(axis=0)
+        median_sum = sample_sums.median()
+        sample_sums_safe = sample_sums.replace(0, 1)
+        intensity_normalized = intensity_matrix / sample_sums_safe * median_sum
+
+        # Calculate mean intensity across all samples (TIC normalized)
         df_copy = df.copy()
-        df_copy['MeanIntensity'] = intensity_matrix.mean(axis=1)
+        df_copy['MeanIntensity'] = intensity_normalized.mean(axis=1)
 
         # Select top N glycopeptides
         top_glycopeptides = df_copy.nlargest(top_n, 'MeanIntensity')
 
-        # Prepare data for heatmap
-        heatmap_data = replace_empty_with_zero(top_glycopeptides[sample_cols])
-        # Log transform
+        # Prepare data for heatmap (extract top N from normalized matrix)
+        heatmap_data = intensity_normalized.loc[top_glycopeptides.index]
+
+        # Step 2: Log2 transform
         heatmap_data = np.log2(heatmap_data + 1)
 
         # Transpose for sample clustering (samples as rows)
@@ -124,6 +134,8 @@ class HeatmapMixin:
         """
         Create clustered heatmap of ALL glycopeptides (full glycan profile per sample)
 
+        Pipeline: TIC Normalization → Log2 Transform → Hierarchical Clustering
+
         Args:
             df: Annotated DataFrame
             figsize: Figure size
@@ -134,14 +146,21 @@ class HeatmapMixin:
 
         # Get intensity matrix for ALL glycopeptides
         intensity_matrix = replace_empty_with_zero(df[sample_cols])
+
+        # Step 1: TIC (Total Ion Current) Normalization
+        sample_sums = intensity_matrix.sum(axis=0)
+        median_sum = sample_sums.median()
+        sample_sums_safe = sample_sums.replace(0, 1)
+        intensity_normalized = intensity_matrix / sample_sums_safe * median_sum
+
         # Filter out glycopeptides with all zeros (not detected in any sample)
-        row_sums = intensity_matrix.sum(axis=1)
+        row_sums = intensity_normalized.sum(axis=1)
         df_filtered = df[row_sums > 0].copy()
-        heatmap_data = intensity_matrix[row_sums > 0].copy()
+        heatmap_data = intensity_normalized[row_sums > 0].copy()
 
         logger.info(f"Full profile heatmap: {len(heatmap_data)} glycopeptides across {len(sample_cols)} samples")
 
-        # Log transform
+        # Step 2: Log2 transform
         heatmap_data = np.log2(heatmap_data + 1)
 
         # Create row labels (Peptide_GlycanComposition_GlycanType)

@@ -821,7 +821,7 @@
         "kind": 6,
         "importPath": "src.plots.heatmap",
         "description": "src.plots.heatmap",
-        "peekOfCode": "class HeatmapMixin:\n    \"\"\"Mixin class for heatmap-related plots\"\"\"\n    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 50):\n        \"\"\"\n        Create clustered heatmap of top glycopeptides with hierarchical clustering\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show\n        \"\"\"",
+        "peekOfCode": "class HeatmapMixin:\n    \"\"\"Mixin class for heatmap-related plots\"\"\"\n    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 50):\n        \"\"\"\n        Create clustered heatmap of top glycopeptides with hierarchical clustering\n        Pipeline: TIC Normalization → Log2 Transform → Hierarchical Clustering\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show",
         "detail": "src.plots.heatmap",
         "documentation": {}
     },
@@ -830,7 +830,7 @@
         "kind": 5,
         "importPath": "src.plots.heatmap",
         "description": "src.plots.heatmap",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass HeatmapMixin:\n    \"\"\"Mixin class for heatmap-related plots\"\"\"\n    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 50):\n        \"\"\"\n        Create clustered heatmap of top glycopeptides with hierarchical clustering\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass HeatmapMixin:\n    \"\"\"Mixin class for heatmap-related plots\"\"\"\n    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 50):\n        \"\"\"\n        Create clustered heatmap of top glycopeptides with hierarchical clustering\n        Pipeline: TIC Normalization → Log2 Transform → Hierarchical Clustering\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size",
         "detail": "src.plots.heatmap",
         "documentation": {}
     },
