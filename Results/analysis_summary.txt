@@ -72,7 +72,6 @@ Visualization Files:
   - Heatmap (Top 50): heatmap_top_glycopeptides.png
   - Heatmap (Full Profile): heatmap_full_glycan_profile.png
   - Distribution: glycan_type_distribution.png
-  - Histogram (original): histogram_glycan_types_by_sample.png
   - Histogram (normalized): histogram_glycan_types_by_sample_normalized.png
   - Histogram (primary, raw norm): histogram_primary_raw_normalized.png
   - Histogram (primary, agg norm): histogram_primary_aggregated_normalized.png
@@ -87,7 +86,6 @@ Visualization Files:
   - Boxplot (Cancer vs Normal, primary): boxplot_primary_cancer_vs_normal.png
   - Boxplot (Cancer vs Normal, secondary): boxplot_secondary_cancer_vs_normal.png
   - VIP scores (glycopeptide): vip_score_glycopeptide.png
-  - VIP scores (glycan type): vip_score_glycan_type.png
-  - VIP scores (peptide, top 10): vip_score_peptide_top10.png
-  - VIP scores (peptide, all): vip_score_peptide_all.png
+  - VIP scores (glycan composition): vip_score_glycan_composition.png
+  - VIP scores (peptide): vip_score_peptide.png
 ================================================================================

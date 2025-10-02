@@ -145,12 +145,11 @@ def main():
     visualizer.plot_histogram_cancer_vs_normal_primary(annotated_data)
     visualizer.plot_histogram_cancer_vs_normal_secondary(annotated_data)
 
-    # VIP score visualizations (dot plots with Cancer/Normal coloring)
+    # VIP score visualizations (with heatmap)
     logger.info("Creating VIP score plots...")
     visualizer.plot_vip_scores_glycopeptide(annotated_data, plsda_results['vip_scores'])
-    visualizer.plot_vip_scores_glycan_type(annotated_data, plsda_results['vip_scores'])
-    visualizer.plot_vip_scores_peptide_top10(annotated_data, plsda_results['vip_scores'])
-    visualizer.plot_vip_scores_peptide_all(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_glycan_composition(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_peptide(annotated_data, plsda_results['vip_scores'])
 
     # Box plots corresponding to histograms
     logger.info("Creating box plots...")
@@ -217,7 +216,6 @@ def main():
         f.write(f"  - Heatmap (Top 50): heatmap_top_glycopeptides.png\n")
         f.write(f"  - Heatmap (Full Profile): heatmap_full_glycan_profile.png\n")
         f.write(f"  - Distribution: glycan_type_distribution.png\n")
-        f.write(f"  - Histogram (original): histogram_glycan_types_by_sample.png\n")
         f.write(f"  - Histogram (normalized): histogram_glycan_types_by_sample_normalized.png\n")
         f.write(f"  - Histogram (primary, raw norm): histogram_primary_raw_normalized.png\n")
         f.write(f"  - Histogram (primary, agg norm): histogram_primary_aggregated_normalized.png\n")
@@ -232,9 +230,8 @@ def main():
         f.write(f"  - Boxplot (Cancer vs Normal, primary): boxplot_primary_cancer_vs_normal.png\n")
         f.write(f"  - Boxplot (Cancer vs Normal, secondary): boxplot_secondary_cancer_vs_normal.png\n")
         f.write(f"  - VIP scores (glycopeptide): vip_score_glycopeptide.png\n")
-        f.write(f"  - VIP scores (glycan type): vip_score_glycan_type.png\n")
-        f.write(f"  - VIP scores (peptide, top 10): vip_score_peptide_top10.png\n")
-        f.write(f"  - VIP scores (peptide, all): vip_score_peptide_all.png\n")
+        f.write(f"  - VIP scores (glycan composition): vip_score_glycan_composition.png\n")
+        f.write(f"  - VIP scores (peptide): vip_score_peptide.png\n")
         f.write("="*80 + "\n")
 
     logger.info(f"Saved summary report to {summary_file}")

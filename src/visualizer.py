@@ -82,8 +82,7 @@ class GlycanVisualizer(
         self.plot_glycan_type_distribution(df)
         self.plot_heatmap(df)
         self.plot_heatmap_full_profile(df)
-        self.plot_histogram_by_sample(df)
-        self.plot_histogram_normalized(df)  # Add normalized histogram
+        self.plot_histogram_normalized(df)
 
         logger.info(f"All visualizations saved to {self.output_dir}")
 

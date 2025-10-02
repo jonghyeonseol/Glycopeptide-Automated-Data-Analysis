@@ -141,6 +141,14 @@
         "documentation": {}
     },
     {
+        "label": "GridSpec",
+        "importPath": "matplotlib.gridspec",
+        "description": "matplotlib.gridspec",
+        "isExtraImport": true,
+        "detail": "matplotlib.gridspec",
+        "documentation": {}
+    },
+    {
         "label": "PCA",
         "importPath": "sklearn.decomposition",
         "description": "sklearn.decomposition",
@@ -354,7 +362,7 @@
         "kind": 6,
         "importPath": "src.plots.histogram",
         "description": "src.plots.histogram",
-        "peekOfCode": "class HistogramMixin:\n    \"\"\"Mixin class for histogram-related plots\"\"\"\n    def plot_histogram_by_sample(self, df: pd.DataFrame, figsize: tuple = (20, 12)):\n        \"\"\"\n        Create histogram showing glycan type intensities per sample (original data)\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"\n        # Identify sample columns",
+        "peekOfCode": "class HistogramMixin:\n    \"\"\"Mixin class for histogram-related plots\"\"\"\n    def plot_histogram_normalized(self, df: pd.DataFrame, figsize: tuple = (20, 12)):\n        \"\"\"\n        Create histogram showing glycan type intensities per sample (TIC normalized data)\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"\n        # Identify sample columns",
         "detail": "src.plots.histogram",
         "documentation": {}
     },
@@ -363,7 +371,7 @@
         "kind": 5,
         "importPath": "src.plots.histogram",
         "description": "src.plots.histogram",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass HistogramMixin:\n    \"\"\"Mixin class for histogram-related plots\"\"\"\n    def plot_histogram_by_sample(self, df: pd.DataFrame, figsize: tuple = (20, 12)):\n        \"\"\"\n        Create histogram showing glycan type intensities per sample (original data)\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass HistogramMixin:\n    \"\"\"Mixin class for histogram-related plots\"\"\"\n    def plot_histogram_normalized(self, df: pd.DataFrame, figsize: tuple = (20, 12)):\n        \"\"\"\n        Create histogram showing glycan type intensities per sample (TIC normalized data)\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"",
         "detail": "src.plots.histogram",
         "documentation": {}
     },
@@ -390,7 +398,7 @@
         "kind": 6,
         "importPath": "src.plots.vip_score_plot",
         "description": "src.plots.vip_score_plot",
-        "peekOfCode": "class VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 8)):\n        \"\"\"\n        Plot top 10 VIP scores by glycopeptide (dot plot with Cancer/Normal coloring)\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size\n        \"\"\"",
+        "peekOfCode": "class VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (14, 10), top_n: int = 30):\n        \"\"\"\n        Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show",
         "detail": "src.plots.vip_score_plot",
         "documentation": {}
     },
@@ -399,7 +407,7 @@
         "kind": 5,
         "importPath": "src.plots.vip_score_plot",
         "description": "src.plots.vip_score_plot",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 8)):\n        \"\"\"\n        Plot top 10 VIP scores by glycopeptide (dot plot with Cancer/Normal coloring)\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (14, 10), top_n: int = 30):\n        \"\"\"\n        Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size",
         "detail": "src.plots.vip_score_plot",
         "documentation": {}
     },
