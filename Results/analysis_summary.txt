@@ -32,9 +32,9 @@ Glycan Type Distribution (Legacy):
   - Non: 1007 (15.7%)
 
 PCA Results:
-  - PC1 explained variance: 7.33%
-  - PC2 explained variance: 3.62%
-  - Total explained variance: 10.94%
+  - PC1 explained variance: 7.15%
+  - PC2 explained variance: 3.52%
+  - Total explained variance: 10.67%
 
 Statistics by Glycan Type:
  GlycanType  Count  Cancer_Mean  Normal_Mean  Cancer_Total  Normal_Total  Fold_Change  Log2_Fold_Change
@@ -45,16 +45,16 @@ Fucosylated   1618 2.431655e+11 2.800702e+11  5.835972e+12  6.441615e+12     0.8
 
 Top 10 VIP Scores (Glycopeptide):
                    Peptide GlycanComposition  VIP_Score
-           FJSSYLQGTNQITGR      H(5)N(4)A(1)   4.042650
-           FVEGSHJSTVSLTTK      H(4)N(4)A(1)   3.831910
-           FVEGSHJSTVSLTTK          H(5)N(4)   3.715872
-           FVEGSHJSTVSLTTK      H(5)N(4)A(2)   3.661942
-            JTTCQDLQIEVTVK      H(5)N(4)A(2)   3.645296
-                 EEQYJSTYR      H(4)N(4)A(1)   3.642182
-  SVQEIQATFFYFTPJKTEDTIFLR      H(7)N(6)A(4)   3.582254
-           QDQCIYJTTYLNVQR      H(7)N(6)A(4)   3.474736
-TVDKSTGKPTLYJVSLVMSDTAGTCY          H(8)N(2)   3.426698
-               LGJWSAMPSCK  H(4)N(7)A(1)F(1)   3.289672
+           FJSSYLQGTNQITGR      H(5)N(4)A(1)   4.043667
+           FVEGSHJSTVSLTTK      H(4)N(4)A(1)   3.850391
+           FVEGSHJSTVSLTTK          H(5)N(4)   3.717032
+           FVEGSHJSTVSLTTK      H(5)N(4)A(2)   3.664907
+            JTTCQDLQIEVTVK      H(5)N(4)A(2)   3.663651
+                 EEQYJSTYR      H(4)N(4)A(1)   3.648065
+TVDKSTGKPTLYJVSLVMSDTAGTCY          H(8)N(2)   3.641032
+  SVQEIQATFFYFTPJKTEDTIFLR      H(7)N(6)A(4)   3.588010
+           QDQCIYJTTYLNVQR      H(7)N(6)A(4)   3.469511
+      IJHCRFDEFFSEGCAPGSKK      H(5)N(4)A(2)   3.459712
 
 Note: VIP scores by Glycan Type and Peptide are visualized in the corresponding PNG files.
 
@@ -85,7 +85,24 @@ Visualization Files:
   - Boxplot (secondary, agg norm): boxplot_secondary_aggregated_normalized.png
   - Boxplot (Cancer vs Normal, primary): boxplot_primary_cancer_vs_normal.png
   - Boxplot (Cancer vs Normal, secondary): boxplot_secondary_cancer_vs_normal.png
-  - VIP scores (glycopeptide): vip_score_glycopeptide.png
-  - VIP scores (glycan composition): vip_score_glycan_composition.png
-  - VIP scores (peptide): vip_score_peptide.png
+  - VIP scores (glycopeptide, R/ggplot2): vip_score_glycopeptide_r.png
+  - VIP scores (glycan composition, R/ggplot2): vip_score_glycan_composition_r.png
+  - VIP scores (peptide, R/ggplot2): vip_score_peptide_r.png
+  - VIP scores (peptide grouped, R/ggplot2): vip_score_peptide_grouped_r.png
+
+Advanced Visualizations (Evidence-based):
+  - Volcano plot: volcano_plot.png
+  - Site-specific glycosylation: site_specific_glycosylation_heatmap.png
+  - CV distribution: cv_distribution.png
+  - Correlation matrix (Cancer): correlation_matrix_cancer.png
+  - Correlation matrix (Normal): correlation_matrix_normal.png
+  - Correlation clustermap (Cancer): correlation_clustermap_cancer.png
+  - Correlation clustermap (Normal): correlation_clustermap_normal.png
+  - Venn diagram: venn_diagram_glycan_types.png
+  - Radar chart: radar_chart_glycan_profile.png
+
+Data Traceability:
+  All visualization source data is exported to Results/Trace/ folder as CSV files.
+  Each PNG visualization has a corresponding *_data.csv file containing the exact
+  data used to generate that plot, ensuring full reproducibility and transparency.
 ================================================================================

@@ -10,6 +10,7 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from matplotlib.patches import Ellipse
+from utils import save_trace_data
 
 logger = logging.getLogger(__name__)
 
@@ -114,10 +115,16 @@ class PCAPlotMixin:
 
         plt.tight_layout()
 
-        # Save
+        # Save plot
         output_file = self.output_dir / 'pca_plot.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved PCA plot to {output_file}")
+
+        # Save trace data
+        trace_data = pca_df.copy()
+        trace_data['PC1_variance'] = explained_var[0]
+        trace_data['PC2_variance'] = explained_var[1]
+        save_trace_data(trace_data, self.output_dir, 'pca_plot_data.csv')
 
         plt.close()
 
@@ -165,8 +172,15 @@ class PCAPlotMixin:
         ax.grid(True, alpha=0.3)
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / 'pca_samples.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved PCA plot to {output_file}")
+
+        # Save trace data
+        trace_data = pca_df.copy()
+        trace_data['PC1_variance'] = explained_var[0]
+        trace_data['PC2_variance'] = explained_var[1]
+        save_trace_data(trace_data, self.output_dir, 'pca_samples_data.csv')
 
         plt.close()

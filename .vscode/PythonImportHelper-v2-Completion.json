@@ -108,6 +108,78 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "logging",
         "kind": 6,
         "isExtraImport": true,
@@ -133,6 +205,262 @@
         "documentation": {}
     },
     {
+        "label": "stats",
+        "importPath": "scipy",
+        "description": "scipy",
+        "isExtraImport": true,
+        "detail": "scipy",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_sample_columns",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_sample_columns",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_sample_columns",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_sample_columns",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_sample_columns",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "to_numeric_safe",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "pearsonr",
+        "importPath": "scipy.stats",
+        "description": "scipy.stats",
+        "isExtraImport": true,
+        "detail": "scipy.stats",
+        "documentation": {}
+    },
+    {
         "label": "Ellipse",
         "importPath": "matplotlib.patches",
         "description": "matplotlib.patches",
@@ -141,11 +469,68 @@
         "documentation": {}
     },
     {
+        "label": "venn3",
+        "importPath": "matplotlib_venn",
+        "description": "matplotlib_venn",
+        "isExtraImport": true,
+        "detail": "matplotlib_venn",
+        "documentation": {}
+    },
+    {
+        "label": "venn3_circles",
+        "importPath": "matplotlib_venn",
+        "description": "matplotlib_venn",
+        "isExtraImport": true,
+        "detail": "matplotlib_venn",
+        "documentation": {}
+    },
+    {
         "label": "GridSpec",
         "importPath": "matplotlib.gridspec",
         "description": "matplotlib.gridspec",
         "isExtraImport": true,
         "detail": "matplotlib.gridspec",
+        "documentation": {}
+    },
+    {
+        "label": "rpy2.robjects",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "rpy2.robjects",
+        "description": "rpy2.robjects",
+        "detail": "rpy2.robjects",
+        "documentation": {}
+    },
+    {
+        "label": "pandas2ri",
+        "importPath": "rpy2.robjects",
+        "description": "rpy2.robjects",
+        "isExtraImport": true,
+        "detail": "rpy2.robjects",
+        "documentation": {}
+    },
+    {
+        "label": "importr",
+        "importPath": "rpy2.robjects.packages",
+        "description": "rpy2.robjects.packages",
+        "isExtraImport": true,
+        "detail": "rpy2.robjects.packages",
+        "documentation": {}
+    },
+    {
+        "label": "localconverter",
+        "importPath": "rpy2.robjects.conversion",
+        "description": "rpy2.robjects.conversion",
+        "isExtraImport": true,
+        "detail": "rpy2.robjects.conversion",
+        "documentation": {}
+    },
+    {
+        "label": "adjust_text",
+        "importPath": "adjustText",
+        "description": "adjustText",
+        "isExtraImport": true,
+        "detail": "adjustText",
         "documentation": {}
     },
     {
@@ -246,11 +631,67 @@
         "documentation": {}
     },
     {
+        "label": "VIPScorePlotRMixin",
+        "importPath": "src.plots.vip_score_plot_r",
+        "description": "src.plots.vip_score_plot_r",
+        "isExtraImport": true,
+        "detail": "src.plots.vip_score_plot_r",
+        "documentation": {}
+    },
+    {
         "label": "DistributionPlotMixin",
         "importPath": "src.plots.distribution_plot",
         "description": "src.plots.distribution_plot",
         "isExtraImport": true,
         "detail": "src.plots.distribution_plot",
+        "documentation": {}
+    },
+    {
+        "label": "VolcanoPlotMixin",
+        "importPath": "src.plots.volcano_plot",
+        "description": "src.plots.volcano_plot",
+        "isExtraImport": true,
+        "detail": "src.plots.volcano_plot",
+        "documentation": {}
+    },
+    {
+        "label": "SiteSpecificHeatmapMixin",
+        "importPath": "src.plots.site_specific_heatmap",
+        "description": "src.plots.site_specific_heatmap",
+        "isExtraImport": true,
+        "detail": "src.plots.site_specific_heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "CVDistributionPlotMixin",
+        "importPath": "src.plots.cv_distribution_plot",
+        "description": "src.plots.cv_distribution_plot",
+        "isExtraImport": true,
+        "detail": "src.plots.cv_distribution_plot",
+        "documentation": {}
+    },
+    {
+        "label": "CorrelationMatrixPlotMixin",
+        "importPath": "src.plots.correlation_matrix_plot",
+        "description": "src.plots.correlation_matrix_plot",
+        "isExtraImport": true,
+        "detail": "src.plots.correlation_matrix_plot",
+        "documentation": {}
+    },
+    {
+        "label": "VennDiagramPlotMixin",
+        "importPath": "src.plots.venn_diagram_plot",
+        "description": "src.plots.venn_diagram_plot",
+        "isExtraImport": true,
+        "detail": "src.plots.venn_diagram_plot",
+        "documentation": {}
+    },
+    {
+        "label": "RadarChartPlotMixin",
+        "importPath": "src.plots.radar_chart_plot",
+        "description": "src.plots.radar_chart_plot",
+        "isExtraImport": true,
+        "detail": "src.plots.radar_chart_plot",
         "documentation": {}
     },
     {
@@ -319,6 +760,42 @@
         "description": "src.plots.boxplot",
         "peekOfCode": "logger = logging.getLogger(__name__)\nclass BoxplotMixin:\n    \"\"\"Mixin class for boxplot-related visualizations\"\"\"\n    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = (12, 6)):\n        \"\"\"\n        Create boxplot comparing glycan types between groups with statistical significance\n        Args:\n            boxplot_data: Long-format DataFrame from analyzer\n            figsize: Figure size\n        \"\"\"",
         "detail": "src.plots.boxplot",
+        "documentation": {}
+    },
+    {
+        "label": "CorrelationMatrixPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.correlation_matrix_plot",
+        "description": "src.plots.correlation_matrix_plot",
+        "peekOfCode": "class CorrelationMatrixPlotMixin:\n    \"\"\"Mixin class for correlation matrix visualization\"\"\"\n    def plot_correlation_matrix(self, df: pd.DataFrame, figsize: tuple = (20, 18)):\n        \"\"\"\n        Create correlation matrix heatmap for samples\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"\n        # Get sample columns",
+        "detail": "src.plots.correlation_matrix_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.correlation_matrix_plot",
+        "description": "src.plots.correlation_matrix_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass CorrelationMatrixPlotMixin:\n    \"\"\"Mixin class for correlation matrix visualization\"\"\"\n    def plot_correlation_matrix(self, df: pd.DataFrame, figsize: tuple = (20, 18)):\n        \"\"\"\n        Create correlation matrix heatmap for samples\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"",
+        "detail": "src.plots.correlation_matrix_plot",
+        "documentation": {}
+    },
+    {
+        "label": "CVDistributionPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.cv_distribution_plot",
+        "description": "src.plots.cv_distribution_plot",
+        "peekOfCode": "class CVDistributionPlotMixin:\n    \"\"\"Mixin class for CV distribution visualization\"\"\"\n    def plot_cv_distribution(self, df: pd.DataFrame, figsize: tuple = (14, 6)):\n        \"\"\"\n        Create CV (Coefficient of Variation) distribution plots for Cancer and Normal samples\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"\n        # Get sample columns",
+        "detail": "src.plots.cv_distribution_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.cv_distribution_plot",
+        "description": "src.plots.cv_distribution_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass CVDistributionPlotMixin:\n    \"\"\"Mixin class for CV distribution visualization\"\"\"\n    def plot_cv_distribution(self, df: pd.DataFrame, figsize: tuple = (14, 6)):\n        \"\"\"\n        Create CV (Coefficient of Variation) distribution plots for Cancer and Normal samples\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"",
+        "detail": "src.plots.cv_distribution_plot",
         "documentation": {}
     },
     {
@@ -394,11 +871,65 @@
         "documentation": {}
     },
     {
+        "label": "RadarChartPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.radar_chart_plot",
+        "description": "src.plots.radar_chart_plot",
+        "peekOfCode": "class RadarChartPlotMixin:\n    \"\"\"Mixin class for radar/spider chart visualization\"\"\"\n    def plot_radar_chart(self, df: pd.DataFrame, figsize: tuple = (12, 10)):\n        \"\"\"\n        Create radar chart comparing glycan profiles between Cancer and Normal\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"\n        # Get sample columns",
+        "detail": "src.plots.radar_chart_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.radar_chart_plot",
+        "description": "src.plots.radar_chart_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass RadarChartPlotMixin:\n    \"\"\"Mixin class for radar/spider chart visualization\"\"\"\n    def plot_radar_chart(self, df: pd.DataFrame, figsize: tuple = (12, 10)):\n        \"\"\"\n        Create radar chart comparing glycan profiles between Cancer and Normal\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"",
+        "detail": "src.plots.radar_chart_plot",
+        "documentation": {}
+    },
+    {
+        "label": "SiteSpecificHeatmapMixin",
+        "kind": 6,
+        "importPath": "src.plots.site_specific_heatmap",
+        "description": "src.plots.site_specific_heatmap",
+        "peekOfCode": "class SiteSpecificHeatmapMixin:\n    \"\"\"Mixin class for site-specific glycosylation heatmap\"\"\"\n    def plot_site_specific_heatmap(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                                   top_n_peptides: int = 20,\n                                   figsize: tuple = (16, 12)):\n        \"\"\"\n        Create heatmap showing glycan compositions for top peptides\n        Args:\n            df: Annotated DataFrame with intensity data\n            vip_df: DataFrame with VIP scores",
+        "detail": "src.plots.site_specific_heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.site_specific_heatmap",
+        "description": "src.plots.site_specific_heatmap",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass SiteSpecificHeatmapMixin:\n    \"\"\"Mixin class for site-specific glycosylation heatmap\"\"\"\n    def plot_site_specific_heatmap(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                                   top_n_peptides: int = 20,\n                                   figsize: tuple = (16, 12)):\n        \"\"\"\n        Create heatmap showing glycan compositions for top peptides\n        Args:\n            df: Annotated DataFrame with intensity data",
+        "detail": "src.plots.site_specific_heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "VennDiagramPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.venn_diagram_plot",
+        "description": "src.plots.venn_diagram_plot",
+        "peekOfCode": "class VennDiagramPlotMixin:\n    \"\"\"Mixin class for Venn diagram visualization\"\"\"\n    def plot_glycan_venn_diagram(self, df: pd.DataFrame, figsize: tuple = (12, 10)):\n        \"\"\"\n        Create Venn diagram showing overlap between glycan modification types\n        Args:\n            df: Annotated DataFrame with glycan annotations\n            figsize: Figure size (width, height)\n        \"\"\"\n        # Check if internal columns exist",
+        "detail": "src.plots.venn_diagram_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.venn_diagram_plot",
+        "description": "src.plots.venn_diagram_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VennDiagramPlotMixin:\n    \"\"\"Mixin class for Venn diagram visualization\"\"\"\n    def plot_glycan_venn_diagram(self, df: pd.DataFrame, figsize: tuple = (12, 10)):\n        \"\"\"\n        Create Venn diagram showing overlap between glycan modification types\n        Args:\n            df: Annotated DataFrame with glycan annotations\n            figsize: Figure size (width, height)\n        \"\"\"",
+        "detail": "src.plots.venn_diagram_plot",
+        "documentation": {}
+    },
+    {
         "label": "VIPScorePlotMixin",
         "kind": 6,
         "importPath": "src.plots.vip_score_plot",
         "description": "src.plots.vip_score_plot",
-        "peekOfCode": "class VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (14, 10), top_n: int = 30):\n        \"\"\"\n        Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show",
+        "peekOfCode": "class VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):\n        \"\"\"\n        Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size\n            top_n: Number of top glycopeptides to show",
         "detail": "src.plots.vip_score_plot",
         "documentation": {}
     },
@@ -407,8 +938,44 @@
         "kind": 5,
         "importPath": "src.plots.vip_score_plot",
         "description": "src.plots.vip_score_plot",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (14, 10), top_n: int = 30):\n        \"\"\"\n        Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VIPScorePlotMixin:\n    \"\"\"Mixin class for VIP score-related plots\"\"\"\n    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):\n        \"\"\"\n        Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity\n        Args:\n            df: Annotated DataFrame\n            vip_df: DataFrame with VIP scores by glycopeptide\n            figsize: Figure size",
         "detail": "src.plots.vip_score_plot",
+        "documentation": {}
+    },
+    {
+        "label": "VIPScorePlotRMixin",
+        "kind": 6,
+        "importPath": "src.plots.vip_score_plot_r",
+        "description": "src.plots.vip_score_plot_r",
+        "peekOfCode": "class VIPScorePlotRMixin:\n    \"\"\"Mixin class for R-based VIP score plots using ggplot2\"\"\"\n    def _create_vip_plot_r(self, vip_data: pd.DataFrame, heatmap_data: pd.DataFrame,\n                           title: str, ylabel: str, output_file: str):\n        \"\"\"\n        Create VIP score plot with ggplot2\n        Args:\n            vip_data: DataFrame with columns [Feature, VIP_Score]\n            heatmap_data: DataFrame with columns [Feature, Cancer, Normal]\n            title: Plot title",
+        "detail": "src.plots.vip_score_plot_r",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.vip_score_plot_r",
+        "description": "src.plots.vip_score_plot_r",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VIPScorePlotRMixin:\n    \"\"\"Mixin class for R-based VIP score plots using ggplot2\"\"\"\n    def _create_vip_plot_r(self, vip_data: pd.DataFrame, heatmap_data: pd.DataFrame,\n                           title: str, ylabel: str, output_file: str):\n        \"\"\"\n        Create VIP score plot with ggplot2\n        Args:\n            vip_data: DataFrame with columns [Feature, VIP_Score]\n            heatmap_data: DataFrame with columns [Feature, Cancer, Normal]",
+        "detail": "src.plots.vip_score_plot_r",
+        "documentation": {}
+    },
+    {
+        "label": "VolcanoPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.volcano_plot",
+        "description": "src.plots.volcano_plot",
+        "peekOfCode": "class VolcanoPlotMixin:\n    \"\"\"Mixin class for Volcano plot visualization\"\"\"\n    def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                     fdr_threshold: float = 0.05, fc_threshold: float = 1.5,\n                     figsize: tuple = (12, 10)):\n        \"\"\"\n        Create volcano plot showing log2(fold change) vs -log10(FDR)\n        Args:\n            df: Annotated DataFrame with intensity data\n            vip_df: DataFrame with VIP scores",
+        "detail": "src.plots.volcano_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.volcano_plot",
+        "description": "src.plots.volcano_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VolcanoPlotMixin:\n    \"\"\"Mixin class for Volcano plot visualization\"\"\"\n    def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                     fdr_threshold: float = 0.05, fc_threshold: float = 1.5,\n                     figsize: tuple = (12, 10)):\n        \"\"\"\n        Create volcano plot showing log2(fold change) vs -log10(FDR)\n        Args:\n            df: Annotated DataFrame with intensity data",
+        "detail": "src.plots.volcano_plot",
         "documentation": {}
     },
     {
@@ -466,11 +1033,56 @@
         "documentation": {}
     },
     {
+        "label": "replace_empty_with_zero",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def replace_empty_with_zero(data):\n    \"\"\"\n    Replace empty strings with 0 without FutureWarning\n    Uses mask() instead of replace() to avoid pandas downcasting warnings.\n    Args:\n        data: pandas Series or DataFrame\n    Returns:\n        Data with empty strings replaced by 0\n    \"\"\"\n    if isinstance(data, pd.DataFrame):",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "to_numeric_safe",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def to_numeric_safe(data):\n    \"\"\"\n    Convert to numeric safely without downcasting warnings\n    Args:\n        data: pandas Series or DataFrame\n    Returns:\n        Numeric data\n    \"\"\"\n    if isinstance(data, pd.DataFrame):\n        return data.apply(pd.to_numeric, errors='coerce').fillna(0)",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "ensure_trace_dir",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def ensure_trace_dir(output_dir: Path) -> Path:\n    \"\"\"\n    Ensure Trace directory exists for visualization data exports\n    Args:\n        output_dir: Base output directory\n    Returns:\n        Path to Trace directory\n    \"\"\"\n    trace_dir = Path(output_dir) / 'Trace'\n    trace_dir.mkdir(parents=True, exist_ok=True)",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def save_trace_data(data: pd.DataFrame, output_dir: Path, filename: str):\n    \"\"\"\n    Save visualization source data to Trace folder\n    Args:\n        data: DataFrame to save\n        output_dir: Base output directory\n        filename: Name of the trace file (e.g., 'heatmap_data.csv')\n    \"\"\"\n    trace_dir = ensure_trace_dir(output_dir)\n    output_path = trace_dir / filename",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_sample_columns",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def get_sample_columns(df: pd.DataFrame) -> tuple:\n    \"\"\"\n    Extract cancer and normal sample columns from DataFrame\n    Identifies columns that represent cancer samples (start with 'C' followed by digits)\n    and normal samples (start with 'N' followed by digits).\n    Args:\n        df: DataFrame with sample columns\n    Returns:\n        Tuple of (cancer_samples, normal_samples) where each is a list of column names\n    \"\"\"",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
         "label": "GlycanVisualizer",
         "kind": 6,
         "importPath": "src.visualizer",
         "description": "src.visualizer",
-        "peekOfCode": "class GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    DistributionPlotMixin\n):\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"\n    def __init__(self, output_dir: str, dpi: int = 300, colors: dict = None):",
+        "peekOfCode": "class GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    VIPScorePlotRMixin,\n    DistributionPlotMixin,\n    VolcanoPlotMixin,\n    SiteSpecificHeatmapMixin,",
         "detail": "src.visualizer",
         "documentation": {}
     },
@@ -479,8 +1091,17 @@
         "kind": 5,
         "importPath": "src.visualizer",
         "description": "src.visualizer",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    DistributionPlotMixin\n):\n    \"\"\"Create visualizations for glycoproteomics data\"\"\"",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    VIPScorePlotRMixin,\n    DistributionPlotMixin,\n    VolcanoPlotMixin,",
         "detail": "src.visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "updates",
+        "kind": 5,
+        "importPath": "add_trace_remaining",
+        "description": "add_trace_remaining",
+        "peekOfCode": "updates = [\n    # Boxplot.py - 6 methods\n    {\n        'file': 'src/plots/boxplot.py',\n        'replacements': [\n            {\n                'old': '        output_file = self.output_dir / \\'boxplot_glycan_types.png\\'\\n        plt.savefig(output_file, dpi=self.dpi, bbox_inches=\\'tight\\')\\n        logger.info(f\"Saved boxplot to {output_file}\")\\n\\n        plt.close()',\n                'new': '        # Save plot\\n        output_file = self.output_dir / \\'boxplot_glycan_types.png\\'\\n        plt.savefig(output_file, dpi=self.dpi, bbox_inches=\\'tight\\')\\n        logger.info(f\"Saved boxplot to {output_file}\")\\n\\n        # Save trace data\\n        save_trace_data(boxplot_data, self.output_dir, \\'boxplot_glycan_types_data.csv\\')\\n\\n        plt.close()'\n            },\n            {",
+        "detail": "add_trace_remaining",
         "documentation": {}
     },
     {

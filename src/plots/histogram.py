@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import logging
+from utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +26,12 @@ class HistogramMixin:
             figsize: Figure size
         """
         # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Get intensity matrix
-        intensity_matrix = df[sample_cols].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+        intensity_matrix = replace_empty_with_zero(df[sample_cols])
         # Apply TIC normalization (same as analyzer.py)
         sample_sums = intensity_matrix.sum(axis=0)
         median_sum = sample_sums.median()
@@ -115,9 +112,13 @@ class HistogramMixin:
 
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / 'histogram_glycan_types_by_sample_normalized.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved normalized histogram to {output_file}")
+
+        # Save trace data
+        save_trace_data(plot_df.reset_index(), self.output_dir, 'histogram_glycan_types_by_sample_normalized_data.csv')
 
         plt.close()
 
@@ -132,18 +133,12 @@ class HistogramMixin:
             normalization: 'raw' (normalize raw data then sum) or 'aggregated' (sum then normalize)
             figsize: Figure size
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Get intensity matrix
-        intensity_matrix = df[sample_cols].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+        intensity_matrix = replace_empty_with_zero(df[sample_cols])
         # Primary classification categories (exclude Outlier for visualization)
         primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid']
 
@@ -154,8 +149,7 @@ class HistogramMixin:
 
             if normalization == 'raw':
                 # Normalize raw data using min-max scaling
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+                intensity_col = replace_empty_with_zero(df[sample])
                 # Min-max normalization
                 min_val = intensity_col.min()
                 max_val = intensity_col.max()
@@ -165,8 +159,7 @@ class HistogramMixin:
                     intensity_col = intensity_col * 0  # All zeros if no variation
             else:
                 # Use raw intensities for aggregation
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+                intensity_col = replace_empty_with_zero(df[sample])
             # Sum by primary classification
             for category in primary_categories:
                 mask = df['PrimaryClassification'] == category
@@ -214,9 +207,13 @@ class HistogramMixin:
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=90, ha='right')
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / f'histogram_primary_{normalization}_normalized.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved primary classification histogram to {output_file}")
+
+        # Save trace data
+        save_trace_data(plot_df.reset_index(), self.output_dir, f'histogram_primary_{normalization}_normalized_data.csv')
 
         plt.close()
 
@@ -231,14 +228,9 @@ class HistogramMixin:
             normalization: 'raw' (normalize raw data then sum) or 'aggregated' (sum then normalize)
             figsize: Figure size
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Secondary classification categories (5 categories, exclude Truncated and Outlier)
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
@@ -250,8 +242,7 @@ class HistogramMixin:
 
             if normalization == 'raw':
                 # Normalize raw data using min-max scaling
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+                intensity_col = replace_empty_with_zero(df[sample])
                 # Min-max normalization
                 min_val = intensity_col.min()
                 max_val = intensity_col.max()
@@ -261,8 +252,7 @@ class HistogramMixin:
                     intensity_col = intensity_col * 0
             else:
                 # Use raw intensities for aggregation
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+                intensity_col = replace_empty_with_zero(df[sample])
             # Sum by secondary classification
             for category in secondary_categories:
                 mask = df['SecondaryClassification'] == category
@@ -312,9 +302,13 @@ class HistogramMixin:
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=90, ha='right')
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / f'histogram_secondary_{normalization}_normalized.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved secondary classification histogram to {output_file}")
+
+        # Save trace data
+        save_trace_data(plot_df.reset_index(), self.output_dir, f'histogram_secondary_{normalization}_normalized_data.csv')
 
         plt.close()
 
@@ -327,14 +321,9 @@ class HistogramMixin:
             df: Annotated DataFrame
             figsize: Figure size
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Separate Cancer and Normal samples
         cancer_samples = [col for col in sample_cols if col.startswith('C')]
@@ -350,8 +339,7 @@ class HistogramMixin:
             group_data = {'Group': group_name}
 
             # Get intensity matrix for this group
-            intensity_matrix = df[group_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+            intensity_matrix = replace_empty_with_zero(df[group_samples])
             # Sum across all samples in the group, then by category
             for category in primary_categories:
                 mask = df['PrimaryClassification'] == category
@@ -393,9 +381,13 @@ class HistogramMixin:
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / 'histogram_primary_cancer_vs_normal.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved primary Cancer vs Normal histogram to {output_file}")
+
+        # Save trace data
+        save_trace_data(plot_df.reset_index(), self.output_dir, 'histogram_primary_cancer_vs_normal_data.csv')
 
         plt.close()
 
@@ -408,14 +400,9 @@ class HistogramMixin:
             df: Annotated DataFrame
             figsize: Figure size
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Separate Cancer and Normal samples
         cancer_samples = [col for col in sample_cols if col.startswith('C')]
@@ -431,8 +418,7 @@ class HistogramMixin:
             group_data = {'Group': group_name}
 
             # Get intensity matrix for this group
-            intensity_matrix = df[group_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+            intensity_matrix = replace_empty_with_zero(df[group_samples])
             # Sum across all samples in the group, then by category
             for category in secondary_categories:
                 mask = df['SecondaryClassification'] == category
@@ -474,8 +460,12 @@ class HistogramMixin:
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / 'histogram_secondary_cancer_vs_normal.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved secondary Cancer vs Normal histogram to {output_file}")
+
+        # Save trace data
+        save_trace_data(plot_df.reset_index(), self.output_dir, 'histogram_secondary_cancer_vs_normal_data.csv')
 
         plt.close()

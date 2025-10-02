@@ -16,7 +16,14 @@ from src.plots.boxplot import BoxplotMixin
 from src.plots.heatmap import HeatmapMixin
 from src.plots.histogram import HistogramMixin
 from src.plots.vip_score_plot import VIPScorePlotMixin
+from src.plots.vip_score_plot_r import VIPScorePlotRMixin
 from src.plots.distribution_plot import DistributionPlotMixin
+from src.plots.volcano_plot import VolcanoPlotMixin
+from src.plots.site_specific_heatmap import SiteSpecificHeatmapMixin
+from src.plots.cv_distribution_plot import CVDistributionPlotMixin
+from src.plots.correlation_matrix_plot import CorrelationMatrixPlotMixin
+from src.plots.venn_diagram_plot import VennDiagramPlotMixin
+from src.plots.radar_chart_plot import RadarChartPlotMixin
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,7 +35,14 @@ class GlycanVisualizer(
     HeatmapMixin,
     HistogramMixin,
     VIPScorePlotMixin,
-    DistributionPlotMixin
+    VIPScorePlotRMixin,
+    DistributionPlotMixin,
+    VolcanoPlotMixin,
+    SiteSpecificHeatmapMixin,
+    CVDistributionPlotMixin,
+    CorrelationMatrixPlotMixin,
+    VennDiagramPlotMixin,
+    RadarChartPlotMixin
 ):
     """Create visualizations for glycoproteomics data"""
 

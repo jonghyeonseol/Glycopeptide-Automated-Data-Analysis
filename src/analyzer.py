@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.cross_decomposition import PLSRegression
 from scipy import stats
 import logging
+from utils import replace_empty_with_zero, to_numeric_safe
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,11 +56,8 @@ class GlycanAnalyzer:
         # Extract intensity matrix
         intensity_matrix = df[sample_cols].copy()
 
-        # Replace empty strings with 0
-        intensity_matrix = intensity_matrix.replace('', 0)
-
-        # Convert to numeric
-        intensity_matrix = intensity_matrix.apply(pd.to_numeric, errors='coerce').fillna(0)
+        # Replace empty strings with 0 and convert to numeric
+        intensity_matrix = replace_empty_with_zero(intensity_matrix)
 
         # Transpose: rows = samples, columns = features
         intensity_matrix_t = intensity_matrix.T
@@ -165,8 +163,8 @@ class GlycanAnalyzer:
             subset = df[df[group_col] == glycan_type]
 
             # Convert to numeric and replace empty with 0
-            c_values = subset[c_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-            n_values = subset[n_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+            c_values = replace_empty_with_zero(subset[c_samples])
+            n_values = replace_empty_with_zero(subset[n_samples])
 
             # Calculate mean intensity for each sample
             c_mean = c_values.sum(axis=0).mean()
@@ -225,7 +223,7 @@ class GlycanAnalyzer:
         )
 
         # Convert intensity to numeric
-        df_long['Intensity'] = pd.to_numeric(df_long['Intensity'].replace('', 0), errors='coerce').fillna(0)
+        df_long['Intensity'] = to_numeric_safe(df_long['Intensity'].replace('', np.nan))
 
         # Add group information
         df_long['Group'] = df_long['Sample'].apply(lambda x: 'Cancer' if x.startswith('C') else 'Normal')
@@ -287,7 +285,7 @@ class GlycanAnalyzer:
         )
 
         # Convert intensity to numeric
-        df_long['Intensity'] = pd.to_numeric(df_long['Intensity'].replace('', 0), errors='coerce').fillna(0)
+        df_long['Intensity'] = to_numeric_safe(df_long['Intensity'].replace('', np.nan))
 
         # Add group information
         df_long['Group'] = df_long['Sample'].apply(lambda x: 'Cancer' if x.startswith('C') else 'Normal')

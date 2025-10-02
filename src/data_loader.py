@@ -122,16 +122,16 @@ class DataLoader:
             logger.info(f"QC filter: Removed {before_count - len(combined_df)} rows with IsotopeArea < {min_area}")
 
         # Pivot to wide format
-        # Group by Peptide and GlycanComposition, with SampleID as columns
+        # Group by Peptide, GlycanComposition, and Proteins, with SampleID as columns
         integrated_df = combined_df.pivot_table(
-            index=['Peptide', 'GlycanComposition'],
+            index=['Peptide', 'GlycanComposition', 'Proteins'],
             columns='SampleID',
             values='IsotopeArea',
             aggfunc='sum'  # Sum if there are duplicates
         ).reset_index()
 
         # Sort columns: C1, C2, ..., C24, N1, N2, ..., N24
-        sample_cols = [col for col in integrated_df.columns if col not in ['Peptide', 'GlycanComposition']]
+        sample_cols = [col for col in integrated_df.columns if col not in ['Peptide', 'GlycanComposition', 'Proteins']]
 
         # Separate C and N samples
         c_samples = sorted([col for col in sample_cols if col.startswith('C')],
@@ -139,8 +139,8 @@ class DataLoader:
         n_samples = sorted([col for col in sample_cols if col.startswith('N')],
                           key=lambda x: int(x[1:]))
 
-        # Reorder columns
-        ordered_cols = ['Peptide', 'GlycanComposition'] + c_samples + n_samples
+        # Reorder columns: Peptide, GlycanComposition, sample columns, Proteins (at the end)
+        ordered_cols = ['Peptide', 'GlycanComposition'] + c_samples + n_samples + ['Proteins']
         integrated_df = integrated_df[ordered_cols]
 
         # Fill NaN with empty string for missing values

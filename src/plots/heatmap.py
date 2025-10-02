@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import logging
+from utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +26,12 @@ class HeatmapMixin:
             figsize: Figure size
             top_n: Number of top glycopeptides to show
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Get intensity matrix
-        intensity_matrix = df[sample_cols].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+        intensity_matrix = replace_empty_with_zero(df[sample_cols])
         # Calculate mean intensity across all samples
         df_copy = df.copy()
         df_copy['MeanIntensity'] = intensity_matrix.mean(axis=1)
@@ -44,8 +40,7 @@ class HeatmapMixin:
         top_glycopeptides = df_copy.nlargest(top_n, 'MeanIntensity')
 
         # Prepare data for heatmap
-        heatmap_data = top_glycopeptides[sample_cols].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+        heatmap_data = replace_empty_with_zero(top_glycopeptides[sample_cols])
         # Log transform
         heatmap_data = np.log2(heatmap_data + 1)
 
@@ -113,9 +108,15 @@ class HeatmapMixin:
             fontsize=10
         )
 
+        # Save plot
         output_file = self.output_dir / 'heatmap_top_glycopeptides.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved clustered heatmap to {output_file}")
+
+        # Save trace data
+        trace_data = heatmap_data.copy()
+        trace_data.insert(0, 'Glycopeptide', row_labels)
+        save_trace_data(trace_data, self.output_dir, 'heatmap_top_glycopeptides_data.csv')
 
         plt.close()
 
@@ -127,17 +128,12 @@ class HeatmapMixin:
             df: Annotated DataFrame
             figsize: Figure size
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Get intensity matrix for ALL glycopeptides
-        intensity_matrix = df[sample_cols].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
-
+        intensity_matrix = replace_empty_with_zero(df[sample_cols])
         # Filter out glycopeptides with all zeros (not detected in any sample)
         row_sums = intensity_matrix.sum(axis=1)
         df_filtered = df[row_sums > 0].copy()
@@ -207,8 +203,14 @@ class HeatmapMixin:
             fontsize=10
         )
 
+        # Save plot
         output_file = self.output_dir / 'heatmap_full_glycan_profile.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved full glycan profile heatmap to {output_file}")
+
+        # Save trace data
+        trace_data = heatmap_data.copy()
+        trace_data.insert(0, 'Glycopeptide', row_labels)
+        save_trace_data(trace_data, self.output_dir, 'heatmap_full_glycan_profile_data.csv')
 
         plt.close()

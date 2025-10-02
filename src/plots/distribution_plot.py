@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import logging
+from utils import save_trace_data
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +56,13 @@ class DistributionPlotMixin:
 
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / 'glycan_type_distribution.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved glycan type distribution to {output_file}")
+
+        # Save trace data
+        trace_data = pd.DataFrame({'GlycanType': type_counts.index, 'Count': type_counts.values})
+        save_trace_data(trace_data, self.output_dir, 'glycan_type_distribution_data.csv')
 
         plt.close()

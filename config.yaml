@@ -12,6 +12,7 @@ processing:
     - "Peptide"
     - "GlycanComposition"
     - "IsotopeArea"
+    - "Proteins"
 
   # Quality control filters
   qc_filters:

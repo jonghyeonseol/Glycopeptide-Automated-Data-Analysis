@@ -10,6 +10,7 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from matplotlib.gridspec import GridSpec
+from utils import replace_empty_with_zero, get_sample_columns, save_trace_data
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 class VIPScorePlotMixin:
     """Mixin class for VIP score-related plots"""
 
-    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (14, 10), top_n: int = 30):
+    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):
         """
         Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity
 
@@ -33,14 +34,9 @@ class VIPScorePlotMixin:
         top_n_data['Label'] = top_n_data['Peptide'] + ' | ' + top_n_data['GlycanComposition']
 
         # Get sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
-        cancer_samples = [col for col in sample_cols if col.startswith('C')]
-        normal_samples = [col for col in sample_cols if col.startswith('N')]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Prepare heatmap data (Cancer mean, Normal mean for each glycopeptide)
         heatmap_data = []
@@ -49,8 +45,8 @@ class VIPScorePlotMixin:
             if mask.sum() > 0:
                 glycopeptide_row = df[mask].iloc[0]
 
-                cancer_mean = glycopeptide_row[cancer_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0).mean()
-                normal_mean = glycopeptide_row[normal_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0).mean()
+                cancer_mean = replace_empty_with_zero(glycopeptide_row[cancer_samples]).mean()
+                normal_mean = replace_empty_with_zero(glycopeptide_row[normal_samples]).mean()
 
                 heatmap_data.append([cancer_mean, normal_mean])
             else:
@@ -58,8 +54,15 @@ class VIPScorePlotMixin:
 
         heatmap_df = pd.DataFrame(heatmap_data, columns=['Cancer', 'Normal'])
 
-        # Normalize each row (feature) to 0-1 for heatmap
-        heatmap_normalized = heatmap_df.div(heatmap_df.max(axis=1), axis=0).fillna(0)
+        # Binary classification: 1.0 for higher value, 0.0 for lower value
+        heatmap_normalized = pd.DataFrame(0.0, index=heatmap_df.index, columns=heatmap_df.columns)
+        for idx in heatmap_df.index:
+            if heatmap_df.loc[idx, 'Cancer'] > heatmap_df.loc[idx, 'Normal']:
+                heatmap_normalized.loc[idx, 'Cancer'] = 1.0
+                heatmap_normalized.loc[idx, 'Normal'] = 0.0
+            else:
+                heatmap_normalized.loc[idx, 'Cancer'] = 0.0
+                heatmap_normalized.loc[idx, 'Normal'] = 1.0
 
         # Create figure with GridSpec
         fig = plt.figure(figsize=figsize)
@@ -104,7 +107,7 @@ class VIPScorePlotMixin:
 
         plt.close()
 
-    def plot_vip_scores_glycan_composition(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (14, 10), top_n: int = 30):
+    def plot_vip_scores_glycan_composition(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):
         """
         Plot VIP scores by GlycanComposition with heatmap
 
@@ -118,14 +121,9 @@ class VIPScorePlotMixin:
         glycan_vip = vip_df.groupby('GlycanComposition')['VIP_Score'].max().nlargest(top_n).reset_index()
 
         # Get sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
-        cancer_samples = [col for col in sample_cols if col.startswith('C')]
-        normal_samples = [col for col in sample_cols if col.startswith('N')]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Prepare heatmap data
         heatmap_data = []
@@ -140,8 +138,8 @@ class VIPScorePlotMixin:
                 cancer_total = 0
                 normal_total = 0
                 for _, gly_row in glycan_rows.iterrows():
-                    cancer_total += gly_row[cancer_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0).sum()
-                    normal_total += gly_row[normal_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0).sum()
+                    cancer_total += replace_empty_with_zero(gly_row[cancer_samples]).sum()
+                    normal_total += replace_empty_with_zero(gly_row[normal_samples]).sum()
 
                 heatmap_data.append([cancer_total, normal_total])
             else:
@@ -149,8 +147,15 @@ class VIPScorePlotMixin:
 
         heatmap_df = pd.DataFrame(heatmap_data, columns=['Cancer', 'Normal'])
 
-        # Normalize each row to 0-1
-        heatmap_normalized = heatmap_df.div(heatmap_df.max(axis=1), axis=0).fillna(0)
+        # Binary classification: 1.0 for higher value, 0.0 for lower value
+        heatmap_normalized = pd.DataFrame(0.0, index=heatmap_df.index, columns=heatmap_df.columns)
+        for idx in heatmap_df.index:
+            if heatmap_df.loc[idx, 'Cancer'] > heatmap_df.loc[idx, 'Normal']:
+                heatmap_normalized.loc[idx, 'Cancer'] = 1.0
+                heatmap_normalized.loc[idx, 'Normal'] = 0.0
+            else:
+                heatmap_normalized.loc[idx, 'Cancer'] = 0.0
+                heatmap_normalized.loc[idx, 'Normal'] = 1.0
 
         # Create figure with GridSpec
         fig = plt.figure(figsize=figsize)
@@ -195,7 +200,7 @@ class VIPScorePlotMixin:
 
         plt.close()
 
-    def plot_vip_scores_peptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (14, 10), top_n: int = 30):
+    def plot_vip_scores_peptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):
         """
         Plot VIP scores by Peptide with heatmap
 
@@ -209,14 +214,9 @@ class VIPScorePlotMixin:
         peptide_vip = vip_df.groupby('Peptide')['VIP_Score'].max().nlargest(top_n).reset_index()
 
         # Get sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
-        cancer_samples = [col for col in sample_cols if col.startswith('C')]
-        normal_samples = [col for col in sample_cols if col.startswith('N')]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Prepare heatmap data
         heatmap_data = []
@@ -231,8 +231,8 @@ class VIPScorePlotMixin:
                 cancer_total = 0
                 normal_total = 0
                 for _, pep_row in peptide_rows.iterrows():
-                    cancer_total += pep_row[cancer_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0).sum()
-                    normal_total += pep_row[normal_samples].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0).sum()
+                    cancer_total += replace_empty_with_zero(pep_row[cancer_samples]).sum()
+                    normal_total += replace_empty_with_zero(pep_row[normal_samples]).sum()
 
                 heatmap_data.append([cancer_total, normal_total])
             else:
@@ -240,8 +240,15 @@ class VIPScorePlotMixin:
 
         heatmap_df = pd.DataFrame(heatmap_data, columns=['Cancer', 'Normal'])
 
-        # Normalize each row to 0-1
-        heatmap_normalized = heatmap_df.div(heatmap_df.max(axis=1), axis=0).fillna(0)
+        # Binary classification: 1.0 for higher value, 0.0 for lower value
+        heatmap_normalized = pd.DataFrame(0.0, index=heatmap_df.index, columns=heatmap_df.columns)
+        for idx in heatmap_df.index:
+            if heatmap_df.loc[idx, 'Cancer'] > heatmap_df.loc[idx, 'Normal']:
+                heatmap_normalized.loc[idx, 'Cancer'] = 1.0
+                heatmap_normalized.loc[idx, 'Normal'] = 0.0
+            else:
+                heatmap_normalized.loc[idx, 'Cancer'] = 0.0
+                heatmap_normalized.loc[idx, 'Normal'] = 1.0
 
         # Create figure with GridSpec
         fig = plt.figure(figsize=figsize)

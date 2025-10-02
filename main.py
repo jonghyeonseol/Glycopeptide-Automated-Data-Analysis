@@ -70,11 +70,11 @@ def main():
     annotated_data = annotator.annotate_dataframe(integrated_data)
 
     # Prepare clean integrated data for output (only essential columns)
-    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid, PrimaryClassification, SecondaryClassification
+    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid, PrimaryClassification, SecondaryClassification, Proteins
     sample_columns = [col for col in annotated_data.columns
                      if col.startswith('C') or col.startswith('N')]
 
-    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid', 'PrimaryClassification', 'SecondaryClassification']
+    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid', 'PrimaryClassification', 'SecondaryClassification', 'Proteins']
     clean_integrated_data = annotated_data[output_columns].copy()
 
     # Save clean integrated data
@@ -145,11 +145,12 @@ def main():
     visualizer.plot_histogram_cancer_vs_normal_primary(annotated_data)
     visualizer.plot_histogram_cancer_vs_normal_secondary(annotated_data)
 
-    # VIP score visualizations (with heatmap)
-    logger.info("Creating VIP score plots...")
-    visualizer.plot_vip_scores_glycopeptide(annotated_data, plsda_results['vip_scores'])
-    visualizer.plot_vip_scores_glycan_composition(annotated_data, plsda_results['vip_scores'])
-    visualizer.plot_vip_scores_peptide(annotated_data, plsda_results['vip_scores'])
+    # VIP score visualizations (with R/ggplot2)
+    logger.info("Creating VIP score plots with R/ggplot2...")
+    visualizer.plot_vip_scores_glycopeptide_r(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_glycan_composition_r(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_peptide_r(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_vip_scores_peptide_grouped_r(annotated_data, plsda_results['vip_scores'])
 
     # Box plots corresponding to histograms
     logger.info("Creating box plots...")
@@ -159,6 +160,27 @@ def main():
     visualizer.plot_boxplot_secondary_classification(annotated_data, normalization='aggregated')
     visualizer.plot_boxplot_cancer_vs_normal_primary(annotated_data)
     visualizer.plot_boxplot_cancer_vs_normal_secondary(annotated_data)
+
+    # Advanced visualizations (evidence-based from literature)
+    logger.info("Creating advanced visualizations...")
+    logger.info("  - Volcano plot (differential expression)...")
+    visualizer.plot_volcano(annotated_data, plsda_results['vip_scores'])
+
+    logger.info("  - Site-specific glycosylation heatmap...")
+    visualizer.plot_site_specific_heatmap(annotated_data, plsda_results['vip_scores'])
+
+    logger.info("  - CV distribution plots...")
+    visualizer.plot_cv_distribution(annotated_data)
+
+    logger.info("  - Sample correlation matrices...")
+    visualizer.plot_correlation_matrix(annotated_data)
+    visualizer.plot_correlation_clustermap(annotated_data)
+
+    logger.info("  - Venn diagram (glycan type overlap)...")
+    visualizer.plot_glycan_venn_diagram(annotated_data)
+
+    logger.info("  - Radar chart (glycan profile comparison)...")
+    visualizer.plot_radar_chart(annotated_data)
 
     # Step 5: Summary report
     logger.info("\n[6/6] Generating summary report...")
@@ -229,9 +251,25 @@ def main():
         f.write(f"  - Boxplot (secondary, agg norm): boxplot_secondary_aggregated_normalized.png\n")
         f.write(f"  - Boxplot (Cancer vs Normal, primary): boxplot_primary_cancer_vs_normal.png\n")
         f.write(f"  - Boxplot (Cancer vs Normal, secondary): boxplot_secondary_cancer_vs_normal.png\n")
-        f.write(f"  - VIP scores (glycopeptide): vip_score_glycopeptide.png\n")
-        f.write(f"  - VIP scores (glycan composition): vip_score_glycan_composition.png\n")
-        f.write(f"  - VIP scores (peptide): vip_score_peptide.png\n")
+        f.write(f"  - VIP scores (glycopeptide, R/ggplot2): vip_score_glycopeptide_r.png\n")
+        f.write(f"  - VIP scores (glycan composition, R/ggplot2): vip_score_glycan_composition_r.png\n")
+        f.write(f"  - VIP scores (peptide, R/ggplot2): vip_score_peptide_r.png\n")
+        f.write(f"  - VIP scores (peptide grouped, R/ggplot2): vip_score_peptide_grouped_r.png\n")
+        f.write("\nAdvanced Visualizations (Evidence-based):\n")
+        f.write(f"  - Volcano plot: volcano_plot.png\n")
+        f.write(f"  - Site-specific glycosylation: site_specific_glycosylation_heatmap.png\n")
+        f.write(f"  - CV distribution: cv_distribution.png\n")
+        f.write(f"  - Correlation matrix (Cancer): correlation_matrix_cancer.png\n")
+        f.write(f"  - Correlation matrix (Normal): correlation_matrix_normal.png\n")
+        f.write(f"  - Correlation clustermap (Cancer): correlation_clustermap_cancer.png\n")
+        f.write(f"  - Correlation clustermap (Normal): correlation_clustermap_normal.png\n")
+        f.write(f"  - Venn diagram: venn_diagram_glycan_types.png\n")
+        f.write(f"  - Radar chart: radar_chart_glycan_profile.png\n")
+        f.write("\n")
+        f.write("Data Traceability:\n")
+        f.write("  All visualization source data is exported to Results/Trace/ folder as CSV files.\n")
+        f.write("  Each PNG visualization has a corresponding *_data.csv file containing the exact\n")
+        f.write("  data used to generate that plot, ensuring full reproducibility and transparency.\n")
         f.write("="*80 + "\n")
 
     logger.info(f"Saved summary report to {summary_file}")

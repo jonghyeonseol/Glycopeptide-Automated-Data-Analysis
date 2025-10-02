@@ -10,6 +10,7 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from scipy import stats
+from utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 
 logger = logging.getLogger(__name__)
 
@@ -106,9 +107,13 @@ class BoxplotMixin:
 
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / 'boxplot_glycan_types.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved boxplot to {output_file}")
+
+        # Save trace data
+        save_trace_data(boxplot_data, self.output_dir, 'boxplot_glycan_types_data.csv')
 
         plt.close()
 
@@ -201,9 +206,13 @@ class BoxplotMixin:
 
         plt.tight_layout()
 
+        # Save plot
         output_file = self.output_dir / 'boxplot_extended_categories.png'
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved extended boxplot to {output_file}")
+
+        # Save trace data
+        save_trace_data(boxplot_data, self.output_dir, 'boxplot_extended_categories_data.csv')
 
         plt.close()
 
@@ -217,12 +226,9 @@ class BoxplotMixin:
             figsize: Figure size
         """
         # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Primary classification categories
         primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid']
@@ -233,12 +239,12 @@ class BoxplotMixin:
         for sample in sample_cols:
             if normalization == 'raw':
                 # Min-max normalize per sample
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+                intensity_col = replace_empty_with_zero(df[sample])
                 min_val, max_val = intensity_col.min(), intensity_col.max()
                 if max_val > min_val:
                     intensity_col = (intensity_col - min_val) / (max_val - min_val)
             else:
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+                intensity_col = replace_empty_with_zero(df[sample])
 
             group = 'Cancer' if sample.startswith('C') else 'Normal'
 
@@ -286,12 +292,9 @@ class BoxplotMixin:
             figsize: Figure size
         """
         # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         # Secondary classification categories
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
@@ -302,12 +305,12 @@ class BoxplotMixin:
         for sample in sample_cols:
             if normalization == 'raw':
                 # Min-max normalize per sample
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+                intensity_col = replace_empty_with_zero(df[sample])
                 min_val, max_val = intensity_col.min(), intensity_col.max()
                 if max_val > min_val:
                     intensity_col = (intensity_col - min_val) / (max_val - min_val)
             else:
-                intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+                intensity_col = replace_empty_with_zero(df[sample])
 
             group = 'Cancer' if sample.startswith('C') else 'Normal'
 
@@ -356,19 +359,16 @@ class BoxplotMixin:
             figsize: Figure size
         """
         # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid']
 
         # Prepare data
         data_for_plot = []
         for sample in sample_cols:
-            intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+            intensity_col = replace_empty_with_zero(df[sample])
             group = 'Cancer' if sample.startswith('C') else 'Normal'
 
             for idx, row in df.iterrows():
@@ -408,19 +408,16 @@ class BoxplotMixin:
             figsize: Figure size
         """
         # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns (C1-C24, N1-N24)
+        cancer_samples, normal_samples = get_sample_columns(df)
+        sample_cols = cancer_samples + normal_samples
 
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
 
         # Prepare data
         data_for_plot = []
         for sample in sample_cols:
-            intensity_col = df[sample].replace('', 0).apply(pd.to_numeric, errors='coerce').fillna(0)
+            intensity_col = replace_empty_with_zero(df[sample])
             group = 'Cancer' if sample.startswith('C') else 'Normal'
 
             for idx, row in df.iterrows():
