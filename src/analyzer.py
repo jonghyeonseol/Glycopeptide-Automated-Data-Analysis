@@ -308,19 +308,43 @@ class GlycanAnalyzer:
 
         return df_long
 
-    def perform_plsda(self, df: pd.DataFrame, n_components: int = DEFAULT_PLSDA_COMPONENTS) -> Dict:
+    def perform_plsda(self, df: pd.DataFrame, n_components: int = DEFAULT_PLSDA_COMPONENTS,
+                      min_detection_pct: float = 0.3) -> Dict:
         """
         Perform PLS-DA (Partial Least Squares Discriminant Analysis)
         for Cancer vs Normal classification
 
+        SCIENTIFIC VALIDITY: Filters to glycopeptides with adequate detection frequency
+        before fitting PLS-DA model to avoid bias from sparse features.
+
         Args:
             df: Annotated DataFrame
             n_components: Number of PLS components (default: 2)
+            min_detection_pct: Minimum detection % in at least one group (default: 0.3 = 30%)
 
         Returns:
             Dictionary containing PLS-DA results and VIP scores
         """
-        intensity_matrix, sample_names, feature_info = self.prepare_intensity_matrix(df)
+        # DETECTION FREQUENCY FILTERING (SCIENTIFIC VALIDITY)
+        # Get sample columns
+        cancer_samples, normal_samples = get_sample_columns(df)
+
+        # Calculate detection frequency (non-empty values)
+        cancer_detection = (df[cancer_samples] != '').sum(axis=1) / len(cancer_samples)
+        normal_detection = (df[normal_samples] != '').sum(axis=1) / len(normal_samples)
+        max_detection = pd.concat([cancer_detection, normal_detection], axis=1).max(axis=1)
+
+        # Filter to features with adequate detection
+        total_before = len(df)
+        df_filtered = df[max_detection >= min_detection_pct].copy()
+        total_after = len(df_filtered)
+
+        logger.info(f"PLS-DA detection filtering (≥{min_detection_pct*100:.0f}% in at least one group):")
+        logger.info(f"  Before: {total_before} glycopeptides")
+        logger.info(f"  After: {total_after} glycopeptides")
+        logger.info(f"  Removed: {total_before - total_after} ({(total_before - total_after)/total_before*100:.1f}%)")
+
+        intensity_matrix, sample_names, feature_info = self.prepare_intensity_matrix(df_filtered)
 
         # Create binary labels (0 = Normal, 1 = Cancer) using utility function
         y = np.array([1 if get_sample_group(name) == GROUP_CANCER else 0 for name in sample_names])
@@ -390,6 +414,68 @@ class GlycanAnalyzer:
             vip[i] = np.sqrt(p * np.sum(weight) / total_s)
 
         return vip
+
+    def validate_vip_with_bootstrap(self, X: np.ndarray, y: np.ndarray,
+                                    n_iterations: int = 100, n_components: int = 2) -> Dict:
+        """
+        Validate VIP scores using bootstrap resampling
+
+        SCIENTIFIC VALIDITY: Bootstrap validation assesses stability of VIP scores.
+        Features with stable VIP scores across resampled datasets are more reliable biomarkers.
+
+        Args:
+            X: Scaled feature matrix (samples × features)
+            y: Binary labels (Cancer=1, Normal=0)
+            n_iterations: Number of bootstrap iterations (default: 100)
+            n_components: Number of PLS components
+
+        Returns:
+            Dictionary with:
+            - vip_mean: Mean VIP score across iterations
+            - vip_std: Standard deviation of VIP scores
+            - vip_ci_lower: Lower 95% confidence interval
+            - vip_ci_upper: Upper 95% confidence interval
+            - stability: Boolean array (True if CI doesn't include 1.0)
+        """
+        n_samples, n_features = X.shape
+        vip_matrix = np.zeros((n_iterations, n_features))
+
+        logger.info(f"Running VIP bootstrap validation ({n_iterations} iterations)...")
+
+        for i in range(n_iterations):
+            # Resample with replacement
+            indices = np.random.choice(n_samples, n_samples, replace=True)
+            X_boot = X[indices]
+            y_boot = y[indices]
+
+            # Fit PLS-DA model
+            pls_boot = PLSRegression(n_components=n_components)
+            pls_boot.fit(X_boot, y_boot)
+
+            # Calculate VIP scores for this iteration
+            vip_boot = self._calculate_vip_scores(X_boot, y_boot, pls_boot)
+            vip_matrix[i, :] = vip_boot
+
+        # Calculate statistics across iterations
+        vip_mean = np.mean(vip_matrix, axis=0)
+        vip_std = np.std(vip_matrix, axis=0)
+        vip_ci_lower = np.percentile(vip_matrix, 2.5, axis=0)
+        vip_ci_upper = np.percentile(vip_matrix, 97.5, axis=0)
+
+        # Stability: VIP > 1 if lower CI > 1.0 (consistently important)
+        stability = vip_ci_lower > 1.0
+
+        logger.info(f"Bootstrap validation complete:")
+        logger.info(f"  - {np.sum(stability)} features have stable VIP > 1.0 (CI lower > 1.0)")
+        logger.info(f"  - Mean VIP score: {np.mean(vip_mean):.3f} ± {np.mean(vip_std):.3f}")
+
+        return {
+            'vip_mean': vip_mean,
+            'vip_std': vip_std,
+            'vip_ci_lower': vip_ci_lower,
+            'vip_ci_upper': vip_ci_upper,
+            'stability': stability
+        }
 
     def get_top_vip_by_glycopeptide(self, df: pd.DataFrame, plsda_results: dict, top_n: int = 10) -> pd.DataFrame:
         """

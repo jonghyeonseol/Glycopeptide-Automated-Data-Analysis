@@ -10,7 +10,13 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from matplotlib.patches import Ellipse
+from adjustText import adjust_text
 from ..utils import save_trace_data
+from .plot_config import (
+    PCA_FIGSIZE, PCA_LABEL_FONTSIZE, PCA_POINT_SIZE,
+    PCA_POINT_LINEWIDTH, PCA_POINT_ALPHA, GROUP_PALETTE,
+    apply_standard_axis_style, apply_standard_legend
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,21 +86,23 @@ class PCAPlotMixin:
         cancer_mask = pca_df['Group'] == 'Cancer'
         normal_mask = pca_df['Group'] == 'Normal'
 
-        # Define colors
-        cancer_color = '#E74C3C'
-        normal_color = '#3498DB'
+        # Use standardized colors from plot_config
+        cancer_color = GROUP_PALETTE['Cancer']
+        normal_color = GROUP_PALETTE['Normal']
 
-        # Plot Cancer samples
+        # Plot Cancer samples (Prism style: larger, bolder points)
         cancer_scores = pca_df[cancer_mask]
         ax.scatter(cancer_scores['PC1'], cancer_scores['PC2'],
-                  c=cancer_color, s=100, alpha=0.7, edgecolors='black',
-                  linewidth=1, label='Cancer', zorder=3)
+                  c=cancer_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
+                  edgecolors='black', linewidth=PCA_POINT_LINEWIDTH,
+                  label='Cancer', zorder=3)
 
-        # Plot Normal samples
+        # Plot Normal samples (Prism style: larger, bolder points)
         normal_scores = pca_df[normal_mask]
         ax.scatter(normal_scores['PC1'], normal_scores['PC2'],
-                  c=normal_color, s=100, alpha=0.7, edgecolors='black',
-                  linewidth=1, label='Normal', zorder=3)
+                  c=normal_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
+                  edgecolors='black', linewidth=PCA_POINT_LINEWIDTH,
+                  label='Normal', zorder=3)
 
         # Draw 95% confidence ellipses
         self._draw_confidence_ellipse(ax, cancer_scores['PC1'].values, cancer_scores['PC2'].values,
@@ -102,16 +110,40 @@ class PCAPlotMixin:
         self._draw_confidence_ellipse(ax, normal_scores['PC1'].values, normal_scores['PC2'].values,
                                      color=normal_color, alpha=0.15)
 
-        # Add labels
-        ax.set_xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=12)
-        ax.set_ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=12)
-        ax.set_title('PCA: Cancer vs Normal Samples', fontsize=14, fontweight='bold')
+        # Add sample labels (for all points)
+        texts = []
+        for idx, row in pca_df.iterrows():
+            # Color label by group
+            label_color = cancer_color if row['Group'] == 'Cancer' else normal_color
 
-        # Add legend
-        ax.legend(loc='best', frameon=True, fontsize=11)
+            # Add text annotation using standardized font size
+            texts.append(ax.text(row['PC1'], row['PC2'], idx,
+                               fontsize=PCA_LABEL_FONTSIZE, ha='center', va='center',
+                               color=label_color, fontweight='bold',
+                               bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                                       edgecolor=label_color, alpha=0.7, linewidth=1),
+                               zorder=5))
 
-        # Grid
-        ax.grid(True, alpha=0.3)
+        # Adjust text to avoid overlap
+        try:
+            adjust_text(texts,
+                       arrowprops=dict(arrowstyle='->', color='gray', lw=0.5, alpha=0.6),
+                       expand_points=(1.5, 1.5),
+                       force_text=(0.5, 0.5))
+        except:
+            logger.warning("adjustText optimization failed, showing overlapping labels")
+
+        # Apply standardized styling
+        apply_standard_axis_style(
+            ax,
+            xlabel=f'PC1 ({explained_var[0]*100:.2f}%)',
+            ylabel=f'PC2 ({explained_var[1]*100:.2f}%)',
+            title='PCA: Cancer vs Normal Samples (with Sample Labels)',
+            grid=True
+        )
+
+        # Apply standardized legend (positioned outside plot area)
+        apply_standard_legend(ax)
 
         plt.tight_layout()
 

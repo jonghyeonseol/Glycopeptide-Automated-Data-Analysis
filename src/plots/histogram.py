@@ -10,6 +10,11 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
+from .plot_config import (
+    HISTOGRAM_FIGSIZE, HISTOGRAM_X_ROTATION, HISTOGRAM_X_HA,
+    EXTENDED_CATEGORY_COLORS,
+    apply_standard_axis_style, apply_standard_legend
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,13 +85,13 @@ class HistogramMixin:
         # Create stacked bar plot
         fig, ax = plt.subplots(figsize=figsize)
 
-        # Define colors for each category
+        # Define colors for each category (using standardized palette)
         colors = {
-            'High mannose': '#2ECC71',  # Green
-            'C/H': "#1500FF",           # Blue
-            'Fucosylated': "#FF0000",   # Red
-            'Sialylated': "#FF00FB",    # Pink
-            'Both': "#FF9D00"           # Orange
+            'High mannose': EXTENDED_CATEGORY_COLORS['HM'],
+            'C/H': EXTENDED_CATEGORY_COLORS['C/H'],
+            'Fucosylated': EXTENDED_CATEGORY_COLORS['Fucosylated'],
+            'Sialylated': EXTENDED_CATEGORY_COLORS['Sialylated'],
+            'Both': EXTENDED_CATEGORY_COLORS['Sialofucosylated']
         }
 
         plot_df.plot(
@@ -99,13 +104,20 @@ class HistogramMixin:
             linewidth=0.5
         )
 
-        ax.set_xlabel('Sample', fontsize=12)
-        ax.set_ylabel('Total Signal Intensity (TIC Normalized)', fontsize=12)
-        ax.set_title('Glycan Type Distribution by Sample (TIC Normalized Data)', fontsize=14, fontweight='bold')
-        ax.legend(title='Glycan Type', loc='upper left', bbox_to_anchor=(1, 1), frameon=True)
+        # Apply standardized styling
+        apply_standard_axis_style(
+            ax,
+            xlabel='Sample',
+            ylabel='Total Signal Intensity (TIC Normalized)',
+            title='Glycan Type Distribution by Sample (TIC Normalized Data)',
+            grid=False  # Grid not needed for histograms
+        )
 
-        # Rotate x-axis labels
-        plt.setp(ax.xaxis.get_majorticklabels(), rotation=90, ha='right')
+        # Apply standardized legend (positioned outside plot area)
+        apply_standard_legend(ax, title='Glycan Type')
+
+        # Rotate x-axis labels using standardized settings
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=HISTOGRAM_X_ROTATION, ha=HISTOGRAM_X_HA)
 
         # Use scientific notation for y-axis
         ax.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
@@ -139,8 +151,8 @@ class HistogramMixin:
 
         # Get intensity matrix
         intensity_matrix = replace_empty_with_zero(df[sample_cols])
-        # Primary classification categories (exclude Outlier for visualization)
-        primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid']
+        # Primary classification categories
+        primary_categories = ['Outlier', 'High Mannose', 'ComplexHybrid']
 
         data_for_plot = []
 
@@ -171,22 +183,24 @@ class HistogramMixin:
         plot_df = pd.DataFrame(data_for_plot)
         plot_df = plot_df.set_index('Sample')
 
-        # Apply min-max normalization after aggregation if needed
+        # Apply normalization after aggregation if needed
         if normalization == 'aggregated':
+            # Within-sample proportional normalization: show proportion of each type within each sample
+            # This allows visual comparison of HM vs CH ratios within samples
+            row_sums = plot_df[primary_categories].sum(axis=1)
             for col in primary_categories:
-                min_val = plot_df[col].min()
-                max_val = plot_df[col].max()
-                if max_val > min_val:
-                    plot_df[col] = (plot_df[col] - min_val) / (max_val - min_val)
+                plot_df[col] = plot_df[col] / row_sums
+            # Replace any NaN with 0 (if row sum was 0)
+            plot_df = plot_df.fillna(0)
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
 
         # Define colors
         colors_primary = {
-            'Truncated': '#CCCCCC',
-            'High Mannose': '#2ECC71',
-            'ComplexHybrid': '#3498DB'
+            'Outlier': '#95A5A6',  # Gray - Outlier glycans
+            'High Mannose': '#2ECC71',  # Green
+            'ComplexHybrid': '#3498DB'  # Blue
         }
 
         plot_df[primary_categories].plot(
@@ -198,13 +212,26 @@ class HistogramMixin:
             linewidth=0.5
         )
 
-        norm_text = 'Raw Normalized then Summed' if normalization == 'raw' else 'Summed then Normalized'
-        ax.set_xlabel('Sample', fontsize=12)
-        ax.set_ylabel('Normalized Intensity Sum', fontsize=12)
-        ax.set_title(f'Primary Classification Distribution by Sample ({norm_text})', fontsize=14)
-        ax.legend(title='Primary Classification', loc='upper left', bbox_to_anchor=(1, 1), frameon=True)
+        if normalization == 'aggregated':
+            norm_text = 'Proportional (Within-Sample)'
+            ylabel_text = 'Proportion of Total Intensity'
+        else:
+            norm_text = 'Raw Normalized then Summed'
+            ylabel_text = 'Normalized Intensity Sum'
 
-        plt.setp(ax.xaxis.get_majorticklabels(), rotation=90, ha='right')
+        # Apply standardized styling
+        apply_standard_axis_style(
+            ax,
+            xlabel='Sample',
+            ylabel=ylabel_text,
+            title=f'Primary Classification Distribution by Sample ({norm_text})',
+            grid=False
+        )
+
+        # Apply standardized legend (positioned outside plot area)
+        apply_standard_legend(ax, title='Primary Classification')
+
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=HISTOGRAM_X_ROTATION, ha=HISTOGRAM_X_HA)
         plt.tight_layout()
 
         # Save plot
@@ -264,24 +291,26 @@ class HistogramMixin:
         plot_df = pd.DataFrame(data_for_plot)
         plot_df = plot_df.set_index('Sample')
 
-        # Apply min-max normalization after aggregation if needed
+        # Apply normalization after aggregation if needed
         if normalization == 'aggregated':
+            # Within-sample proportional normalization: show proportion of each type within each sample
+            # This allows visual comparison of ratios within samples
+            row_sums = plot_df[secondary_categories].sum(axis=1)
             for col in secondary_categories:
-                min_val = plot_df[col].min()
-                max_val = plot_df[col].max()
-                if max_val > min_val:
-                    plot_df[col] = (plot_df[col] - min_val) / (max_val - min_val)
+                plot_df[col] = plot_df[col] / row_sums
+            # Replace any NaN with 0 (if row sum was 0)
+            plot_df = plot_df.fillna(0)
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
 
-        # Define colors
+        # Define colors (using standardized palette to avoid conflicts)
         colors_secondary = {
-            'High Mannose': '#2ECC71',
-            'Complex/Hybrid': '#3498DB',
-            'Fucosylated': '#E74C3C',
-            'Sialylated': '#9B59B6',
-            'Sialofucosylated': '#F39C12'
+            'High Mannose': EXTENDED_CATEGORY_COLORS['HM'],
+            'Complex/Hybrid': EXTENDED_CATEGORY_COLORS['C/H'],
+            'Fucosylated': EXTENDED_CATEGORY_COLORS['Fucosylated'],
+            'Sialylated': EXTENDED_CATEGORY_COLORS['Sialylated'],
+            'Sialofucosylated': EXTENDED_CATEGORY_COLORS['Sialofucosylated']
         }
 
         plot_df[secondary_categories].plot(
@@ -293,13 +322,26 @@ class HistogramMixin:
             linewidth=0.5
         )
 
-        norm_text = 'Raw Normalized then Summed' if normalization == 'raw' else 'Summed then Normalized'
-        ax.set_xlabel('Sample', fontsize=12)
-        ax.set_ylabel('Normalized Intensity Sum', fontsize=12)
-        ax.set_title(f'Secondary Classification Distribution by Sample ({norm_text})', fontsize=14)
-        ax.legend(title='Secondary Classification', loc='upper left', bbox_to_anchor=(1, 1), frameon=True)
+        if normalization == 'aggregated':
+            norm_text = 'Proportional (Within-Sample)'
+            ylabel_text = 'Proportion of Total Intensity'
+        else:
+            norm_text = 'Raw Normalized then Summed'
+            ylabel_text = 'Normalized Intensity Sum'
 
-        plt.setp(ax.xaxis.get_majorticklabels(), rotation=90, ha='right')
+        # Apply standardized styling
+        apply_standard_axis_style(
+            ax,
+            xlabel='Sample',
+            ylabel=ylabel_text,
+            title=f'Secondary Classification Distribution by Sample ({norm_text})',
+            grid=False
+        )
+
+        # Apply standardized legend (positioned outside plot area)
+        apply_standard_legend(ax, title='Secondary Classification')
+
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=HISTOGRAM_X_ROTATION, ha=HISTOGRAM_X_HA)
         plt.tight_layout()
 
         # Save plot
@@ -329,8 +371,8 @@ class HistogramMixin:
         cancer_samples = [col for col in sample_cols if col.startswith('C')]
         normal_samples = [col for col in sample_cols if col.startswith('N')]
 
-        # Primary classification categories (exclude Outlier)
-        primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid']
+        # Primary classification categories
+        primary_categories = ['Outlier', 'High Mannose', 'ComplexHybrid']
 
         # Calculate sums for each group
         data_for_plot = []
@@ -351,9 +393,13 @@ class HistogramMixin:
         plot_df = pd.DataFrame(data_for_plot)
         plot_df = plot_df.set_index('Group')
 
-        # Apply Log2 transformation (no min-max normalization)
+        # Calculate proportions within each group (Cancer and Normal separately)
+        # This shows what % of each group's total is each glycan type
+        row_sums = plot_df[primary_categories].sum(axis=1)
         for col in primary_categories:
-            plot_df[col] = np.log2(plot_df[col] + 1)
+            plot_df[col] = plot_df[col] / row_sums
+        # Replace any NaN with 0
+        plot_df = plot_df.fillna(0)
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
@@ -373,10 +419,17 @@ class HistogramMixin:
             linewidth=1
         )
 
-        ax.set_xlabel('Primary Classification', fontsize=12)
-        ax.set_ylabel('Log2(Total Intensity + 1)', fontsize=12)
-        ax.set_title('Primary Classification: Cancer vs Normal (Log2 Scaled)', fontsize=14)
-        ax.legend(title='Group', loc='upper right', frameon=True)
+        # Apply standardized styling
+        apply_standard_axis_style(
+            ax,
+            xlabel='Primary Classification',
+            ylabel='Proportion of Total Intensity',
+            title='Primary Classification: Cancer vs Normal (Proportional)',
+            grid=True  # Grid helpful for comparison plots
+        )
+
+        # Apply standardized legend (positioned outside plot area)
+        apply_standard_legend(ax, title='Group')
 
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
         plt.tight_layout()
@@ -430,9 +483,13 @@ class HistogramMixin:
         plot_df = pd.DataFrame(data_for_plot)
         plot_df = plot_df.set_index('Group')
 
-        # Apply Log2 transformation (no min-max normalization)
+        # Calculate proportions within each group (Cancer and Normal separately)
+        # This shows what % of each group's total is each glycan type
+        row_sums = plot_df[secondary_categories].sum(axis=1)
         for col in secondary_categories:
-            plot_df[col] = np.log2(plot_df[col] + 1)
+            plot_df[col] = plot_df[col] / row_sums
+        # Replace any NaN with 0
+        plot_df = plot_df.fillna(0)
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
@@ -452,10 +509,17 @@ class HistogramMixin:
             linewidth=1
         )
 
-        ax.set_xlabel('Secondary Classification', fontsize=12)
-        ax.set_ylabel('Log2(Total Intensity + 1)', fontsize=12)
-        ax.set_title('Secondary Classification: Cancer vs Normal (Log2 Scaled)', fontsize=14)
-        ax.legend(title='Group', loc='upper right', frameon=True)
+        # Apply standardized styling
+        apply_standard_axis_style(
+            ax,
+            xlabel='Secondary Classification',
+            ylabel='Proportion of Total Intensity',
+            title='Secondary Classification: Cancer vs Normal (Proportional)',
+            grid=True  # Grid helpful for comparison plots
+        )
+
+        # Apply standardized legend (positioned outside plot area)
+        apply_standard_legend(ax, title='Group')
 
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
         plt.tight_layout()

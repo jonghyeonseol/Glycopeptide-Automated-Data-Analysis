@@ -294,6 +294,22 @@
         "documentation": {}
     },
     {
+        "label": "adjust_text",
+        "importPath": "adjustText",
+        "description": "adjustText",
+        "isExtraImport": true,
+        "detail": "adjustText",
+        "documentation": {}
+    },
+    {
+        "label": "adjust_text",
+        "importPath": "adjustText",
+        "description": "adjustText",
+        "isExtraImport": true,
+        "detail": "adjustText",
+        "documentation": {}
+    },
+    {
         "label": "venn3",
         "importPath": "matplotlib_venn",
         "description": "matplotlib_venn",
@@ -348,14 +364,6 @@
         "description": "rpy2.robjects.conversion",
         "isExtraImport": true,
         "detail": "rpy2.robjects.conversion",
-        "documentation": {}
-    },
-    {
-        "label": "adjust_text",
-        "importPath": "adjustText",
-        "description": "adjustText",
-        "isExtraImport": true,
-        "detail": "adjustText",
         "documentation": {}
     },
     {
@@ -488,6 +496,14 @@
     },
     {
         "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -806,7 +822,7 @@
         "kind": 6,
         "importPath": "src.plots.boxplot",
         "description": "src.plots.boxplot",
-        "peekOfCode": "class BoxplotMixin:\n    \"\"\"Mixin class for boxplot-related visualizations\"\"\"\n    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = (12, 6)):\n        \"\"\"\n        Create boxplot comparing glycan types between groups with statistical significance\n        Args:\n            boxplot_data: Long-format DataFrame from analyzer\n            figsize: Figure size\n        \"\"\"\n        fig, ax = plt.subplots(figsize=figsize)",
+        "peekOfCode": "class BoxplotMixin:\n    \"\"\"Mixin class for boxplot-related visualizations\"\"\"\n    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = None):\n        \"\"\"\n        Create boxplot comparing glycan types between groups with statistical significance\n        Args:\n            boxplot_data: Long-format DataFrame from analyzer\n            figsize: Figure size (default: from plot_config)\n        \"\"\"\n        if figsize is None:",
         "detail": "src.plots.boxplot",
         "documentation": {}
     },
@@ -815,7 +831,7 @@
         "kind": 5,
         "importPath": "src.plots.boxplot",
         "description": "src.plots.boxplot",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass BoxplotMixin:\n    \"\"\"Mixin class for boxplot-related visualizations\"\"\"\n    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = (12, 6)):\n        \"\"\"\n        Create boxplot comparing glycan types between groups with statistical significance\n        Args:\n            boxplot_data: Long-format DataFrame from analyzer\n            figsize: Figure size\n        \"\"\"",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass BoxplotMixin:\n    \"\"\"Mixin class for boxplot-related visualizations\"\"\"\n    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = None):\n        \"\"\"\n        Create boxplot comparing glycan types between groups with statistical significance\n        Args:\n            boxplot_data: Long-format DataFrame from analyzer\n            figsize: Figure size (default: from plot_config)\n        \"\"\"",
         "detail": "src.plots.boxplot",
         "documentation": {}
     },
@@ -961,6 +977,600 @@
         "description": "src.plots.pca_plot",
         "peekOfCode": "logger = logging.getLogger(__name__)\nclass PCAPlotMixin:\n    \"\"\"Mixin class for PCA-related plots\"\"\"\n    def _draw_confidence_ellipse(self, ax, x, y, color, alpha=0.2, n_std=1.96):\n        \"\"\"\n        Draw 95% confidence ellipse for a group of points\n        Args:\n            ax: Matplotlib axis\n            x, y: Data points\n            color: Ellipse color",
         "detail": "src.plots.pca_plot",
+        "documentation": {}
+    },
+    {
+        "label": "apply_standard_axis_style",
+        "kind": 2,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "def apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=True):\n    \"\"\"\n    Apply Prism-inspired standardized styling to matplotlib axes\n    Args:\n        ax: Matplotlib axes object\n        xlabel: X-axis label text\n        ylabel: Y-axis label text\n        title: Plot title text\n        grid: Whether to show gridlines (Prism style: minimal, only Y-axis)\n    \"\"\"",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "apply_standard_legend",
+        "kind": 2,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "def apply_standard_legend(ax, **kwargs):\n    \"\"\"\n    Apply Prism-inspired standardized legend styling\n    Legend positioned OUTSIDE plot area by default (non-interruptive)\n    Args:\n        ax: Matplotlib axes object\n        **kwargs: Additional legend parameters\n    \"\"\"\n    legend_params = {\n        'fontsize': LEGEND_SIZE,",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "TITLE_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "TITLE_SIZE = 16  # Increased for better visibility\nAXIS_LABEL_SIZE = 14  # Increased - must be clearly readable\nTICK_LABEL_SIZE = 12  # Increased - critical for data interpretation\nLEGEND_SIZE = 12  # Increased for accessibility\nLEGEND_TITLE_SIZE = 13\nANNOTATION_SIZE = 11  # Increased - annotations must be readable\n# Font Weights (Prism uses regular weight more often for cleaner look)\nTITLE_WEIGHT = 'bold'\nAXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "AXIS_LABEL_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "AXIS_LABEL_SIZE = 14  # Increased - must be clearly readable\nTICK_LABEL_SIZE = 12  # Increased - critical for data interpretation\nLEGEND_SIZE = 12  # Increased for accessibility\nLEGEND_TITLE_SIZE = 13\nANNOTATION_SIZE = 11  # Increased - annotations must be readable\n# Font Weights (Prism uses regular weight more often for cleaner look)\nTITLE_WEIGHT = 'bold'\nAXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "TICK_LABEL_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "TICK_LABEL_SIZE = 12  # Increased - critical for data interpretation\nLEGEND_SIZE = 12  # Increased for accessibility\nLEGEND_TITLE_SIZE = 13\nANNOTATION_SIZE = 11  # Increased - annotations must be readable\n# Font Weights (Prism uses regular weight more often for cleaner look)\nTITLE_WEIGHT = 'bold'\nAXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================\n# Colors - Group Comparison (Cancer vs Normal)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_SIZE = 12  # Increased for accessibility\nLEGEND_TITLE_SIZE = 13\nANNOTATION_SIZE = 11  # Increased - annotations must be readable\n# Font Weights (Prism uses regular weight more often for cleaner look)\nTITLE_WEIGHT = 'bold'\nAXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================\n# Colors - Group Comparison (Cancer vs Normal)\n# Prism-inspired: Bold, saturated, high contrast",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_TITLE_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_TITLE_SIZE = 13\nANNOTATION_SIZE = 11  # Increased - annotations must be readable\n# Font Weights (Prism uses regular weight more often for cleaner look)\nTITLE_WEIGHT = 'bold'\nAXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================\n# Colors - Group Comparison (Cancer vs Normal)\n# Prism-inspired: Bold, saturated, high contrast\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "ANNOTATION_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "ANNOTATION_SIZE = 11  # Increased - annotations must be readable\n# Font Weights (Prism uses regular weight more often for cleaner look)\nTITLE_WEIGHT = 'bold'\nAXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================\n# Colors - Group Comparison (Cancer vs Normal)\n# Prism-inspired: Bold, saturated, high contrast\n# ==============================================================================\n# Using Prism's bold, professional colors",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "TITLE_WEIGHT",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "TITLE_WEIGHT = 'bold'\nAXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================\n# Colors - Group Comparison (Cancer vs Normal)\n# Prism-inspired: Bold, saturated, high contrast\n# ==============================================================================\n# Using Prism's bold, professional colors\nCOLOR_CANCER = '#FF0000'  # Pure red - bold, unmistakable (from Prism \"colors\" palette)\nCOLOR_NORMAL = '#0072B2'  # Science blue - professional, colorblind-safe",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "AXIS_LABEL_WEIGHT",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "AXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner\nLEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================\n# Colors - Group Comparison (Cancer vs Normal)\n# Prism-inspired: Bold, saturated, high contrast\n# ==============================================================================\n# Using Prism's bold, professional colors\nCOLOR_CANCER = '#FF0000'  # Pure red - bold, unmistakable (from Prism \"colors\" palette)\nCOLOR_NORMAL = '#0072B2'  # Science blue - professional, colorblind-safe\nGROUP_PALETTE = {",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_TITLE_WEIGHT",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_TITLE_WEIGHT = 'bold'\n# ==============================================================================\n# Colors - Group Comparison (Cancer vs Normal)\n# Prism-inspired: Bold, saturated, high contrast\n# ==============================================================================\n# Using Prism's bold, professional colors\nCOLOR_CANCER = '#FF0000'  # Pure red - bold, unmistakable (from Prism \"colors\" palette)\nCOLOR_NORMAL = '#0072B2'  # Science blue - professional, colorblind-safe\nGROUP_PALETTE = {\n    'Cancer': COLOR_CANCER,",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "COLOR_CANCER",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "COLOR_CANCER = '#FF0000'  # Pure red - bold, unmistakable (from Prism \"colors\" palette)\nCOLOR_NORMAL = '#0072B2'  # Science blue - professional, colorblind-safe\nGROUP_PALETTE = {\n    'Cancer': COLOR_CANCER,\n    'Normal': COLOR_NORMAL\n}\n# ==============================================================================\n# Colors - Glycan Types (Scientific Color Scheme)\n# ==============================================================================\n# SCIENTIFIC COLOR SCHEME - Biologically meaningful colors",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "COLOR_NORMAL",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "COLOR_NORMAL = '#0072B2'  # Science blue - professional, colorblind-safe\nGROUP_PALETTE = {\n    'Cancer': COLOR_CANCER,\n    'Normal': COLOR_NORMAL\n}\n# ==============================================================================\n# Colors - Glycan Types (Scientific Color Scheme)\n# ==============================================================================\n# SCIENTIFIC COLOR SCHEME - Biologically meaningful colors\n# Green = High Mannose (early biosynthesis)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "GROUP_PALETTE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "GROUP_PALETTE = {\n    'Cancer': COLOR_CANCER,\n    'Normal': COLOR_NORMAL\n}\n# ==============================================================================\n# Colors - Glycan Types (Scientific Color Scheme)\n# ==============================================================================\n# SCIENTIFIC COLOR SCHEME - Biologically meaningful colors\n# Green = High Mannose (early biosynthesis)\n# Red = Fucosylated (terminal modification)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "GLYCAN_COLORS",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "GLYCAN_COLORS = {\n    'HM': '#2ECC71',    # Green - High Mannose\n    'F': '#E74C3C',     # Red - Fucosylated\n    'S': '#FF69B4',     # Pink - Sialylated\n    'SF': '#FF8C00',    # Orange - Sialofucosylated\n    'C/H': '#3498DB'    # Blue - Complex/Hybrid\n}\n# Legacy glycan type colors (for backward compatibility)\nLEGACY_GLYCAN_COLORS = {\n    'Non': '#95A5A6',       # Gray - Non-modified",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGACY_GLYCAN_COLORS",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGACY_GLYCAN_COLORS = {\n    'Non': '#95A5A6',       # Gray - Non-modified\n    'Sialylated': '#FF69B4',   # Pink - Sialylated\n    'Fucosylated': '#E74C3C',  # Red - Fucosylated\n    'Both': '#FF8C00'          # Orange - Sialofucosylated\n}\n# Extended category colors (scientific scheme)\nEXTENDED_CATEGORY_COLORS = {\n    'HM': '#2ECC71',              # Green - High Mannose\n    'High mannose': '#2ECC71',    # Alias for consistency",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "EXTENDED_CATEGORY_COLORS",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "EXTENDED_CATEGORY_COLORS = {\n    'HM': '#2ECC71',              # Green - High Mannose\n    'High mannose': '#2ECC71',    # Alias for consistency\n    'High Mannose': '#2ECC71',    # Alias (capitalized)\n    'C/H': '#3498DB',             # Blue - Complex/Hybrid\n    'Complex/Hybrid': '#3498DB',  # Alias\n    'ComplexHybrid': '#3498DB',   # Alias (no space/slash)\n    'Fucosylated': '#E74C3C',     # Red - Fucosylated\n    'Sialylated': '#FF69B4',      # Pink - Sialylated\n    'Sialofucosylated': '#FF8C00', # Orange - Sialofucosylated",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "DPI",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "DPI = 300  # Publication quality\n# Grid settings (Prism style: minimal, subtle)\nGRID_ALPHA = 0.15  # Much lighter (was 0.3)\nGRID_LINESTYLE = '-'  # Solid, not dashed (Prism style)\nGRID_LINEWIDTH = 0.5\nGRID_COLOR = '#E0E0E0'  # Light gray, not pure gray\n# Legend settings (Prism style: clean, no shadow)\nLEGEND_FRAMEON = True\nLEGEND_FANCYBOX = False  # Square corners (Prism style)\nLEGEND_SHADOW = False     # No shadow (cleaner)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "GRID_ALPHA",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "GRID_ALPHA = 0.15  # Much lighter (was 0.3)\nGRID_LINESTYLE = '-'  # Solid, not dashed (Prism style)\nGRID_LINEWIDTH = 0.5\nGRID_COLOR = '#E0E0E0'  # Light gray, not pure gray\n# Legend settings (Prism style: clean, no shadow)\nLEGEND_FRAMEON = True\nLEGEND_FANCYBOX = False  # Square corners (Prism style)\nLEGEND_SHADOW = False     # No shadow (cleaner)\nLEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "GRID_LINESTYLE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "GRID_LINESTYLE = '-'  # Solid, not dashed (Prism style)\nGRID_LINEWIDTH = 0.5\nGRID_COLOR = '#E0E0E0'  # Light gray, not pure gray\n# Legend settings (Prism style: clean, no shadow)\nLEGEND_FRAMEON = True\nLEGEND_FANCYBOX = False  # Square corners (Prism style)\nLEGEND_SHADOW = False     # No shadow (cleaner)\nLEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "GRID_LINEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "GRID_LINEWIDTH = 0.5\nGRID_COLOR = '#E0E0E0'  # Light gray, not pure gray\n# Legend settings (Prism style: clean, no shadow)\nLEGEND_FRAMEON = True\nLEGEND_FANCYBOX = False  # Square corners (Prism style)\nLEGEND_SHADOW = False     # No shadow (cleaner)\nLEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "GRID_COLOR",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "GRID_COLOR = '#E0E0E0'  # Light gray, not pure gray\n# Legend settings (Prism style: clean, no shadow)\nLEGEND_FRAMEON = True\nLEGEND_FANCYBOX = False  # Square corners (Prism style)\nLEGEND_SHADOW = False     # No shadow (cleaner)\nLEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================\n# Plot-Specific Settings (Prism-inspired: Bolder data elements)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_FRAMEON",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_FRAMEON = True\nLEGEND_FANCYBOX = False  # Square corners (Prism style)\nLEGEND_SHADOW = False     # No shadow (cleaner)\nLEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================\n# Plot-Specific Settings (Prism-inspired: Bolder data elements)\n# ==============================================================================\n# Boxplot (Prism style: larger, bolder)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_FANCYBOX",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_FANCYBOX = False  # Square corners (Prism style)\nLEGEND_SHADOW = False     # No shadow (cleaner)\nLEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================\n# Plot-Specific Settings (Prism-inspired: Bolder data elements)\n# ==============================================================================\n# Boxplot (Prism style: larger, bolder)\nBOXPLOT_WIDTH = 0.7  # Wider boxes (was 0.6)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_SHADOW",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_SHADOW = False     # No shadow (cleaner)\nLEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================\n# Plot-Specific Settings (Prism-inspired: Bolder data elements)\n# ==============================================================================\n# Boxplot (Prism style: larger, bolder)\nBOXPLOT_WIDTH = 0.7  # Wider boxes (was 0.6)\nBOXPLOT_FIGSIZE = (10, 6)  # Slightly more compact",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_FRAMEALPHA",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_FRAMEALPHA = 1.0   # Solid background (was 0.9)\nLEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================\n# Plot-Specific Settings (Prism-inspired: Bolder data elements)\n# ==============================================================================\n# Boxplot (Prism style: larger, bolder)\nBOXPLOT_WIDTH = 0.7  # Wider boxes (was 0.6)\nBOXPLOT_FIGSIZE = (10, 6)  # Slightly more compact\nBOXPLOT_EXTENDED_FIGSIZE = (12, 6)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_EDGECOLOR",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_EDGECOLOR = '#000000'  # Black border\nLEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================\n# Plot-Specific Settings (Prism-inspired: Bolder data elements)\n# ==============================================================================\n# Boxplot (Prism style: larger, bolder)\nBOXPLOT_WIDTH = 0.7  # Wider boxes (was 0.6)\nBOXPLOT_FIGSIZE = (10, 6)  # Slightly more compact\nBOXPLOT_EXTENDED_FIGSIZE = (12, 6)\nBOXPLOT_LINEWIDTH = 1.5  # Thicker box lines (Prism style)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "LEGEND_FRAMEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "LEGEND_FRAMEWIDTH = 1.0\n# ==============================================================================\n# Plot-Specific Settings (Prism-inspired: Bolder data elements)\n# ==============================================================================\n# Boxplot (Prism style: larger, bolder)\nBOXPLOT_WIDTH = 0.7  # Wider boxes (was 0.6)\nBOXPLOT_FIGSIZE = (10, 6)  # Slightly more compact\nBOXPLOT_EXTENDED_FIGSIZE = (12, 6)\nBOXPLOT_LINEWIDTH = 1.5  # Thicker box lines (Prism style)\nBOXPLOT_FLIERSIZE = 6  # Larger outlier markers",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "BOXPLOT_WIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "BOXPLOT_WIDTH = 0.7  # Wider boxes (was 0.6)\nBOXPLOT_FIGSIZE = (10, 6)  # Slightly more compact\nBOXPLOT_EXTENDED_FIGSIZE = (12, 6)\nBOXPLOT_LINEWIDTH = 1.5  # Thicker box lines (Prism style)\nBOXPLOT_FLIERSIZE = 6  # Larger outlier markers\n# Histogram\nHISTOGRAM_FIGSIZE = (16, 10)  # More compact (was 20x12)\nHISTOGRAM_X_ROTATION = 90\nHISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "BOXPLOT_FIGSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "BOXPLOT_FIGSIZE = (10, 6)  # Slightly more compact\nBOXPLOT_EXTENDED_FIGSIZE = (12, 6)\nBOXPLOT_LINEWIDTH = 1.5  # Thicker box lines (Prism style)\nBOXPLOT_FLIERSIZE = 6  # Larger outlier markers\n# Histogram\nHISTOGRAM_FIGSIZE = (16, 10)  # More compact (was 20x12)\nHISTOGRAM_X_ROTATION = 90\nHISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "BOXPLOT_EXTENDED_FIGSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "BOXPLOT_EXTENDED_FIGSIZE = (12, 6)\nBOXPLOT_LINEWIDTH = 1.5  # Thicker box lines (Prism style)\nBOXPLOT_FLIERSIZE = 6  # Larger outlier markers\n# Histogram\nHISTOGRAM_FIGSIZE = (16, 10)  # More compact (was 20x12)\nHISTOGRAM_X_ROTATION = 90\nHISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================\n# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "BOXPLOT_LINEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "BOXPLOT_LINEWIDTH = 1.5  # Thicker box lines (Prism style)\nBOXPLOT_FLIERSIZE = 6  # Larger outlier markers\n# Histogram\nHISTOGRAM_FIGSIZE = (16, 10)  # More compact (was 20x12)\nHISTOGRAM_X_ROTATION = 90\nHISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================\n# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "BOXPLOT_FLIERSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "BOXPLOT_FLIERSIZE = 6  # Larger outlier markers\n# Histogram\nHISTOGRAM_FIGSIZE = (16, 10)  # More compact (was 20x12)\nHISTOGRAM_X_ROTATION = 90\nHISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================\n# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY\n# ==============================================================================\nVIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "HISTOGRAM_FIGSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "HISTOGRAM_FIGSIZE = (16, 10)  # More compact (was 20x12)\nHISTOGRAM_X_ROTATION = 90\nHISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================\n# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY\n# ==============================================================================\nVIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels\nVIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "HISTOGRAM_X_ROTATION",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "HISTOGRAM_X_ROTATION = 90\nHISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================\n# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY\n# ==============================================================================\nVIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels\nVIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "HISTOGRAM_X_HA",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "HISTOGRAM_X_HA = 'right'\nHISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================\n# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY\n# ==============================================================================\nVIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels\nVIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "HISTOGRAM_BAR_EDGEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "HISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges\n# ==============================================================================\n# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY\n# ==============================================================================\nVIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels\nVIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_FEATURE_NAME_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels\nVIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_POINT_SIZE_MIN",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_POINT_SIZE_MAX",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_POINT_STROKE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_HEATMAP_WIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_HEATMAP_HEIGHT",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_GROUP_LABEL_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_FIGURE_WIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_FIGURE_HEIGHT",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points\nPCA_POINT_LINEWIDTH = 2.0    # Thicker edges",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VIP_LEFT_MARGIN_EXPAND",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points\nPCA_POINT_LINEWIDTH = 2.0    # Thicker edges\nPCA_POINT_ALPHA = 0.8",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "PCA_FIGSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "PCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points\nPCA_POINT_LINEWIDTH = 2.0    # Thicker edges\nPCA_POINT_ALPHA = 0.8\n# ==============================================================================\n# Volcano Plot - MAXIMUM VISIBILITY\n# ==============================================================================\nVOLCANO_FIGSIZE = (14, 11)   # Extra large canvas for labels",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "PCA_LABEL_FONTSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "PCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points\nPCA_POINT_LINEWIDTH = 2.0    # Thicker edges\nPCA_POINT_ALPHA = 0.8\n# ==============================================================================\n# Volcano Plot - MAXIMUM VISIBILITY\n# ==============================================================================\nVOLCANO_FIGSIZE = (14, 11)   # Extra large canvas for labels\nVOLCANO_POINT_SIZE = 120     # Extra large base size",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "PCA_LABEL_BBOX_PAD",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "PCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points\nPCA_POINT_LINEWIDTH = 2.0    # Thicker edges\nPCA_POINT_ALPHA = 0.8\n# ==============================================================================\n# Volcano Plot - MAXIMUM VISIBILITY\n# ==============================================================================\nVOLCANO_FIGSIZE = (14, 11)   # Extra large canvas for labels\nVOLCANO_POINT_SIZE = 120     # Extra large base size\nVOLCANO_POINT_ALPHA = 0.8    # High visibility",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "PCA_POINT_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "PCA_POINT_SIZE = 150         # Larger scatter points\nPCA_POINT_LINEWIDTH = 2.0    # Thicker edges\nPCA_POINT_ALPHA = 0.8\n# ==============================================================================\n# Volcano Plot - MAXIMUM VISIBILITY\n# ==============================================================================\nVOLCANO_FIGSIZE = (14, 11)   # Extra large canvas for labels\nVOLCANO_POINT_SIZE = 120     # Extra large base size\nVOLCANO_POINT_ALPHA = 0.8    # High visibility\nVOLCANO_THRESHOLD_LINEWIDTH = 3.0  # Thicker threshold lines",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "PCA_POINT_LINEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "PCA_POINT_LINEWIDTH = 2.0    # Thicker edges\nPCA_POINT_ALPHA = 0.8\n# ==============================================================================\n# Volcano Plot - MAXIMUM VISIBILITY\n# ==============================================================================\nVOLCANO_FIGSIZE = (14, 11)   # Extra large canvas for labels\nVOLCANO_POINT_SIZE = 120     # Extra large base size\nVOLCANO_POINT_ALPHA = 0.8    # High visibility\nVOLCANO_THRESHOLD_LINEWIDTH = 3.0  # Thicker threshold lines\nVOLCANO_THRESHOLD_ALPHA = 0.6",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "PCA_POINT_ALPHA",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "PCA_POINT_ALPHA = 0.8\n# ==============================================================================\n# Volcano Plot - MAXIMUM VISIBILITY\n# ==============================================================================\nVOLCANO_FIGSIZE = (14, 11)   # Extra large canvas for labels\nVOLCANO_POINT_SIZE = 120     # Extra large base size\nVOLCANO_POINT_ALPHA = 0.8    # High visibility\nVOLCANO_THRESHOLD_LINEWIDTH = 3.0  # Thicker threshold lines\nVOLCANO_THRESHOLD_ALPHA = 0.6\nVOLCANO_POINT_EDGEWIDTH = 1.2  # Strong edges",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_FIGSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_FIGSIZE = (14, 11)   # Extra large canvas for labels\nVOLCANO_POINT_SIZE = 120     # Extra large base size\nVOLCANO_POINT_ALPHA = 0.8    # High visibility\nVOLCANO_THRESHOLD_LINEWIDTH = 3.0  # Thicker threshold lines\nVOLCANO_THRESHOLD_ALPHA = 0.6\nVOLCANO_POINT_EDGEWIDTH = 1.2  # Strong edges\nVOLCANO_LABEL_FONTSIZE = 14    # Extra large labels\nVOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_POINT_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_POINT_SIZE = 120     # Extra large base size\nVOLCANO_POINT_ALPHA = 0.8    # High visibility\nVOLCANO_THRESHOLD_LINEWIDTH = 3.0  # Thicker threshold lines\nVOLCANO_THRESHOLD_ALPHA = 0.6\nVOLCANO_POINT_EDGEWIDTH = 1.2  # Strong edges\nVOLCANO_LABEL_FONTSIZE = 14    # Extra large labels\nVOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_POINT_ALPHA",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_POINT_ALPHA = 0.8    # High visibility\nVOLCANO_THRESHOLD_LINEWIDTH = 3.0  # Thicker threshold lines\nVOLCANO_THRESHOLD_ALPHA = 0.6\nVOLCANO_POINT_EDGEWIDTH = 1.2  # Strong edges\nVOLCANO_LABEL_FONTSIZE = 14    # Extra large labels\nVOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_THRESHOLD_LINEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_THRESHOLD_LINEWIDTH = 3.0  # Thicker threshold lines\nVOLCANO_THRESHOLD_ALPHA = 0.6\nVOLCANO_POINT_EDGEWIDTH = 1.2  # Strong edges\nVOLCANO_LABEL_FONTSIZE = 14    # Extra large labels\nVOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_THRESHOLD_ALPHA",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_THRESHOLD_ALPHA = 0.6\nVOLCANO_POINT_EDGEWIDTH = 1.2  # Strong edges\nVOLCANO_LABEL_FONTSIZE = 14    # Extra large labels\nVOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_POINT_EDGEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_POINT_EDGEWIDTH = 1.2  # Strong edges\nVOLCANO_LABEL_FONTSIZE = 14    # Extra large labels\nVOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_LABEL_FONTSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_LABEL_FONTSIZE = 14    # Extra large labels\nVOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================\n# Utility Functions",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_LABEL_WEIGHT",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_LABEL_WEIGHT = 'bold'  # Bold for emphasis\nVOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================\n# Utility Functions\n# ==============================================================================",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_LABEL_PADDING",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_LABEL_PADDING = 0.6    # More padding in label boxes\nVOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================\n# Utility Functions\n# ==============================================================================\ndef apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=True):",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_LABEL_LINEWIDTH",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_LABEL_LINEWIDTH = 2.5  # Thick label borders\nVOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================\n# Utility Functions\n# ==============================================================================\ndef apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=True):\n    \"\"\"",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "VOLCANO_MAX_LABELS",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "VOLCANO_MAX_LABELS = 3         # Maximum labels to show (avoid overcrowding)\n# Heatmap\nHEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================\n# Utility Functions\n# ==============================================================================\ndef apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=True):\n    \"\"\"\n    Apply Prism-inspired standardized styling to matplotlib axes",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "HEATMAP_FIGSIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "HEATMAP_FIGSIZE = (12, 9)  # More compact\nHEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================\n# Utility Functions\n# ==============================================================================\ndef apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=True):\n    \"\"\"\n    Apply Prism-inspired standardized styling to matplotlib axes\n    Args:\n        ax: Matplotlib axes object",
+        "detail": "src.plots.plot_config",
+        "documentation": {}
+    },
+    {
+        "label": "HEATMAP_CBAR_LABEL_SIZE",
+        "kind": 5,
+        "importPath": "src.plots.plot_config",
+        "description": "src.plots.plot_config",
+        "peekOfCode": "HEATMAP_CBAR_LABEL_SIZE = 11\n# ==============================================================================\n# Utility Functions\n# ==============================================================================\ndef apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=True):\n    \"\"\"\n    Apply Prism-inspired standardized styling to matplotlib axes\n    Args:\n        ax: Matplotlib axes object\n        xlabel: X-axis label text",
+        "detail": "src.plots.plot_config",
         "documentation": {}
     },
     {
@@ -1414,6 +2024,24 @@
         "documentation": {}
     },
     {
+        "label": "convert_to_numeric_with_na",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def convert_to_numeric_with_na(data: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series]:\n    \"\"\"\n    Convert empty strings to NaN (NOT zero) for proper missing data handling\n    SCIENTIFIC VALIDITY: Missing values should be treated as NaN, not zero.\n    Zero implies \"measured and found to be absent\", while NaN means \"not measured\".\n    Args:\n        data: pandas Series or DataFrame with potential empty strings\n    Returns:\n        Data with empty strings converted to NaN (numeric dtype)\n    \"\"\"",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_group_statistics",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def calculate_group_statistics(df: pd.DataFrame, sample_cols: List[str]) -> Dict[str, pd.Series]:\n    \"\"\"\n    Calculate statistics using only non-missing values (skipna=True)\n    SCIENTIFIC VALIDITY: Using skipna=True ensures that missing values don't bias\n    the mean downward. Only measured values are used in calculations.\n    Args:\n        df: DataFrame with intensity data\n        sample_cols: List of sample column names\n    Returns:\n        Dictionary with statistics:",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
         "label": "ensure_directory",
         "kind": 2,
         "importPath": "src.utils",
@@ -1513,11 +2141,20 @@
         "documentation": {}
     },
     {
+        "label": "validate_statistical_power",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def validate_statistical_power(cancer_samples: List[str], normal_samples: List[str],\n                               min_n: int = 5) -> None:\n    \"\"\"\n    Validate that sample sizes are sufficient for statistical analysis\n    SCIENTIFIC VALIDITY: Statistical tests require minimum sample sizes for adequate power.\n    - n < 3: Invalid (cannot compute variance)\n    - n < 5: Under-powered (high Type II error rate)\n    - n >= 5: Acceptable for exploratory analysis\n    - n >= 10: Good power for hypothesis testing\n    Args:",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
         "label": "calculate_fold_change",
         "kind": 2,
         "importPath": "src.utils",
         "description": "src.utils",
-        "peekOfCode": "def calculate_fold_change(cancer_mean: float, normal_mean: float,\n                         log_scale: bool = False) -> float:\n    \"\"\"\n    Calculate fold change between cancer and normal\n    Args:\n        cancer_mean: Mean intensity in cancer samples\n        normal_mean: Mean intensity in normal samples\n        log_scale: If True, return log2 fold change\n    Returns:\n        Fold change value",
+        "peekOfCode": "def calculate_fold_change(cancer_mean: float, normal_mean: float,\n                         log_scale: bool = False, pseudocount: float = 1.0) -> float:\n    \"\"\"\n    Calculate fold change between cancer and normal with pseudocount\n    SCIENTIFIC VALIDITY: Uses pseudocount to handle zeros and make log2 fold change symmetric.\n    - Simple division: 2-fold up = 2.0, 2-fold down = 0.5 (asymmetric)\n    - Log2 fold change: 2-fold up = +1.0, 2-fold down = -1.0 (symmetric)\n    Args:\n        cancer_mean: Mean intensity in cancer samples\n        normal_mean: Mean intensity in normal samples",
         "detail": "src.utils",
         "documentation": {}
     },

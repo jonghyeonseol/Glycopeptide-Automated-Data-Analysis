@@ -11,6 +11,14 @@ from pathlib import Path
 import logging
 from scipy import stats
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
+from .plot_config import (
+    BOXPLOT_FIGSIZE, BOXPLOT_EXTENDED_FIGSIZE, BOXPLOT_WIDTH,
+    BOXPLOT_LINEWIDTH, BOXPLOT_FLIERSIZE,
+    GROUP_PALETTE, LEGACY_GLYCAN_COLORS, EXTENDED_CATEGORY_COLORS,
+    apply_standard_axis_style, apply_standard_legend,
+    ANNOTATION_SIZE, AXIS_LABEL_SIZE, AXIS_LABEL_WEIGHT,
+    TITLE_SIZE, TITLE_WEIGHT
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +26,17 @@ logger = logging.getLogger(__name__)
 class BoxplotMixin:
     """Mixin class for boxplot-related visualizations"""
 
-    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = (12, 6)):
+    def plot_boxplot(self, boxplot_data: pd.DataFrame, figsize: tuple = None):
         """
         Create boxplot comparing glycan types between groups with statistical significance
 
         Args:
             boxplot_data: Long-format DataFrame from analyzer
-            figsize: Figure size
+            figsize: Figure size (default: from plot_config)
         """
+        if figsize is None:
+            figsize = BOXPLOT_FIGSIZE
+
         fig, ax = plt.subplots(figsize=figsize)
 
         # Define fixed order for glycan types
@@ -34,23 +45,28 @@ class BoxplotMixin:
         # Filter to only include existing glycan types
         existing_types = [gt for gt in glycan_order if gt in boxplot_data['GlycanType'].unique()]
 
-        # Create boxplot with ordered categories
+        # PRISM STYLE: Color by glycan type (consistent across all plots)
+        # x-axis shows Groups (Cancer vs Normal), hue shows glycan types with their characteristic colors
         sns.boxplot(
             data=boxplot_data,
-            x='GlycanType',
+            x='Group',  # Swapped: Groups on x-axis
             y='Intensity',
-            hue='Group',
-            order=existing_types,
-            hue_order=['Normal', 'Cancer'],
-            palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'},
-            width=0.6,
+            hue='GlycanType',  # Swapped: Glycan types as hue (colored)
+            order=['Cancer', 'Normal'],
+            hue_order=existing_types,
+            palette=LEGACY_GLYCAN_COLORS,  # Use glycan-type colors!
+            width=BOXPLOT_WIDTH,
+            linewidth=BOXPLOT_LINEWIDTH,  # Prism style: thicker lines
+            flierprops={'markersize': BOXPLOT_FLIERSIZE},  # Prism style: larger outliers
             ax=ax
         )
 
         # Perform statistical tests and add significance markers
+        # Now comparing Cancer vs Normal for each glycan type
         y_max = boxplot_data['Intensity'].max()
         y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
 
+        # Add significance markers between Cancer and Normal for each glycan type
         for i, glycan_type in enumerate(existing_types):
             # Get data for each group
             cancer_data = boxplot_data[
@@ -81,29 +97,53 @@ class BoxplotMixin:
                 else:
                     sig_marker = 'ns'
 
-                # Add significance marker if significant
+                # Add significance marker if significant (connecting Cancer and Normal groups)
                 if sig_marker != 'ns':
-                    # Position marker inside the plot area, near the top
-                    y_position = y_max - y_range * 0.02 - (y_range * 0.03 * (i % 2))
+                    # Calculate x positions for the connecting line
+                    # Cancer is at x=0, Normal is at x=1
+                    # Each glycan type is offset within each group
+                    n_types = len(existing_types)
+                    x_offset = (i - (n_types - 1) / 2) * (BOXPLOT_WIDTH / n_types)
+
+                    x1 = 0 + x_offset  # Cancer position
+                    x2 = 1 + x_offset  # Normal position
+
+                    y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
+
+                    # Draw line connecting the two groups
+                    ax.plot([x1, x2], [y_position, y_position],
+                           color='black', linewidth=1.5, zorder=10)
+
+                    # Add significance marker in the middle
                     ax.text(
-                        i,
+                        (x1 + x2) / 2,
                         y_position,
                         sig_marker,
                         ha='center',
-                        va='top',
-                        fontsize=14,
-                        fontweight='bold'
+                        va='bottom',
+                        fontsize=12,
+                        fontweight='bold',
+                        color='black',
+                        zorder=11
                     )
 
-                    logger.info(f"{glycan_type}: p={p_value:.4f} ({sig_marker})")
+                    logger.info(f"{glycan_type}: Cancer vs Normal p={p_value:.4f} ({sig_marker})")
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {glycan_type}: {str(e)}")
 
-        ax.set_xlabel('Glycan Type')
-        ax.set_ylabel('Log2(Intensity + 1)')
-        ax.set_title('Glycan Intensity Distribution by Type and Group')
-        ax.legend(title='Group', loc='best')
+        # Apply standardized axis styling with gridlines
+        apply_standard_axis_style(
+            ax,
+            xlabel='Group',
+            ylabel='Log2(Intensity + 1)',
+            title='Glycan Type Distribution: Cancer vs Normal',
+            grid=True
+        )
+
+        # Apply standardized legend (now showing glycan types with their colors)
+        # Legend positioned outside plot area (non-interruptive)
+        apply_standard_legend(ax, title='Glycan Type')
 
         plt.tight_layout()
 
@@ -117,14 +157,17 @@ class BoxplotMixin:
 
         plt.close()
 
-    def plot_boxplot_extended(self, boxplot_data: pd.DataFrame, figsize: tuple = (14, 6)):
+    def plot_boxplot_extended(self, boxplot_data: pd.DataFrame, figsize: tuple = None):
         """
         Create extended boxplot comparing 5 glycan categories between groups
 
         Args:
             boxplot_data: Long-format DataFrame from analyzer (extended)
-            figsize: Figure size
+            figsize: Figure size (default: from plot_config)
         """
+        if figsize is None:
+            figsize = BOXPLOT_EXTENDED_FIGSIZE
+
         fig, ax = plt.subplots(figsize=figsize)
 
         # Define fixed order for extended categories
@@ -133,23 +176,28 @@ class BoxplotMixin:
         # Filter to only include existing categories
         existing_categories = [cat for cat in category_order if cat in boxplot_data['ExtendedCategory'].unique()]
 
-        # Create boxplot with ordered categories
+        # PRISM STYLE: Color by glycan type (consistent across all plots)
+        # x-axis shows Groups (Cancer vs Normal), hue shows glycan categories with their characteristic colors
         sns.boxplot(
             data=boxplot_data,
-            x='ExtendedCategory',
+            x='Group',  # Swapped: Groups on x-axis
             y='Intensity',
-            hue='Group',
-            order=existing_categories,
-            hue_order=['Normal', 'Cancer'],
-            palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'},
-            width=0.6,
+            hue='ExtendedCategory',  # Swapped: Glycan categories as hue (colored)
+            order=['Cancer', 'Normal'],
+            hue_order=existing_categories,
+            palette=EXTENDED_CATEGORY_COLORS,  # Use glycan-type colors!
+            width=BOXPLOT_WIDTH,
+            linewidth=BOXPLOT_LINEWIDTH,  # Prism style: thicker lines
+            flierprops={'markersize': BOXPLOT_FLIERSIZE},  # Prism style: larger outliers
             ax=ax
         )
 
         # Perform statistical tests and add significance markers
+        # Now comparing Cancer vs Normal for each glycan category
         y_max = boxplot_data['Intensity'].max()
         y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
 
+        # Add significance markers between Cancer and Normal for each category
         for i, category in enumerate(existing_categories):
             # Get data for each group
             cancer_data = boxplot_data[
@@ -180,29 +228,51 @@ class BoxplotMixin:
                 else:
                     sig_marker = 'ns'
 
-                # Add significance marker if significant
+                # Add significance marker if significant (connecting Cancer and Normal groups)
                 if sig_marker != 'ns':
-                    # Position marker inside the plot area, near the top
-                    y_position = y_max - y_range * 0.02 - (y_range * 0.03 * (i % 2))
+                    # Calculate x positions for the connecting line
+                    n_cats = len(existing_categories)
+                    x_offset = (i - (n_cats - 1) / 2) * (BOXPLOT_WIDTH / n_cats)
+
+                    x1 = 0 + x_offset  # Cancer position
+                    x2 = 1 + x_offset  # Normal position
+
+                    y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
+
+                    # Draw line connecting the two groups
+                    ax.plot([x1, x2], [y_position, y_position],
+                           color='black', linewidth=1.5, zorder=10)
+
+                    # Add significance marker in the middle
                     ax.text(
-                        i,
+                        (x1 + x2) / 2,
                         y_position,
                         sig_marker,
                         ha='center',
-                        va='top',
-                        fontsize=14,
-                        fontweight='bold'
+                        va='bottom',
+                        fontsize=12,
+                        fontweight='bold',
+                        color='black',
+                        zorder=11
                     )
 
-                    logger.info(f"{category}: p={p_value:.4f} ({sig_marker})")
+                    logger.info(f"{category}: Cancer vs Normal p={p_value:.4f} ({sig_marker})")
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {category}: {str(e)}")
 
-        ax.set_xlabel('Glycan Category', fontsize=12)
-        ax.set_ylabel('Log2(Intensity + 1)', fontsize=12)
-        ax.set_title('Extended Glycan Category Distribution (HM, C/H, Fucosylated, Sialylated, Sialofucosylated)', fontsize=14)
-        ax.legend(title='Group', loc='upper left', bbox_to_anchor=(1, 1), frameon=True)
+        # Apply standardized axis styling with gridlines
+        apply_standard_axis_style(
+            ax,
+            xlabel='Group',
+            ylabel='Log2(Intensity + 1)',
+            title='Extended Glycan Categories: Cancer vs Normal',
+            grid=True
+        )
+
+        # Apply standardized legend (now showing glycan categories with their colors)
+        # Legend positioned outside plot area (non-interruptive)
+        apply_standard_legend(ax, title='Glycan Category')
 
         plt.tight_layout()
 
@@ -265,14 +335,33 @@ class BoxplotMixin:
 
         fig, ax = plt.subplots(figsize=figsize)
 
-        sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
-                   palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+        # Determine which classifications are actually present
+        existing_classifications = [cat for cat in primary_categories if cat in plot_df['Classification'].values]
+
+        # Prism-style boxplot: Group on x-axis, colored by Classification
+        sns.boxplot(
+            data=plot_df,
+            x='Group',
+            y='Intensity',
+            hue='Classification',
+            order=['Cancer', 'Normal'],
+            hue_order=existing_classifications,
+            palette=EXTENDED_CATEGORY_COLORS,
+            width=BOXPLOT_WIDTH,
+            linewidth=BOXPLOT_LINEWIDTH,
+            flierprops={'markersize': BOXPLOT_FLIERSIZE},
+            dodge=True,
+            ax=ax
+        )
 
         norm_text = 'Raw Normalized' if normalization == 'raw' else 'Log2 Scaled'
-        ax.set_xlabel('Primary Classification', fontsize=12)
-        ax.set_ylabel(f'Intensity ({norm_text})', fontsize=12)
-        ax.set_title(f'Primary Classification Distribution ({norm_text})', fontsize=14)
-        ax.legend(title='Group', loc='upper right')
+        ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+        ax.set_ylabel(f'Intensity ({norm_text})', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+        ax.set_title(f'Primary Classification Distribution ({norm_text})', fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
+
+        # Apply Prism styling (grid and spine settings)
+        apply_standard_axis_style(ax, grid=True)
+        apply_standard_legend(ax, title='Primary Classification')
 
         plt.tight_layout()
 
@@ -331,16 +420,33 @@ class BoxplotMixin:
 
         fig, ax = plt.subplots(figsize=figsize)
 
-        sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
-                   order=secondary_categories,
-                   palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+        # Determine which classifications are actually present
+        existing_classifications = [cat for cat in secondary_categories if cat in plot_df['Classification'].values]
+
+        # Prism-style boxplot: Group on x-axis, colored by Classification
+        sns.boxplot(
+            data=plot_df,
+            x='Group',
+            y='Intensity',
+            hue='Classification',
+            order=['Cancer', 'Normal'],
+            hue_order=existing_classifications,
+            palette=EXTENDED_CATEGORY_COLORS,
+            width=BOXPLOT_WIDTH,
+            linewidth=BOXPLOT_LINEWIDTH,
+            flierprops={'markersize': BOXPLOT_FLIERSIZE},
+            dodge=True,
+            ax=ax
+        )
 
         norm_text = 'Raw Normalized' if normalization == 'raw' else 'Log2 Scaled'
-        ax.set_xlabel('Secondary Classification', fontsize=12)
-        ax.set_ylabel(f'Intensity ({norm_text})', fontsize=12)
-        ax.set_title(f'Secondary Classification Distribution ({norm_text})', fontsize=14)
-        ax.legend(title='Group', loc='upper right')
-        plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+        ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+        ax.set_ylabel(f'Intensity ({norm_text})', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+        ax.set_title(f'Secondary Classification Distribution ({norm_text})', fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
+
+        # Apply Prism styling (grid and spine settings)
+        apply_standard_axis_style(ax, grid=True)
+        apply_standard_legend(ax, title='Secondary Classification')
 
         plt.tight_layout()
 
@@ -421,11 +527,28 @@ class BoxplotMixin:
 
             fig, ax = plt.subplots(figsize=figsize)
 
-            sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
-                       palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+            # Determine which classifications are actually present
+            existing_classifications = [cat for cat in primary_categories if cat in plot_df['Classification'].values]
 
-            ax.set_xlabel('Primary Classification', fontsize=12)
-            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)', fontsize=12)
+            # Prism-style boxplot: Group on x-axis, colored by Classification
+            sns.boxplot(
+                data=plot_df,
+                x='Group',
+                y='Intensity',
+                hue='Classification',
+                order=['Cancer', 'Normal'],
+                hue_order=existing_classifications,
+                palette=EXTENDED_CATEGORY_COLORS,
+                width=BOXPLOT_WIDTH,
+                linewidth=BOXPLOT_LINEWIDTH,
+                flierprops={'markersize': BOXPLOT_FLIERSIZE},
+                dodge=True,
+                ax=ax
+            )
+
+            ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)',
+                         fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
 
             title = 'Primary Classification: Cancer vs Normal'
             if apply_qc:
@@ -434,11 +557,14 @@ class BoxplotMixin:
                 n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
                 n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
                 ax.text(0.02, 0.98, f'Samples: Cancer={n_cancer}, Normal={n_normal}',
-                       transform=ax.transAxes, fontsize=9, verticalalignment='top',
+                       transform=ax.transAxes, fontsize=ANNOTATION_SIZE, verticalalignment='top',
                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
-            ax.set_title(title, fontsize=14)
-            ax.legend(title='Group')
+            ax.set_title(title, fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
+
+            # Apply Prism styling (grid and spine settings)
+            apply_standard_axis_style(ax, grid=True)
+            apply_standard_legend(ax, title='Primary Classification')
 
             plt.tight_layout()
 
@@ -520,12 +646,28 @@ class BoxplotMixin:
 
             fig, ax = plt.subplots(figsize=figsize)
 
-            sns.boxplot(data=plot_df, x='Classification', y='Intensity', hue='Group',
-                       order=secondary_categories,
-                       palette={'Cancer': '#E74C3C', 'Normal': '#3498DB'}, ax=ax)
+            # Determine which classifications are actually present
+            existing_classifications = [cat for cat in secondary_categories if cat in plot_df['Classification'].values]
 
-            ax.set_xlabel('Secondary Classification', fontsize=12)
-            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)', fontsize=12)
+            # Prism-style boxplot: Group on x-axis, colored by Classification
+            sns.boxplot(
+                data=plot_df,
+                x='Group',
+                y='Intensity',
+                hue='Classification',
+                order=['Cancer', 'Normal'],
+                hue_order=existing_classifications,
+                palette=EXTENDED_CATEGORY_COLORS,
+                width=BOXPLOT_WIDTH,
+                linewidth=BOXPLOT_LINEWIDTH,
+                flierprops={'markersize': BOXPLOT_FLIERSIZE},
+                dodge=True,
+                ax=ax
+            )
+
+            ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)',
+                         fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
 
             title = 'Secondary Classification: Cancer vs Normal'
             if apply_qc:
@@ -534,12 +676,14 @@ class BoxplotMixin:
                 n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
                 n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
                 ax.text(0.02, 0.98, f'Samples: Cancer={n_cancer}, Normal={n_normal}',
-                       transform=ax.transAxes, fontsize=9, verticalalignment='top',
+                       transform=ax.transAxes, fontsize=ANNOTATION_SIZE, verticalalignment='top',
                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
-            ax.set_title(title, fontsize=14)
-            ax.legend(title='Group')
-            plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+            ax.set_title(title, fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
+
+            # Apply Prism styling (grid and spine settings)
+            apply_standard_axis_style(ax, grid=True)
+            apply_standard_legend(ax, title='Secondary Classification')
 
             plt.tight_layout()
 

@@ -10,6 +10,7 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data
+from .plot_config import EXTENDED_CATEGORY_COLORS
 
 logger = logging.getLogger(__name__)
 
@@ -87,15 +88,15 @@ class SiteSpecificHeatmapMixin:
         ax_main = fig.add_subplot(gs[0])
         ax_anno = fig.add_subplot(gs[1])
 
-        # Color mapping for glycan types
+        # Color mapping for glycan types (using scientific color scheme)
         glycan_type_colors = {
-            'High Mannose': '#8E44AD',
-            'Sialylated': '#E74C3C',
-            'Fucosylated': '#3498DB',
-            'Sialofucosylated': '#16A085',
-            'Complex/Hybrid': '#F39C12',
-            'Outlier': '#95A5A6',
-            'Unknown': '#BDC3C7'
+            'High Mannose': EXTENDED_CATEGORY_COLORS['High Mannose'],  # Green
+            'Sialylated': EXTENDED_CATEGORY_COLORS['Sialylated'],  # Pink
+            'Fucosylated': EXTENDED_CATEGORY_COLORS['Fucosylated'],  # Red
+            'Sialofucosylated': EXTENDED_CATEGORY_COLORS['Sialofucosylated'],  # Orange
+            'Complex/Hybrid': EXTENDED_CATEGORY_COLORS['Complex/Hybrid'],  # Blue
+            'Outlier': EXTENDED_CATEGORY_COLORS.get('Outlier', '#95A5A6'),  # Gray
+            'Unknown': '#95A5A6'  # Gray
         }
 
         # Create annotation color map: map each type to a numeric index
@@ -137,9 +138,11 @@ class SiteSpecificHeatmapMixin:
         legend_elements = [Patch(facecolor=glycan_type_colors.get(gt, '#BDC3C7'),
                                  label=gt) for gt in unique_types]
 
-        ax_main.legend(handles=legend_elements, loc='upper left',
-                      bbox_to_anchor=(0, -0.15), ncol=len(unique_types),
-                      frameon=True, fontsize=9, title='Glycan Type')
+        # Position legend on the RIGHT side (outside plot area, non-interruptive)
+        ax_main.legend(handles=legend_elements, loc='center left',
+                      bbox_to_anchor=(1.12, 0.5), ncol=1,
+                      frameon=True, fontsize=10, title='Glycan Type',
+                      title_fontsize=11, framealpha=1.0, edgecolor='black')
 
         plt.tight_layout()
 

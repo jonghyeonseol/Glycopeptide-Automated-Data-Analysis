@@ -8,7 +8,7 @@ import numpy as np
 import logging
 import re
 from pathlib import Path
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional, Dict
 from functools import lru_cache
 
 from .constants import (
@@ -81,6 +81,66 @@ def to_numeric_safe(data: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame,
         return pd.to_numeric(data, errors='coerce').fillna(0)
     else:
         return data
+
+
+def convert_to_numeric_with_na(data: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series]:
+    """
+    Convert empty strings to NaN (NOT zero) for proper missing data handling
+
+    SCIENTIFIC VALIDITY: Missing values should be treated as NaN, not zero.
+    Zero implies "measured and found to be absent", while NaN means "not measured".
+
+    Args:
+        data: pandas Series or DataFrame with potential empty strings
+
+    Returns:
+        Data with empty strings converted to NaN (numeric dtype)
+    """
+    if isinstance(data, pd.DataFrame):
+        result = data.copy()
+        result = result.mask(result == '', np.nan)
+        result = result.apply(pd.to_numeric, errors='coerce')
+        return result  # Keep NaN, don't fill with zero
+    elif isinstance(data, pd.Series):
+        result = data.copy()
+        result = result.mask(result == '', np.nan)
+        result = pd.to_numeric(result, errors='coerce')
+        return result  # Keep NaN, don't fill with zero
+    else:
+        return data
+
+
+def calculate_group_statistics(df: pd.DataFrame, sample_cols: List[str]) -> Dict[str, pd.Series]:
+    """
+    Calculate statistics using only non-missing values (skipna=True)
+
+    SCIENTIFIC VALIDITY: Using skipna=True ensures that missing values don't bias
+    the mean downward. Only measured values are used in calculations.
+
+    Args:
+        df: DataFrame with intensity data
+        sample_cols: List of sample column names
+
+    Returns:
+        Dictionary with statistics:
+        - mean: Mean of non-missing values
+        - std: Standard deviation of non-missing values
+        - count: Number of non-missing values
+        - min: Minimum of non-missing values
+        - max: Maximum of non-missing values
+        - missing_rate: Proportion of missing values
+    """
+    # Convert to numeric with NaN for missing
+    values = convert_to_numeric_with_na(df[sample_cols])
+
+    return {
+        'mean': values.mean(axis=1, skipna=True),
+        'std': values.std(axis=1, skipna=True),
+        'count': values.count(axis=1),  # Count of non-NaN values
+        'min': values.min(axis=1, skipna=True),
+        'max': values.max(axis=1, skipna=True),
+        'missing_rate': values.isna().sum(axis=1) / len(sample_cols)
+    }
 
 
 # ==============================================================================
@@ -283,27 +343,101 @@ def log_transform(data: Union[pd.DataFrame, pd.Series, np.ndarray],
 # Statistical Utilities
 # ==============================================================================
 
-def calculate_fold_change(cancer_mean: float, normal_mean: float,
-                         log_scale: bool = False) -> float:
+def validate_statistical_power(cancer_samples: List[str], normal_samples: List[str],
+                               min_n: int = 5) -> None:
     """
-    Calculate fold change between cancer and normal
+    Validate that sample sizes are sufficient for statistical analysis
+
+    SCIENTIFIC VALIDITY: Statistical tests require minimum sample sizes for adequate power.
+    - n < 3: Invalid (cannot compute variance)
+    - n < 5: Under-powered (high Type II error rate)
+    - n >= 5: Acceptable for exploratory analysis
+    - n >= 10: Good power for hypothesis testing
+
+    Args:
+        cancer_samples: List of cancer sample IDs
+        normal_samples: List of normal sample IDs
+        min_n: Minimum recommended sample size (default: 5)
+
+    Raises:
+        InsufficientDataError: If either group has < 3 samples (invalid)
+
+    Warnings:
+        Logs warning if either group has < min_n samples
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    cancer_n = len(cancer_samples)
+    normal_n = len(normal_samples)
+
+    # Critical: Cannot perform tests with n < 3
+    if cancer_n < 3:
+        from src.exceptions import InsufficientDataError
+        raise InsufficientDataError(
+            f"Cancer group has only {cancer_n} samples. Minimum 3 required for statistical tests."
+        )
+
+    if normal_n < 3:
+        from src.exceptions import InsufficientDataError
+        raise InsufficientDataError(
+            f"Normal group has only {normal_n} samples. Minimum 3 required for statistical tests."
+        )
+
+    # Warning: Under-powered if n < min_n
+    if cancer_n < min_n:
+        logger.warning(
+            f"⚠️  Cancer group has only {cancer_n} samples (< {min_n} recommended). "
+            f"Statistical tests may be under-powered. Consider collecting more samples."
+        )
+
+    if normal_n < min_n:
+        logger.warning(
+            f"⚠️  Normal group has only {normal_n} samples (< {min_n} recommended). "
+            f"Statistical tests may be under-powered. Consider collecting more samples."
+        )
+
+    # Info: Report sample sizes
+    logger.info(f"Sample size validation: Cancer n={cancer_n}, Normal n={normal_n}")
+
+
+def calculate_fold_change(cancer_mean: float, normal_mean: float,
+                         log_scale: bool = False, pseudocount: float = 1.0) -> float:
+    """
+    Calculate fold change between cancer and normal with pseudocount
+
+    SCIENTIFIC VALIDITY: Uses pseudocount to handle zeros and make log2 fold change symmetric.
+    - Simple division: 2-fold up = 2.0, 2-fold down = 0.5 (asymmetric)
+    - Log2 fold change: 2-fold up = +1.0, 2-fold down = -1.0 (symmetric)
 
     Args:
         cancer_mean: Mean intensity in cancer samples
         normal_mean: Mean intensity in normal samples
         log_scale: If True, return log2 fold change
+        pseudocount: Small constant added to avoid division by zero (default: 1.0)
 
     Returns:
-        Fold change value
+        Fold change value (linear or log2 scale)
+
+    Examples:
+        >>> calculate_fold_change(200, 100, log_scale=True)  # 2-fold increase
+        1.0
+        >>> calculate_fold_change(100, 200, log_scale=True)  # 2-fold decrease
+        -1.0
     """
-    if normal_mean == 0:
-        return np.inf if cancer_mean > 0 else 0
-
-    fc = cancer_mean / normal_mean
-
     if log_scale:
-        return np.log2(fc) if fc > 0 else np.nan
-    return fc
+        # Log2 fold change with pseudocount (scientifically preferred)
+        # Handles zeros gracefully and provides symmetric scale
+        log2_fc = np.log2((cancer_mean + pseudocount) / (normal_mean + pseudocount))
+        return log2_fc
+    else:
+        # Linear fold change (for backward compatibility)
+        if normal_mean == 0:
+            # Return inf if cancer > 0, else 0 (edge case)
+            return np.inf if cancer_mean > 0 else 0
+
+        fc = cancer_mean / normal_mean
+        return fc
 
 
 def calculate_statistics(values: Union[pd.Series, np.ndarray]) -> dict:

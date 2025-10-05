@@ -11,7 +11,8 @@ from matplotlib.patches import Rectangle
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 import logging
-from ..utils import replace_empty_with_zero, save_trace_data
+from ..utils import replace_empty_with_zero, save_trace_data, calculate_group_statistics, calculate_fold_change
+from .plot_config import GLYCAN_COLORS, HEATMAP_FIGSIZE
 
 logger = logging.getLogger(__name__)
 
@@ -53,48 +54,88 @@ class GlycopeptideComparisonHeatmapMixin:
         """
         logger.info("Creating glycopeptide comparison heatmap (Cancer vs Normal)...")
 
-        # Define glycan type order and colors
+        # Define glycan type order and use standardized colors from plot_config
         glycan_type_order = ['HM', 'F', 'S', 'SF', 'C/H']
-        glycan_type_colors = {
-            'HM': '#00CC00',      # Green
-            'F': '#FF0000',       # Red
-            'S': '#FF69B4',       # Pink
-            'SF': '#FFA500',      # Orange
-            'C/H': '#0000FF'      # Blue
-        }
+        glycan_type_colors = GLYCAN_COLORS  # Standardized colors (no conflicts with Cancer/Normal)
 
         # Get sample columns
         cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
         normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
 
-        # Get top peptides by VIP score
-        top_peptides = vip_scores.nlargest(max_peptides * 5, 'VIP_Score')['Peptide'].unique()[:max_peptides]
+        # ORIGINAL METHOD: Select top glycopeptides (peptide+glycan combinations) by individual VIP score
+        # This preserves the glycan-specific discrimination, which is key for glycoproteomics
 
-        # Filter data to top peptides
-        df_filtered = df[df['Peptide'].isin(top_peptides)].copy()
+        # Merge VIP scores with full data
+        df_with_vip = df.merge(vip_scores, on=['Peptide', 'GlycanComposition'], how='inner')
 
-        # Add VIP scores to filtered data
-        peptide_vip_map = vip_scores.groupby('Peptide')['VIP_Score'].mean().to_dict()
-        df_filtered['PeptideVIP'] = df_filtered['Peptide'].map(peptide_vip_map)
+        # Calculate aggregated intensities for Cancer and Normal using proper missing data handling
+        # SCIENTIFIC VALIDITY: Uses skipna=True to avoid biasing means with zeros
+        cancer_stats = calculate_group_statistics(df_with_vip, cancer_samples)
+        normal_stats = calculate_group_statistics(df_with_vip, normal_samples)
 
-        # Calculate aggregated intensities for Cancer and Normal
-        df_filtered['Cancer_Mean'] = replace_empty_with_zero(df_filtered[cancer_samples]).mean(axis=1)
-        df_filtered['Normal_Mean'] = replace_empty_with_zero(df_filtered[normal_samples]).mean(axis=1)
+        df_with_vip['Cancer_Mean'] = cancer_stats['mean']
+        df_with_vip['Normal_Mean'] = normal_stats['mean']
 
-        # Select glycans by type (limit per type)
+        # DETECTION FREQUENCY FILTERING (SCIENTIFIC VALIDITY)
+        # Calculate detection percentages
+        df_with_vip['Cancer_SampleCount'] = cancer_stats['count']
+        df_with_vip['Normal_SampleCount'] = normal_stats['count']
+        df_with_vip['Cancer_Detection_Pct'] = cancer_stats['count'] / len(cancer_samples)
+        df_with_vip['Normal_Detection_Pct'] = normal_stats['count'] / len(normal_samples)
+        df_with_vip['Max_Detection_Pct'] = df_with_vip[['Cancer_Detection_Pct', 'Normal_Detection_Pct']].max(axis=1)
+
+        # Filter: require ≥50% detection in at least one group
+        # This ensures comparisons are based on adequate sample sizes
+        min_detection_pct = 0.5  # 50% detection required
+        total_before = len(df_with_vip)
+        df_with_vip = df_with_vip[df_with_vip['Max_Detection_Pct'] >= min_detection_pct].copy()
+        total_after = len(df_with_vip)
+
+        logger.info(f"Detection filtering (≥{min_detection_pct*100:.0f}% in at least one group):")
+        logger.info(f"  Before: {total_before} glycopeptides")
+        logger.info(f"  After: {total_after} glycopeptides")
+        logger.info(f"  Removed: {total_before - total_after} glycopeptides ({(total_before - total_after)/total_before*100:.1f}%)")
+
+        if len(df_with_vip) == 0:
+            logger.error("No glycopeptides pass detection filter!")
+            return
+
+        # Select top glycopeptides by VIP score, then get first N unique peptides
+        df_sorted = df_with_vip.sort_values('VIP_Score', ascending=False)
+
+        # Get first max_peptides unique peptides (peptide count will be approximately max_peptides)
+        peptides_seen = []
+        selected_rows = []
+
+        for idx, row in df_sorted.iterrows():
+            peptide = row['Peptide']
+
+            # Track unique peptides
+            if peptide not in peptides_seen:
+                peptides_seen.append(peptide)
+
+            # Include all glycopeptides for the top max_peptides unique peptides
+            if len(peptides_seen) <= max_peptides:
+                selected_rows.append(idx)
+            elif peptide in peptides_seen[:max_peptides]:
+                # Include remaining glycoforms of already-selected peptides
+                selected_rows.append(idx)
+
+        df_filtered = df_with_vip.loc[selected_rows].copy()
+
+        # Select top glycans by type (limit per type to avoid overcrowding)
         selected_glycans = []
         for glycan_type in glycan_type_order:
             type_glycans = df_filtered[df_filtered['GlycanTypeCategory'] == glycan_type]
 
             if len(type_glycans) > 0:
                 type_glycans = type_glycans.copy()
-                # Sort by total intensity across both groups
-                type_glycans['Total_Intensity'] = type_glycans['Cancer_Mean'] + type_glycans['Normal_Mean']
+                # Sort by VIP score (preserve ranking by discriminative power)
+                type_glycans_sorted = type_glycans.sort_values('VIP_Score', ascending=False)
 
                 # Get top N glycans of this type
-                top_type_glycans = type_glycans.nlargest(
-                    min(max_glycans_per_type, len(type_glycans)),
-                    'Total_Intensity'
+                top_type_glycans = type_glycans_sorted.head(
+                    min(max_glycans_per_type, len(type_glycans))
                 )
                 selected_glycans.append(top_type_glycans)
 
@@ -104,8 +145,9 @@ class GlycopeptideComparisonHeatmapMixin:
 
         df_plot = pd.concat(selected_glycans, ignore_index=False)
 
-        # Create peptide order (by VIP score, descending)
-        peptide_order = df_plot.groupby('Peptide')['PeptideVIP'].mean().sort_values(ascending=False).index.tolist()
+        # Create peptide order (by max VIP score per peptide, descending)
+        peptide_max_vip = df_plot.groupby('Peptide')['VIP_Score'].max().sort_values(ascending=False)
+        peptide_order = peptide_max_vip.index.tolist()
 
         # Create glycan order (grouped by type)
         glycan_order = []
@@ -212,6 +254,7 @@ class GlycopeptideComparisonHeatmapMixin:
         # === MAIN PANEL: Dot heatmap ===
 
         # Calculate max intensity PER GLYCAN TYPE for relative transparency
+        # Use nanmax to handle NaN values from missing data (scientifically correct)
         max_intensity_by_type = {}
         for glycan_type in glycan_type_order:
             type_data = df_plot[df_plot['GlycanTypeCategory'] == glycan_type]
@@ -220,7 +263,10 @@ class GlycopeptideComparisonHeatmapMixin:
                     type_data['Cancer_Mean'].values,
                     type_data['Normal_Mean'].values
                 ])
-                max_intensity_by_type[glycan_type] = max(type_intensities.max(), 1)
+                # Use nanmax to skip NaN values from missing data
+                max_val = np.nanmax(type_intensities)
+                # If all values are NaN, use 1 as default
+                max_intensity_by_type[glycan_type] = max_val if not np.isnan(max_val) else 1
             else:
                 max_intensity_by_type[glycan_type] = 1
 
@@ -250,18 +296,20 @@ class GlycopeptideComparisonHeatmapMixin:
 
             # Cancer symbol (× cross) - Red
             cancer_intensity = row['Cancer_Mean']
-            if cancer_intensity > 0:
+            # Check for valid (non-NaN and > 0) intensity
+            if not np.isnan(cancer_intensity) and cancer_intensity > 0:
                 alpha = min(0.3 + (cancer_intensity / type_max_intensity) * 0.7, 1.0)
                 ax_main.scatter(x_pos, y_pos, s=400, c='#E74C3C', alpha=alpha,
-                              marker='x', linewidths=3.0, zorder=4,
+                              marker='x', linewidths=5.0, zorder=4,
                               label='_nolegend_')
 
             # Normal symbol (+ plus) - Blue
             normal_intensity = row['Normal_Mean']
-            if normal_intensity > 0:
+            # Check for valid (non-NaN and > 0) intensity
+            if not np.isnan(normal_intensity) and normal_intensity > 0:
                 alpha = min(0.3 + (normal_intensity / type_max_intensity) * 0.7, 1.0)
                 ax_main.scatter(x_pos, y_pos, s=400, c='#3498DB', alpha=alpha,
-                              marker='+', linewidths=3.0, zorder=3,
+                              marker='+', linewidths=5.0, zorder=3,
                               label='_nolegend_')
 
         # Add light vertical separators between glycan types
@@ -311,11 +359,11 @@ class GlycopeptideComparisonHeatmapMixin:
         # Group indicators - explain symbol visualization (larger, more visible)
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
                                      markerfacecolor='#E74C3C', markersize=14,
-                                     markeredgewidth=3.0,
+                                     markeredgewidth=5.0,
                                      label='× Cancer', markeredgecolor='#E74C3C'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
                                      markerfacecolor='#3498DB', markersize=14,
-                                     markeredgewidth=3.0,
+                                     markeredgewidth=5.0,
                                      label='+ Normal (Control)', markeredgecolor='#3498DB'))
         legend_elements.append(Patch(facecolor='gray', label='Darkness = Intensity (relative to type)',
                                     alpha=0.5, edgecolor='#333', linewidth=1))
@@ -352,28 +400,30 @@ class GlycopeptideComparisonHeatmapMixin:
         cancer_samples = [col for col in df_plot.columns if col.startswith('C') and col[1:].isdigit()]
         normal_samples = [col for col in df_plot.columns if col.startswith('N') and col[1:].isdigit()]
 
-        # Calculate individual sample statistics
-        cancer_values = replace_empty_with_zero(trace_data[cancer_samples])
-        normal_values = replace_empty_with_zero(trace_data[normal_samples])
+        # Calculate individual sample statistics using proper missing data handling
+        # SCIENTIFIC VALIDITY: Uses skipna=True to avoid zero-bias
+        cancer_trace_stats = calculate_group_statistics(trace_data, cancer_samples)
+        normal_trace_stats = calculate_group_statistics(trace_data, normal_samples)
 
-        trace_data['Cancer_StdDev'] = cancer_values.std(axis=1)
-        trace_data['Normal_StdDev'] = normal_values.std(axis=1)
-        trace_data['Cancer_SampleCount'] = (cancer_values > 0).sum(axis=1)
-        trace_data['Normal_SampleCount'] = (normal_values > 0).sum(axis=1)
-        trace_data['Cancer_Min'] = cancer_values.min(axis=1)
-        trace_data['Cancer_Max'] = cancer_values.max(axis=1)
-        trace_data['Normal_Min'] = normal_values.min(axis=1)
-        trace_data['Normal_Max'] = normal_values.max(axis=1)
+        trace_data['Cancer_StdDev'] = cancer_trace_stats['std']
+        trace_data['Normal_StdDev'] = normal_trace_stats['std']
+        trace_data['Cancer_SampleCount'] = cancer_trace_stats['count']
+        trace_data['Normal_SampleCount'] = normal_trace_stats['count']
+        trace_data['Cancer_Detection_Pct'] = cancer_trace_stats['count'] / len(cancer_samples)
+        trace_data['Normal_Detection_Pct'] = normal_trace_stats['count'] / len(normal_samples)
+        trace_data['Cancer_Min'] = cancer_trace_stats['min']
+        trace_data['Cancer_Max'] = cancer_trace_stats['max']
+        trace_data['Normal_Min'] = normal_trace_stats['min']
+        trace_data['Normal_Max'] = normal_trace_stats['max']
 
-        # Calculate fold change
+        # Calculate fold change using scientifically improved method
+        # SCIENTIFIC VALIDITY: Log2 fold change with pseudocount handles zeros and is symmetric
         trace_data['Fold_Change'] = trace_data.apply(
-            lambda row: row['Cancer_Mean'] / row['Normal_Mean'] if row['Normal_Mean'] > 0 else np.inf,
+            lambda row: calculate_fold_change(row['Cancer_Mean'], row['Normal_Mean'], log_scale=False),
             axis=1
         )
         trace_data['Log2_Fold_Change'] = trace_data.apply(
-            lambda row: np.log2(row['Cancer_Mean'] / row['Normal_Mean'])
-                        if (row['Cancer_Mean'] > 0 and row['Normal_Mean'] > 0)
-                        else np.nan,
+            lambda row: calculate_fold_change(row['Cancer_Mean'], row['Normal_Mean'], log_scale=True),
             axis=1
         )
 
@@ -398,9 +448,9 @@ class GlycopeptideComparisonHeatmapMixin:
         key_columns = [
             'Peptide', 'GlycanComposition', 'GlycanTypeCategory',
             'Plot_X_Position', 'Plot_Y_Position',
-            'PeptideVIP',
-            'Cancer_Mean', 'Cancer_StdDev', 'Cancer_SampleCount', 'Cancer_Min', 'Cancer_Max',
-            'Normal_Mean', 'Normal_StdDev', 'Normal_SampleCount', 'Normal_Min', 'Normal_Max',
+            'VIP_Score',  # Individual glycopeptide VIP score
+            'Cancer_Mean', 'Cancer_StdDev', 'Cancer_SampleCount', 'Cancer_Detection_Pct', 'Cancer_Min', 'Cancer_Max',
+            'Normal_Mean', 'Normal_StdDev', 'Normal_SampleCount', 'Normal_Detection_Pct', 'Normal_Min', 'Normal_Max',
             'Fold_Change', 'Log2_Fold_Change',
             'Cancer_Alpha', 'Normal_Alpha',
             'Cancer_Dot_Plotted', 'Normal_Dot_Plotted'

@@ -11,6 +11,7 @@ from matplotlib.patches import Rectangle
 from pathlib import Path
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data
+from .plot_config import GLYCAN_COLORS
 
 logger = logging.getLogger(__name__)
 
@@ -46,15 +47,9 @@ class GlycopeptideDotHeatmapMixin:
         """
         logger.info(f"Creating glycopeptide dot heatmap for sample {sample_name}...")
 
-        # Define glycan type order and colors
+        # Define glycan type order and use standardized colors from plot_config
         glycan_type_order = ['HM', 'F', 'S', 'SF', 'C/H']
-        glycan_type_colors = {
-            'HM': '#00FF00',      # Green
-            'F': '#FF0000',       # Red
-            'S': '#FFC0CB',       # Pink
-            'SF': '#FFA500',      # Orange
-            'C/H': '#0000FF'      # Blue
-        }
+        glycan_type_colors = GLYCAN_COLORS  # Standardized colors (no conflicts with Cancer/Normal)
 
         # Get top peptides by VIP score
         top_peptides = vip_scores.nlargest(max_peptides * 5, 'VIP_Score')['Peptide'].unique()[:max_peptides]

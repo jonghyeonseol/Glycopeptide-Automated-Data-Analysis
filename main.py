@@ -86,6 +86,12 @@ def main():
     logger.info(f"\nSaving integrated data to {output_file}...")
     loader.save_integrated_data(clean_integrated_data, output_file)
 
+    # Validate sample sizes before statistical analysis
+    from src.utils import validate_statistical_power
+    cancer_samples = [col for col in annotated_data.columns if col.startswith('C') and col[1:].isdigit()]
+    normal_samples = [col for col in annotated_data.columns if col.startswith('N') and col[1:].isdigit()]
+    validate_statistical_power(cancer_samples, normal_samples, min_n=5)
+
     # Step 3: Perform statistical analysis
     logger.info("\n[4/6] Performing statistical analysis...")
     analyzer = GlycanAnalyzer(
@@ -162,7 +168,8 @@ def main():
     visualizer.plot_boxplot_primary_classification(annotated_data, normalization='raw')
     visualizer.plot_boxplot_primary_classification(annotated_data, normalization='aggregated')
     visualizer.plot_boxplot_secondary_classification(annotated_data, normalization='raw')
-    visualizer.plot_boxplot_secondary_classification(annotated_data, normalization='aggregated')
+    # Removed: boxplot_secondary_aggregated_normalized (user request - not useful)
+    # visualizer.plot_boxplot_secondary_classification(annotated_data, normalization='aggregated')
     visualizer.plot_boxplot_cancer_vs_normal_primary(annotated_data)
     visualizer.plot_boxplot_cancer_vs_normal_secondary(annotated_data)
 

@@ -63,7 +63,7 @@ visualization:
   # Glycopeptide comparison heatmap settings (NEW)
   glycopeptide_comparison:
     enabled: true
-    max_peptides: 50  # Top N peptides by VIP score
+    max_peptides: 20  # Top N unique peptides (from top glycopeptides by VIP score)
     max_glycans_per_type: 15  # Top N glycans per type
     figsize: [24, 16]  # Width x Height in inches
 

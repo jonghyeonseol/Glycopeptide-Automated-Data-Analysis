@@ -12,6 +12,12 @@ from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import importr
 from rpy2.robjects.conversion import localconverter
 from ..utils import replace_empty_with_zero, get_sample_columns, save_trace_data
+from .plot_config import (
+    VIP_FEATURE_NAME_SIZE, VIP_POINT_SIZE_MIN, VIP_POINT_SIZE_MAX,
+    VIP_POINT_STROKE, VIP_HEATMAP_WIDTH, VIP_HEATMAP_HEIGHT,
+    VIP_GROUP_LABEL_SIZE, VIP_FIGURE_WIDTH, VIP_FIGURE_HEIGHT,
+    VIP_LEFT_MARGIN_EXPAND
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,64 +68,118 @@ class VIPScorePlotRMixin:
             x_pos = rep(c(0, 1), each = nrow(df))
         )
 
-        # Create plot
+        # ===========================================================================
+        # REDESIGNED VIP SCORE PLOT - MAXIMUM VISIBILITY
+        # STRATEGY: Extend x-axis to accommodate labels, then draw manual box
+        # around VIP+heatmap area only, excluding labels
+        # ===========================================================================
+
+        # Calculate boundaries
+        vip_min <- min(df$VIP_Score)
+        vip_max <- max(df$VIP_Score)
+        vip_range <- vip_max - vip_min
+
+        # Label positioning - positioned for right-justification (hjust=1)
+        # Labels extend LEFT from this point, so coordinate limits must extend even further
+        label_x <- vip_min - vip_range * 2.0    # Position for right-justified text
+
+        # Box boundaries - will be drawn manually to exclude label area
+        box_left <- vip_min - vip_range * 0.03    # Small left padding inside box
+        box_right <- vip_max + vip_range * 0.25   # Extended for heatmap
+
+        # Heatmap positioning - small tiles on the right
+        heatmap_start_x <- vip_max + vip_range * 0.15  # Start position for heatmap
+        heatmap_tile_width <- vip_range * 0.08          # Small, fixed tile width
+        heatmap_tile_spacing <- vip_range * 0.10        # Spacing between Cancer and Normal
+
         p <- ggplot() +
-            # VIP scores (left panel)
-            geom_point(data = df, aes(x = VIP_Score, y = y_pos),
-                      size = 3, color = "#555555", stroke = 1.5, shape = 21, fill = "#555555") +
+            # ===== DATA LAYER (inside box) =====
+            # VIP scores - EXTRA LARGE points with clear size hierarchy
+            geom_point(data = df, aes(x = VIP_Score, y = y_pos, size = VIP_Score),
+                      color = "#2C3E50", stroke = {VIP_POINT_STROKE}, shape = 21, fill = "#34495E") +
+            scale_size_continuous(range = c({VIP_POINT_SIZE_MIN}, {VIP_POINT_SIZE_MAX}), guide = "none") +
 
-            # Feature names as text on the left side of plot body
-            geom_text(data = df, aes(x = min(VIP_Score) - 0.15, y = y_pos, label = Feature),
-                     hjust = 1, size = 2.5, fontface = "plain") +
-
-            # Heatmap tiles (right panel)
+            # Heatmap tiles (right side of box) - SMALL SQUARE TILES
             geom_tile(data = heatmap_long,
-                     aes(x = max(df$VIP_Score) + 0.3 + x_pos * 0.15, y = y_pos, fill = factor(Value)),
-                     width = 0.14, height = 0.9, color = "white", linewidth = 0.5) +
+                     aes(x = heatmap_start_x + x_pos * heatmap_tile_spacing, y = y_pos, fill = factor(Value)),
+                     width = heatmap_tile_width, height = 0.7,
+                     color = "white", linewidth = 1.2) +
 
-            # Color scale for heatmap
+            # ===== MANUAL BOX FRAME (covers VIP scores + heatmap ONLY, includes x-axis) =====
+            # This box excludes the label area on the left
+            annotate("rect", xmin = box_left, xmax = box_right,
+                    ymin = -0.5, ymax = max(df$y_pos) + 1.5,
+                    fill = NA, color = "black", linewidth = 2.5) +
+
+            # ===== ANNOTATIONS LAYER (outside box) =====
+            # Feature names - positioned LEFT of the box frame
+            geom_text(data = df, aes(x = label_x, y = y_pos, label = Feature),
+                     hjust = 1, size = {VIP_FEATURE_NAME_SIZE}, fontface = "bold",
+                     color = "#000000", family = "sans") +
+
+            # Group labels above heatmap - inside the box
+            annotate("text", x = heatmap_start_x + 0 * heatmap_tile_spacing, y = max(df$y_pos) + 1.0,
+                    label = "Cancer", size = {VIP_GROUP_LABEL_SIZE}, fontface = "bold") +
+            annotate("text", x = heatmap_start_x + 1 * heatmap_tile_spacing, y = max(df$y_pos) + 1.0,
+                    label = "Normal", size = {VIP_GROUP_LABEL_SIZE}, fontface = "bold") +
+
+            # ===== SCALES =====
+            # Color scale - BOLD, high contrast
             scale_fill_manual(values = c("0" = "#3498DB", "1" = "#E74C3C"),
-                            labels = c("Low", "High"),
-                            name = "Relative\\nIntensity") +
+                            labels = c("Lower", "Higher"),
+                            name = "Mean\\nIntensity") +
 
-            # Add Cancer/Normal labels above heatmap
-            annotate("text", x = max(df$VIP_Score) + 0.3 + 0 * 0.15, y = max(df$y_pos) + 1.5,
-                    label = "Cancer", size = 3) +
-            annotate("text", x = max(df$VIP_Score) + 0.3 + 1 * 0.15, y = max(df$y_pos) + 1.5,
-                    label = "Normal", size = 3) +
+            # X-axis scale - MASSIVELY EXTENDED left to accommodate right-justified long labels
+            # Labels at label_x extend LEFT, so we need huge space on the left
+            scale_x_continuous(
+                limits = c(label_x - vip_range * 1.0, box_right + vip_range * 0.02),
+                breaks = pretty(c(vip_min, vip_max), n = 5),
+                expand = c(0, 0)
+            ) +
+            scale_y_continuous(limits = c(-0.5, max(df$y_pos) + 1.5), expand = c(0, 0)) +
 
-            # Scales and labels
-            scale_x_continuous(limits = c(min(df$VIP_Score) - 0.8, max(df$VIP_Score) + 0.6),
-                             expand = c(0, 0)) +
-            scale_y_continuous(limits = c(-0.5, max(df$y_pos) + 2), expand = c(0, 0)) +
-
+            # ===== LABELS =====
             labs(title = "{title}",
                  x = "VIP Score",
                  y = "") +
 
-            # Theme with frame (X and Y axis lines)
-            theme_minimal() +
+            # ===== THEME =====
+            # Use theme_void() to remove all default elements, then build up exactly what we need
+            theme_void() +
             theme(
-                plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-                axis.title.x = element_text(size = 12),
+                # Title and axis labels
+                plot.title = element_text(size = 18, face = "bold", hjust = 0.5, margin = margin(b = 15)),
+                axis.title.x = element_text(size = 16, face = "bold", margin = margin(t = 10)),
+                axis.text.x = element_text(size = 14, color = "#000000", margin = margin(t = 5)),
                 axis.text.y = element_blank(),
-                axis.ticks.y = element_blank(),
-                axis.line.x = element_line(color = "black", linewidth = 0.5),
-                axis.line.y = element_line(color = "black", linewidth = 0.5),
-                panel.grid.major.x = element_line(color = "grey90", linewidth = 0.3),
+                axis.ticks.x = element_line(color = "black", linewidth = 0.8),
+                axis.ticks.length.x = unit(0.2, "cm"),
+
+                # NO panel.border - we draw the box manually
+                panel.border = element_blank(),
+                axis.line = element_blank(),
+
+                # Grid inside plot area
+                panel.grid.major.x = element_line(color = "grey92", linewidth = 0.4),
                 panel.grid.major.y = element_blank(),
                 panel.grid.minor = element_blank(),
-                panel.border = element_blank(),
+
+                # Legend
                 legend.position = "right",
                 legend.justification = "center",
-                legend.title = element_text(size = 10, face = "bold"),
-                legend.text = element_text(size = 9),
-                legend.key.height = unit(1, "cm"),
-                plot.margin = margin(10, 15, 10, 10)
+                legend.title = element_text(size = 14, face = "bold"),
+                legend.text = element_text(size = 13),
+                legend.key.height = unit(1.2, "cm"),
+                legend.key.width = unit(0.8, "cm"),
+
+                # Margins - ABSOLUTE MAXIMUM left margin to prevent label clipping by ggsave
+                plot.margin = margin(t = 15, r = 25, b = 15, l = 600),  # 600pt left margin to capture all labels
+                panel.background = element_rect(fill = "white", color = NA),
+                plot.background = element_rect(fill = "white", color = NA)
             )
 
-        # Save plot
-        ggsave("{output_file}", plot = p, width = 10, height = 6, dpi = 300, bg = "white")
+        # Save plot with PUBLICATION QUALITY dimensions
+        ggsave("{output_file}", plot = p, width = {VIP_FIGURE_WIDTH}, height = {VIP_FIGURE_HEIGHT}, dpi = 300, bg = "white")
         """
 
         # Execute R script
@@ -137,8 +197,15 @@ class VIPScorePlotRMixin:
         """
         top_n_data = vip_df.head(top_n).copy()
 
-        # Create labels
-        top_n_data['Feature'] = top_n_data['Peptide'] + ' | ' + top_n_data['GlycanComposition']
+        # Create highly readable labels
+        def format_feature_label(peptide, glycan):
+            """Create clear, readable labels - NO truncation for maximum clarity"""
+            # Format: "PEPTIDE | H(5)N(4)A(1)"
+            return f"{peptide} | {glycan}"
+
+        top_n_data['Feature'] = top_n_data.apply(
+            lambda row: format_feature_label(row['Peptide'], row['GlycanComposition']), axis=1
+        )
 
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
@@ -376,40 +443,41 @@ class VIPScorePlotRMixin:
         }}
 
         p <- p +
-            # VIP scores (dots)
-            geom_point(data = df, aes(x = VIP_Score, y = y_pos),
-                      size = 3, color = "#555555", stroke = 1.5, shape = 21, fill = "#555555") +
+            # VIP scores (dots) - size scaled by VIP score for visual hierarchy
+            geom_point(data = df, aes(x = VIP_Score, y = y_pos, size = VIP_Score),
+                      color = "#333333", stroke = {VIP_POINT_STROKE}, shape = 21, fill = "#555555") +
+            scale_size_continuous(range = c({VIP_POINT_SIZE_MIN}, {VIP_POINT_SIZE_MAX}), guide = "none") +
 
-            # Peptide names (only for groups with multiple glycoforms or centered for single)
+            # Peptide names (only for groups with multiple glycoforms or centered for single) - using standardized font size
             geom_text(data = df[df$group_size > 1 & df$is_first, ],
                      aes(x = min(VIP_Score) - 0.8, y = y_pos, label = Peptide),
-                     hjust = 1, size = 2.5, fontface = "bold", color = "#000000") +
+                     hjust = 1, size = {VIP_FEATURE_NAME_SIZE}, fontface = "bold", color = "#000000") +
 
             # Peptide names for single glycoform entries
             geom_text(data = df[df$group_size == 1, ],
                      aes(x = min(VIP_Score) - 0.8, y = y_pos, label = Peptide),
-                     hjust = 1, size = 2.5, fontface = "bold", color = "#000000") +
+                     hjust = 1, size = {VIP_FEATURE_NAME_SIZE}, fontface = "bold", color = "#000000") +
 
-            # GlycanComposition labels (for multiple glycoform groups only)
+            # GlycanComposition labels (for multiple glycoform groups only) - smaller font for glycan composition
             geom_text(data = df[df$group_size > 1, ],
                      aes(x = min(VIP_Score) - 0.15, y = y_pos, label = GlycanComposition),
-                     hjust = 1, size = 2.0, fontface = "plain", color = "#555555") +
+                     hjust = 1, size = {VIP_FEATURE_NAME_SIZE * 0.8:.1f}, fontface = "plain", color = "#555555") +
 
-            # Heatmap tiles (right panel)
+            # Heatmap tiles (right panel) - using standardized width
             geom_tile(data = heatmap_long,
                      aes(x = max(df$VIP_Score) + 0.3 + x_pos * 0.15, y = y_pos, fill = factor(Value)),
-                     width = 0.14, height = 0.9, color = "white", linewidth = 0.5) +
+                     width = {VIP_HEATMAP_WIDTH}, height = {VIP_HEATMAP_HEIGHT}, color = "white", linewidth = 0.5) +
 
             # Color scale for heatmap
             scale_fill_manual(values = c("0" = "#3498DB", "1" = "#E74C3C"),
                             labels = c("Low", "High"),
                             name = "Relative\\nIntensity") +
 
-            # Add Cancer/Normal labels above heatmap
-            annotate("text", x = max(df$VIP_Score) + 0.3 + 0 * 0.15, y = max(df$y_pos) + 1.5,
-                    label = "Cancer", size = 3) +
-            annotate("text", x = max(df$VIP_Score) + 0.3 + 1 * 0.15, y = max(df$y_pos) + 1.5,
-                    label = "Normal", size = 3) +
+            # Add Cancer/Normal labels above heatmap - larger font for readability
+            annotate("text", x = max(df$VIP_Score) + 0.3 + 0 * 0.18, y = max(df$y_pos) + 1.5,
+                    label = "Cancer", size = {VIP_GROUP_LABEL_SIZE + 0.5}, fontface = "bold") +
+            annotate("text", x = max(df$VIP_Score) + 0.3 + 1 * 0.18, y = max(df$y_pos) + 1.5,
+                    label = "Normal", size = {VIP_GROUP_LABEL_SIZE + 0.5}, fontface = "bold") +
 
             # Scales and labels
             scale_x_continuous(limits = c(min(df$VIP_Score) - 1.5, max(df$VIP_Score) + 0.6),
