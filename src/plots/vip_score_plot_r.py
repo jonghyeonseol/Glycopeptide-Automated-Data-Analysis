@@ -1,6 +1,8 @@
 """
 VIP Score Plot Module using R/ggplot2 for pGlyco Auto Combine
 Handles VIP score visualizations with R graphics
+
+UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
@@ -11,7 +13,11 @@ import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import importr
 from rpy2.robjects.conversion import localconverter
-from ..utils import replace_empty_with_zero, get_sample_columns, save_trace_data
+from ..utils import get_sample_columns, save_trace_data
+from ..data_preparation import (
+    DataPreparationConfig,
+    calculate_group_statistics_standardized
+)
 from .plot_config import (
     VIP_FEATURE_NAME_SIZE, VIP_POINT_SIZE_MIN, VIP_POINT_SIZE_MAX,
     VIP_POINT_STROKE, VIP_HEATMAP_WIDTH, VIP_HEATMAP_HEIGHT,
@@ -81,7 +87,7 @@ class VIPScorePlotRMixin:
 
         # Label positioning - positioned for right-justification (hjust=1)
         # Labels extend LEFT from this point, so coordinate limits must extend even further
-        label_x <- vip_min - vip_range * 2.0    # Position for right-justified text
+        label_x <- vip_min - vip_range * 0.8  # Adjusted for smaller figure
 
         # Box boundaries - will be drawn manually to exclude label area
         box_left <- vip_min - vip_range * 0.03    # Small left padding inside box
@@ -132,7 +138,7 @@ class VIPScorePlotRMixin:
             # X-axis scale - MASSIVELY EXTENDED left to accommodate right-justified long labels
             # Labels at label_x extend LEFT, so we need huge space on the left
             scale_x_continuous(
-                limits = c(label_x - vip_range * 1.0, box_right + vip_range * 0.02),
+                limits = c(label_x - vip_range * 0.3, box_right + vip_range * 0.02),
                 breaks = pretty(c(vip_min, vip_max), n = 5),
                 expand = c(0, 0)
             ) +
@@ -173,7 +179,7 @@ class VIPScorePlotRMixin:
                 legend.key.width = unit(0.8, "cm"),
 
                 # Margins - ABSOLUTE MAXIMUM left margin to prevent label clipping by ggsave
-                plot.margin = margin(t = 15, r = 25, b = 15, l = 600),  # 600pt left margin to capture all labels
+                plot.margin = margin(t = 15, r = 25, b = 15, l = 250),  # Adjusted for smaller figure
                 panel.background = element_rect(fill = "white", color = NA),
                 plot.background = element_rect(fill = "white", color = NA)
             )
@@ -212,14 +218,26 @@ class VIPScorePlotRMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        # Prepare heatmap data
+        # STANDARDIZED: Prepare heatmap data using centralized statistics
+        config = DataPreparationConfig(missing_data_method='skipna')
         heatmap_data = []
+
         for _, row in top_n_data.iterrows():
             mask = (df['Peptide'] == row['Peptide']) & (df['GlycanComposition'] == row['GlycanComposition'])
             if mask.sum() > 0:
-                glycopeptide_row = df[mask].iloc[0]
-                cancer_mean = replace_empty_with_zero(glycopeptide_row[cancer_samples]).mean()
-                normal_mean = replace_empty_with_zero(glycopeptide_row[normal_samples]).mean()
+                glycopeptide_row = df[mask]
+
+                # Use standardized statistics calculation
+                cancer_stats = calculate_group_statistics_standardized(
+                    glycopeptide_row, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    glycopeptide_row, normal_samples, method=config.missing_data_method
+                )
+
+                cancer_mean = cancer_stats['mean'].iloc[0] if not cancer_stats['mean'].isna().all() else 0
+                normal_mean = normal_stats['mean'].iloc[0] if not normal_stats['mean'].isna().all() else 0
+
                 heatmap_data.append({'Feature': row['Feature'], 'Cancer': cancer_mean, 'Normal': normal_mean})
             else:
                 heatmap_data.append({'Feature': row['Feature'], 'Cancer': 0, 'Normal': 0})
@@ -250,19 +268,29 @@ class VIPScorePlotRMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        # Prepare heatmap data
+        # STANDARDIZED: Prepare heatmap data using centralized statistics
+        config = DataPreparationConfig(missing_data_method='skipna')
         heatmap_data = []
+
         for _, row in glycan_vip.iterrows():
             glycan_comp = row['GlycanComposition']
             mask = df['GlycanComposition'] == glycan_comp
 
             if mask.sum() > 0:
                 glycan_rows = df[mask]
-                cancer_total = 0
-                normal_total = 0
-                for _, gly_row in glycan_rows.iterrows():
-                    cancer_total += replace_empty_with_zero(gly_row[cancer_samples]).sum()
-                    normal_total += replace_empty_with_zero(gly_row[normal_samples]).sum()
+
+                # Use standardized statistics calculation
+                cancer_stats = calculate_group_statistics_standardized(
+                    glycan_rows, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    glycan_rows, normal_samples, method=config.missing_data_method
+                )
+
+                # Sum across all peptides with this glycan
+                cancer_total = cancer_stats['sum'].sum()
+                normal_total = normal_stats['sum'].sum()
+
                 heatmap_data.append({'Feature': row['Feature'], 'Cancer': cancer_total, 'Normal': normal_total})
             else:
                 heatmap_data.append({'Feature': row['Feature'], 'Cancer': 0, 'Normal': 0})
@@ -293,19 +321,29 @@ class VIPScorePlotRMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        # Prepare heatmap data
+        # STANDARDIZED: Prepare heatmap data using centralized statistics
+        config = DataPreparationConfig(missing_data_method='skipna')
         heatmap_data = []
+
         for _, row in peptide_vip.iterrows():
             peptide = row['Peptide']
             mask = df['Peptide'] == peptide
 
             if mask.sum() > 0:
                 peptide_rows = df[mask]
-                cancer_total = 0
-                normal_total = 0
-                for _, pep_row in peptide_rows.iterrows():
-                    cancer_total += replace_empty_with_zero(pep_row[cancer_samples]).sum()
-                    normal_total += replace_empty_with_zero(pep_row[normal_samples]).sum()
+
+                # Use standardized statistics calculation
+                cancer_stats = calculate_group_statistics_standardized(
+                    peptide_rows, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    peptide_rows, normal_samples, method=config.missing_data_method
+                )
+
+                # Sum across all glycoforms of this peptide
+                cancer_total = cancer_stats['sum'].sum()
+                normal_total = normal_stats['sum'].sum()
+
                 heatmap_data.append({'Feature': row['Feature'], 'Cancer': cancer_total, 'Normal': normal_total})
             else:
                 heatmap_data.append({'Feature': row['Feature'], 'Cancer': 0, 'Normal': 0})

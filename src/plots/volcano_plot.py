@@ -1,6 +1,8 @@
 """
 Volcano Plot Module for pGlyco Auto Combine
 Handles differential expression visualization
+
+UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
@@ -11,7 +13,12 @@ from pathlib import Path
 import logging
 from scipy import stats
 from adjustText import adjust_text
-from ..utils import replace_empty_with_zero, save_trace_data
+from ..utils import save_trace_data
+from ..data_preparation import (
+    DataPreparationConfig,
+    prepare_visualization_data,
+    calculate_statistical_significance
+)
 from .plot_config import (
     VOLCANO_FIGSIZE, VOLCANO_POINT_SIZE, VOLCANO_POINT_ALPHA,
     VOLCANO_THRESHOLD_LINEWIDTH, VOLCANO_THRESHOLD_ALPHA,
@@ -29,120 +36,62 @@ class VolcanoPlotMixin:
     """Mixin class for Volcano plot visualization"""
 
     def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,
+                     config: DataPreparationConfig = None,
                      fdr_threshold: float = 0.05, fc_threshold: float = 1.5,
                      figsize: tuple = (12, 10)):
         """
         Create volcano plot showing log2(fold change) vs -log10(FDR)
 
+        UPDATED: Uses centralized data preparation for consistency
+
         Args:
             df: Annotated DataFrame with intensity data
             vip_df: DataFrame with VIP scores
+            config: DataPreparationConfig (uses default if None)
             fdr_threshold: FDR significance threshold (default 0.05)
             fc_threshold: Fold change threshold (default 1.5)
             figsize: Figure size (width, height)
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Use default config if not provided
+        if config is None:
+            config = DataPreparationConfig(
+                min_detection_pct=0.30,
+                min_samples=5,
+                missing_data_method='skipna'
+            )
 
-        # Prepare data for volcano plot
-        volcano_data = []
+        logger.info("Creating volcano plot with STANDARDIZED data preparation...")
 
-        for idx, row in df.iterrows():
-            peptide = row['Peptide']
-            glycan_comp = row['GlycanComposition']
-            glycopeptide = f"{peptide}_{glycan_comp}"
+        # STANDARDIZED DATA PREPARATION (eliminates inline filtering)
+        volcano_df = prepare_visualization_data(
+            df=df,
+            config=config,
+            vip_scores=vip_df,
+            merge_method='left',  # Keep all glycopeptides, add VIP where available
+            apply_detection_filter=True,
+            log_prefix="[Volcano Plot] "
+        )
 
-            # Get intensity values
-            cancer_values = replace_empty_with_zero(row[cancer_samples]).values.astype(float)
-            normal_values = replace_empty_with_zero(row[normal_samples]).values.astype(float)
+        # Get sample columns for statistical tests
+        from ..utils import get_sample_columns
+        cancer_samples, normal_samples = get_sample_columns(df)
 
-            # Filter out zeros for statistics
-            cancer_nonzero = cancer_values[cancer_values > 0]
-            normal_nonzero = normal_values[normal_values > 0]
+        # STANDARDIZED STATISTICAL SIGNIFICANCE
+        volcano_df = calculate_statistical_significance(
+            df_prep=volcano_df,
+            cancer_samples=cancer_samples,
+            normal_samples=normal_samples,
+            method='mannwhitneyu',
+            fdr_correction=True
+        )
 
-            # DETECTION FREQUENCY FILTERING (SCIENTIFIC VALIDITY)
-            # Require minimum 5 samples AND 20% detection in at least one group
-            # This ensures statistical tests have adequate power
-            min_samples = 5
-            min_detection_pct = 0.20
+        # Add glycopeptide identifier
+        volcano_df['Glycopeptide'] = volcano_df['Peptide'] + '_' + volcano_df['GlycanComposition']
 
-            cancer_count = len(cancer_nonzero)
-            normal_count = len(normal_nonzero)
-            cancer_detection_pct = cancer_count / len(cancer_samples)
-            normal_detection_pct = normal_count / len(normal_samples)
-            max_detection_pct = max(cancer_detection_pct, normal_detection_pct)
+        # Rename for backward compatibility
+        volcano_df['Log2FC'] = volcano_df['Log2_Fold_Change']
 
-            # Skip if both groups have <5 samples OR max detection <20%
-            if (cancer_count < min_samples and normal_count < min_samples) or \
-               (max_detection_pct < min_detection_pct):
-                continue
-
-            # Calculate means
-            cancer_mean = np.mean(cancer_nonzero)
-            normal_mean = np.mean(normal_nonzero)
-
-            # Calculate fold change (avoid division by zero)
-            if normal_mean > 0:
-                fold_change = cancer_mean / normal_mean
-                log2_fc = np.log2(fold_change)
-            else:
-                log2_fc = np.nan
-
-            # Perform Wilcoxon rank-sum test (Mann-Whitney U)
-            try:
-                statistic, p_value = stats.mannwhitneyu(cancer_nonzero, normal_nonzero, alternative='two-sided')
-            except:
-                p_value = np.nan
-
-            # Get VIP score if available
-            vip_score = 0
-            vip_match = vip_df[(vip_df['Peptide'] == peptide) &
-                              (vip_df['GlycanComposition'] == glycan_comp)]
-            if not vip_match.empty:
-                vip_score = vip_match['VIP_Score'].values[0]
-
-            # Get glycan type category if available
-            glycan_type = row.get('GlycanTypeCategory', 'C/H')
-
-            volcano_data.append({
-                'Glycopeptide': glycopeptide,
-                'Peptide': peptide,
-                'GlycanComposition': glycan_comp,
-                'GlycanTypeCategory': glycan_type,
-                'Log2FC': log2_fc,
-                'P_value': p_value,
-                'VIP_Score': vip_score,
-                'Cancer_Mean': cancer_mean,
-                'Normal_Mean': normal_mean,
-                'Cancer_Count': cancer_count,
-                'Normal_Count': normal_count,
-                'Cancer_Detection_Pct': cancer_detection_pct,
-                'Normal_Detection_Pct': normal_detection_pct
-            })
-
-        # Create DataFrame
-        volcano_df = pd.DataFrame(volcano_data)
-
-        # Log detection filtering results
-        total_glycopeptides = len(df)
-        passed_filter = len(volcano_df)
-        logger.info(f"Detection filtering (≥5 samples AND ≥20% detection in at least one group):")
-        logger.info(f"  Total glycopeptides: {total_glycopeptides}")
-        logger.info(f"  Passed filter: {passed_filter}")
-        logger.info(f"  Removed: {total_glycopeptides - passed_filter} ({(total_glycopeptides - passed_filter)/total_glycopeptides*100:.1f}%)")
-
-        # Remove rows with NaN
-        volcano_df = volcano_df.dropna(subset=['Log2FC', 'P_value'])
-
-        # Calculate -log10(p-value)
-        volcano_df['-Log10P'] = -np.log10(volcano_df['P_value'])
-
-        # FDR correction using Benjamini-Hochberg
-        from statsmodels.stats.multitest import multipletests
-        _, fdr_values, _, _ = multipletests(volcano_df['P_value'].values, method='fdr_bh')
-        volcano_df['FDR'] = fdr_values
-        volcano_df['-Log10FDR'] = -np.log10(fdr_values)
+        logger.info(f"Volcano plot data prepared: {len(volcano_df)} glycopeptides")
 
         # Classification
         volcano_df['Regulation'] = 'Non-significant'

@@ -203,6 +203,22 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "matplotlib.pyplot",
         "kind": 6,
         "isExtraImport": true,
@@ -448,6 +464,70 @@
     },
     {
         "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -713,6 +793,79 @@
         "documentation": {}
     },
     {
+        "label": "PieChartPlotMixin",
+        "importPath": "src.plots.pie_chart_plot",
+        "description": "src.plots.pie_chart_plot",
+        "isExtraImport": true,
+        "detail": "src.plots.pie_chart_plot",
+        "documentation": {}
+    },
+    {
+        "label": "pytest",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pytest",
+        "description": "pytest",
+        "detail": "pytest",
+        "documentation": {}
+    },
+    {
+        "label": "DataPreparationConfig",
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "isExtraImport": true,
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_group_statistics_standardized",
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "isExtraImport": true,
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "prepare_visualization_data",
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "isExtraImport": true,
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "filter_by_detection_frequency",
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "isExtraImport": true,
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "get_standard_config_from_dict",
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "isExtraImport": true,
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "DataConsistencyValidator",
+        "importPath": "src.data_validator",
+        "description": "src.data_validator",
+        "isExtraImport": true,
+        "detail": "src.data_validator",
+        "documentation": {}
+    },
+    {
+        "label": "quick_consistency_check",
+        "importPath": "src.data_validator",
+        "description": "src.data_validator",
+        "isExtraImport": true,
+        "detail": "src.data_validator",
+        "documentation": {}
+    },
+    {
         "label": "load_and_validate_config",
         "importPath": "src.config_validator",
         "description": "src.config_validator",
@@ -894,7 +1047,7 @@
         "kind": 6,
         "importPath": "src.plots.glycopeptide_comparison_heatmap",
         "description": "src.plots.glycopeptide_comparison_heatmap",
-        "peekOfCode": "class GlycopeptideComparisonHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide comparison heatmap (Cancer vs Normal)\"\"\"\n    def plot_glycopeptide_comparison_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        figsize: tuple = (24, 16),\n        max_peptides: int = 50,\n        max_glycans_per_type: int = 15\n    ):",
+        "peekOfCode": "class GlycopeptideComparisonHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide comparison heatmap (Cancer vs Normal)\"\"\"\n    def plot_glycopeptide_comparison_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        config: DataPreparationConfig = None,\n        figsize: tuple = (24, 16),\n        max_peptides: int = 50,\n        max_glycans_per_type: int = 15",
         "detail": "src.plots.glycopeptide_comparison_heatmap",
         "documentation": {}
     },
@@ -903,7 +1056,7 @@
         "kind": 5,
         "importPath": "src.plots.glycopeptide_comparison_heatmap",
         "description": "src.plots.glycopeptide_comparison_heatmap",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycopeptideComparisonHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide comparison heatmap (Cancer vs Normal)\"\"\"\n    def plot_glycopeptide_comparison_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        figsize: tuple = (24, 16),\n        max_peptides: int = 50,\n        max_glycans_per_type: int = 15",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycopeptideComparisonHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide comparison heatmap (Cancer vs Normal)\"\"\"\n    def plot_glycopeptide_comparison_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        config: DataPreparationConfig = None,\n        figsize: tuple = (24, 16),\n        max_peptides: int = 50,",
         "detail": "src.plots.glycopeptide_comparison_heatmap",
         "documentation": {}
     },
@@ -977,6 +1130,24 @@
         "description": "src.plots.pca_plot",
         "peekOfCode": "logger = logging.getLogger(__name__)\nclass PCAPlotMixin:\n    \"\"\"Mixin class for PCA-related plots\"\"\"\n    def _draw_confidence_ellipse(self, ax, x, y, color, alpha=0.2, n_std=1.96):\n        \"\"\"\n        Draw 95% confidence ellipse for a group of points\n        Args:\n            ax: Matplotlib axis\n            x, y: Data points\n            color: Ellipse color",
         "detail": "src.plots.pca_plot",
+        "documentation": {}
+    },
+    {
+        "label": "PieChartPlotMixin",
+        "kind": 6,
+        "importPath": "src.plots.pie_chart_plot",
+        "description": "src.plots.pie_chart_plot",
+        "peekOfCode": "class PieChartPlotMixin:\n    \"\"\"Mixin class for pie chart visualizations\"\"\"\n    def plot_pie_chart_glycan_types(self, df: pd.DataFrame, figsize: tuple = (16, 8)):\n        \"\"\"\n        Create side-by-side pie charts showing glycan type distribution (Cancer vs Normal)\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"\n        logger.info(\"Creating glycan type distribution pie charts...\")",
+        "detail": "src.plots.pie_chart_plot",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.pie_chart_plot",
+        "description": "src.plots.pie_chart_plot",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass PieChartPlotMixin:\n    \"\"\"Mixin class for pie chart visualizations\"\"\"\n    def plot_pie_chart_glycan_types(self, df: pd.DataFrame, figsize: tuple = (16, 8)):\n        \"\"\"\n        Create side-by-side pie charts showing glycan type distribution (Cancer vs Normal)\n        Args:\n            df: Annotated DataFrame with intensity data\n            figsize: Figure size (width, height)\n        \"\"\"",
+        "detail": "src.plots.pie_chart_plot",
         "documentation": {}
     },
     {
@@ -1317,7 +1488,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels\nVIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box",
+        "peekOfCode": "VIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels\nVIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1326,7 +1497,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================",
+        "peekOfCode": "VIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)\nVIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1335,7 +1506,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY",
+        "peekOfCode": "VIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)\nVIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1344,7 +1515,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================",
+        "peekOfCode": "VIP_POINT_STROKE = 3.5       # Very thick stroke for definition\nVIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1353,7 +1524,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)",
+        "peekOfCode": "VIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish\nVIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1362,7 +1533,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)",
+        "peekOfCode": "VIP_HEATMAP_HEIGHT = 0.95    # Full height\nVIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1371,7 +1542,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding",
+        "peekOfCode": "VIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)\nVIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1380,7 +1551,7 @@
         "kind": 5,
         "importPath": "src.plots.plot_config",
         "description": "src.plots.plot_config",
-        "peekOfCode": "VIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points",
+        "peekOfCode": "VIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit\nVIP_FIGURE_HEIGHT = 8        # Taller for better proportions\nVIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box\n# ==============================================================================\n# PCA Plot - PUBLICATION QUALITY\n# ==============================================================================\nPCA_FIGSIZE = (10, 8)\nPCA_LABEL_FONTSIZE = 10      # Larger (was 9)\nPCA_LABEL_BBOX_PAD = 0.4     # More padding\nPCA_POINT_SIZE = 150         # Larger scatter points",
         "detail": "src.plots.plot_config",
         "documentation": {}
     },
@@ -1668,7 +1839,7 @@
         "kind": 6,
         "importPath": "src.plots.volcano_plot",
         "description": "src.plots.volcano_plot",
-        "peekOfCode": "class VolcanoPlotMixin:\n    \"\"\"Mixin class for Volcano plot visualization\"\"\"\n    def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                     fdr_threshold: float = 0.05, fc_threshold: float = 1.5,\n                     figsize: tuple = (12, 10)):\n        \"\"\"\n        Create volcano plot showing log2(fold change) vs -log10(FDR)\n        Args:\n            df: Annotated DataFrame with intensity data\n            vip_df: DataFrame with VIP scores",
+        "peekOfCode": "class VolcanoPlotMixin:\n    \"\"\"Mixin class for Volcano plot visualization\"\"\"\n    def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                     config: DataPreparationConfig = None,\n                     fdr_threshold: float = 0.05, fc_threshold: float = 1.5,\n                     figsize: tuple = (12, 10)):\n        \"\"\"\n        Create volcano plot showing log2(fold change) vs -log10(FDR)\n        UPDATED: Uses centralized data preparation for consistency\n        Args:",
         "detail": "src.plots.volcano_plot",
         "documentation": {}
     },
@@ -1677,7 +1848,7 @@
         "kind": 5,
         "importPath": "src.plots.volcano_plot",
         "description": "src.plots.volcano_plot",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VolcanoPlotMixin:\n    \"\"\"Mixin class for Volcano plot visualization\"\"\"\n    def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                     fdr_threshold: float = 0.05, fc_threshold: float = 1.5,\n                     figsize: tuple = (12, 10)):\n        \"\"\"\n        Create volcano plot showing log2(fold change) vs -log10(FDR)\n        Args:\n            df: Annotated DataFrame with intensity data",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass VolcanoPlotMixin:\n    \"\"\"Mixin class for Volcano plot visualization\"\"\"\n    def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,\n                     config: DataPreparationConfig = None,\n                     fdr_threshold: float = 0.05, fc_threshold: float = 1.5,\n                     figsize: tuple = (12, 10)):\n        \"\"\"\n        Create volcano plot showing log2(fold change) vs -log10(FDR)\n        UPDATED: Uses centralized data preparation for consistency",
         "detail": "src.plots.volcano_plot",
         "documentation": {}
     },
@@ -1751,6 +1922,105 @@
         "description": "src.data_loader",
         "peekOfCode": "logger = get_logger(__name__)\nclass DataLoader:\n    \"\"\"Load and integrate glycoproteomics data from multiple CSV files\"\"\"\n    def __init__(self, dataset_dir: str, required_columns: List[str]):\n        \"\"\"\n        Initialize DataLoader\n        Args:\n            dataset_dir: Path to directory containing CSV files\n            required_columns: List of required column names\n        \"\"\"",
         "detail": "src.data_loader",
+        "documentation": {}
+    },
+    {
+        "label": "DataPreparationConfig",
+        "kind": 6,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "class DataPreparationConfig:\n    \"\"\"Configuration for standardized data preparation\"\"\"\n    def __init__(self, min_detection_pct: float = 0.30,\n                 min_samples: int = 5,\n                 missing_data_method: str = 'skipna'):\n        \"\"\"\n        Initialize data preparation configuration\n        Args:\n            min_detection_pct: Minimum detection % in at least one group (default: 0.30 = 30%)\n            min_samples: Minimum number of detected samples for statistical tests (default: 5)",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_detection_statistics",
+        "kind": 2,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "def calculate_detection_statistics(df: pd.DataFrame,\n                                   sample_cols: List[str],\n                                   group_name: str = \"Group\") -> Dict[str, pd.Series]:\n    \"\"\"\n    Calculate detection statistics for a group of samples\n    STANDARDIZED METHOD: Used by all visualizations to ensure consistency\n    Args:\n        df: DataFrame with sample columns\n        sample_cols: List of sample column names\n        group_name: Name of the group (for logging)",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_group_statistics_standardized",
+        "kind": 2,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "def calculate_group_statistics_standardized(df: pd.DataFrame,\n                                            sample_cols: List[str],\n                                            method: str = 'skipna',\n                                            group_name: str = \"Group\") -> Dict[str, pd.Series]:\n    \"\"\"\n    Calculate standardized statistics for a group of samples\n    CRITICAL: This is the SINGLE SOURCE OF TRUTH for mean calculations\n    All visualizations MUST use this function to ensure consistency\n    Args:\n        df: DataFrame with sample columns",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "filter_by_detection_frequency",
+        "kind": 2,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "def filter_by_detection_frequency(df: pd.DataFrame,\n                                  config: DataPreparationConfig,\n                                  cancer_samples: List[str] = None,\n                                  normal_samples: List[str] = None,\n                                  log_prefix: str = \"\") -> pd.DataFrame:\n    \"\"\"\n    Apply standardized detection frequency filter\n    CRITICAL: This is the SINGLE SOURCE OF TRUTH for detection filtering\n    All visualizations MUST use this function to ensure consistency\n    Args:",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "prepare_visualization_data",
+        "kind": 2,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "def prepare_visualization_data(df: pd.DataFrame,\n                               config: DataPreparationConfig,\n                               vip_scores: Optional[pd.DataFrame] = None,\n                               merge_method: str = 'left',\n                               apply_detection_filter: bool = True,\n                               log_prefix: str = \"\") -> pd.DataFrame:\n    \"\"\"\n    Centralized data preparation for visualizations\n    CRITICAL: This is the SINGLE SOURCE OF TRUTH for visualization data preparation\n    Pipeline:",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "get_standard_config_from_dict",
+        "kind": 2,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "def get_standard_config_from_dict(config_dict: dict) -> DataPreparationConfig:\n    \"\"\"\n    Create DataPreparationConfig from configuration dictionary\n    Args:\n        config_dict: Configuration dictionary (from config.yaml)\n    Returns:\n        DataPreparationConfig instance\n    \"\"\"\n    # Extract parameters with defaults\n    detection_filter = config_dict.get('analysis', {}).get('detection_filter', {})",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_statistical_significance",
+        "kind": 2,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "def calculate_statistical_significance(df_prep: pd.DataFrame,\n                                       cancer_samples: List[str],\n                                       normal_samples: List[str],\n                                       method: str = 'mannwhitneyu',\n                                       fdr_correction: bool = True) -> pd.DataFrame:\n    \"\"\"\n    Calculate statistical significance for differential expression\n    Args:\n        df_prep: Prepared DataFrame from prepare_visualization_data()\n        cancer_samples: List of cancer sample columns",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.data_preparation",
+        "description": "src.data_preparation",
+        "peekOfCode": "logger = get_logger(__name__)\nclass DataPreparationConfig:\n    \"\"\"Configuration for standardized data preparation\"\"\"\n    def __init__(self, min_detection_pct: float = 0.30,\n                 min_samples: int = 5,\n                 missing_data_method: str = 'skipna'):\n        \"\"\"\n        Initialize data preparation configuration\n        Args:\n            min_detection_pct: Minimum detection % in at least one group (default: 0.30 = 30%)",
+        "detail": "src.data_preparation",
+        "documentation": {}
+    },
+    {
+        "label": "DataConsistencyValidator",
+        "kind": 6,
+        "importPath": "src.data_validator",
+        "description": "src.data_validator",
+        "peekOfCode": "class DataConsistencyValidator:\n    \"\"\"Validator for checking data consistency across visualizations\"\"\"\n    def __init__(self, tolerance: float = 1e-6):\n        \"\"\"\n        Initialize validator\n        Args:\n            tolerance: Numerical tolerance for floating-point comparisons\n        \"\"\"\n        self.tolerance = tolerance\n        self.validation_results = []",
+        "detail": "src.data_validator",
+        "documentation": {}
+    },
+    {
+        "label": "quick_consistency_check",
+        "kind": 2,
+        "importPath": "src.data_validator",
+        "description": "src.data_validator",
+        "peekOfCode": "def quick_consistency_check(df1: pd.DataFrame,\n                           df2: pd.DataFrame,\n                           name1: str = \"Dataset1\",\n                           name2: str = \"Dataset2\") -> bool:\n    \"\"\"\n    Quick consistency check between two datasets\n    Args:\n        df1: First DataFrame\n        df2: Second DataFrame\n        name1: Name of first dataset",
+        "detail": "src.data_validator",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.data_validator",
+        "description": "src.data_validator",
+        "peekOfCode": "logger = get_logger(__name__)\nclass DataConsistencyValidator:\n    \"\"\"Validator for checking data consistency across visualizations\"\"\"\n    def __init__(self, tolerance: float = 1e-6):\n        \"\"\"\n        Initialize validator\n        Args:\n            tolerance: Numerical tolerance for floating-point comparisons\n        \"\"\"\n        self.tolerance = tolerance",
+        "detail": "src.data_validator",
         "documentation": {}
     },
     {
@@ -2246,6 +2516,51 @@
         "description": "src.visualizer",
         "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    VIPScorePlotRMixin,\n    DistributionPlotMixin,\n    VolcanoPlotMixin,",
         "detail": "src.visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "TestDataPreparationConfig",
+        "kind": 6,
+        "importPath": "tests.test_data_consistency",
+        "description": "tests.test_data_consistency",
+        "peekOfCode": "class TestDataPreparationConfig:\n    \"\"\"Test DataPreparationConfig initialization and validation\"\"\"\n    def test_default_config(self):\n        \"\"\"Test default configuration\"\"\"\n        config = DataPreparationConfig()\n        assert config.min_detection_pct == 0.30\n        assert config.min_samples == 5\n        assert config.missing_data_method == 'skipna'\n    def test_custom_config(self):\n        \"\"\"Test custom configuration\"\"\"",
+        "detail": "tests.test_data_consistency",
+        "documentation": {}
+    },
+    {
+        "label": "TestGroupStatistics",
+        "kind": 6,
+        "importPath": "tests.test_data_consistency",
+        "description": "tests.test_data_consistency",
+        "peekOfCode": "class TestGroupStatistics:\n    \"\"\"Test group statistics calculation\"\"\"\n    @pytest.fixture\n    def sample_data(self):\n        \"\"\"Create sample data for testing\"\"\"\n        data = {\n            'Peptide': ['PEP1', 'PEP2', 'PEP3'],\n            'GlycanComposition': ['H(5)N(4)', 'H(6)N(5)A(1)', 'H(5)N(4)F(1)'],\n            'C1': [100, 200, ''],  # Empty string (missing)\n            'C2': [150, '', 300],",
+        "detail": "tests.test_data_consistency",
+        "documentation": {}
+    },
+    {
+        "label": "TestDetectionFiltering",
+        "kind": 6,
+        "importPath": "tests.test_data_consistency",
+        "description": "tests.test_data_consistency",
+        "peekOfCode": "class TestDetectionFiltering:\n    \"\"\"Test detection frequency filtering\"\"\"\n    @pytest.fixture\n    def test_data(self):\n        \"\"\"Create test data with varying detection rates\"\"\"\n        data = {\n            'Peptide': ['PEP_HIGH', 'PEP_MED', 'PEP_LOW'],\n            'GlycanComposition': ['H(5)N(4)', 'H(6)N(5)', 'H(7)N(6)'],\n            # PEP_HIGH: 80% detection in cancer\n            'C1': [100, 50, ''],",
+        "detail": "tests.test_data_consistency",
+        "documentation": {}
+    },
+    {
+        "label": "TestConsistencyValidation",
+        "kind": 6,
+        "importPath": "tests.test_data_consistency",
+        "description": "tests.test_data_consistency",
+        "peekOfCode": "class TestConsistencyValidation:\n    \"\"\"Test data consistency validation\"\"\"\n    @pytest.fixture\n    def consistent_datasets(self):\n        \"\"\"Create two consistent datasets\"\"\"\n        data1 = {\n            'Peptide': ['PEP1', 'PEP2'],\n            'GlycanComposition': ['H(5)N(4)', 'H(6)N(5)'],\n            'Cancer_Mean': [150.0, 200.0],\n            'Normal_Mean': [100.0, 180.0],",
+        "detail": "tests.test_data_consistency",
+        "documentation": {}
+    },
+    {
+        "label": "TestPieChartData",
+        "kind": 6,
+        "importPath": "tests.test_data_consistency",
+        "description": "tests.test_data_consistency",
+        "peekOfCode": "class TestPieChartData:\n    \"\"\"Test pie chart data preparation\"\"\"\n    @pytest.fixture\n    def pie_chart_data(self):\n        \"\"\"Create sample data for pie chart testing\"\"\"\n        data = {\n            'Peptide': ['PEP1', 'PEP2', 'PEP3', 'PEP4'],\n            'GlycanComposition': ['H(5)N(4)', 'H(6)N(5)A(1)', 'H(5)N(4)F(1)', 'H(6)N(5)A(1)F(1)'],\n            'GlycanType': ['Non', 'Sialylated', 'Fucosylated', 'Both'],\n            'PrimaryClassification': ['High Mannose', 'ComplexHybrid', 'ComplexHybrid', 'ComplexHybrid'],",
+        "detail": "tests.test_data_consistency",
         "documentation": {}
     },
     {

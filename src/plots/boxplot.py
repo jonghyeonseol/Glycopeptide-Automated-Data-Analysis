@@ -1,6 +1,8 @@
 """
 Boxplot Module for pGlyco Auto Combine
 Handles all boxplot visualizations
+
+UPDATED: Cancer vs Normal methods now use centralized data preparation
 """
 
 import pandas as pd
@@ -11,6 +13,10 @@ from pathlib import Path
 import logging
 from scipy import stats
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
+from ..data_preparation import (
+    DataPreparationConfig,
+    calculate_group_statistics_standardized
+)
 from .plot_config import (
     BOXPLOT_FIGSIZE, BOXPLOT_EXTENDED_FIGSIZE, BOXPLOT_WIDTH,
     BOXPLOT_LINEWIDTH, BOXPLOT_FLIERSIZE,
@@ -487,6 +493,9 @@ class BoxplotMixin:
 
         primary_categories = ['High Mannose', 'ComplexHybrid']
 
+        # STANDARDIZED: Use centralized statistics calculation
+        config = DataPreparationConfig(missing_data_method='skipna')
+
         # Generate both versions
         for apply_qc in [False, True]:
             data_for_plot = []
@@ -497,27 +506,28 @@ class BoxplotMixin:
                 for sample in sample_cols:
                     group = 'Cancer' if sample.startswith('C') else 'Normal'
 
-                    # Get TIC-normalized intensities for this classification and sample
-                    values = subset_df[sample].values
-                    nonzero_values = values[values > 0]
+                    # Use standardized statistics calculation
+                    if len(subset_df) > 0:
+                        stats_result = calculate_group_statistics_standardized(
+                            subset_df, [sample], method=config.missing_data_method
+                        )
 
-                    # Calculate detection rate
-                    detection_rate = len(nonzero_values) / len(values) if len(values) > 0 else 0
+                        mean_intensity = stats_result['mean'].iloc[0] if len(stats_result['mean']) > 0 else np.nan
+                        detection_rate = stats_result['detection_pct'].iloc[0] if len(stats_result['detection_pct']) > 0 else 0
 
-                    # Apply QC filter if needed
-                    if apply_qc and detection_rate < 0.1:
-                        continue  # Skip this sample
+                        # Apply QC filter if needed
+                        if apply_qc and detection_rate < 0.1:
+                            continue  # Skip this sample
 
-                    # Use mean of non-zero values (Option 2b)
-                    if len(nonzero_values) > 0:
-                        mean_intensity = nonzero_values.mean()
-                        data_for_plot.append({
-                            'Group': group,
-                            'Classification': classification,
-                            'Intensity': np.log2(mean_intensity + 1),
-                            'Sample': sample,
-                            'DetectionRate': detection_rate
-                        })
+                        # Only add if we have valid mean
+                        if not np.isnan(mean_intensity) and mean_intensity > 0:
+                            data_for_plot.append({
+                                'Group': group,
+                                'Classification': classification,
+                                'Intensity': np.log2(mean_intensity + 1),
+                                'Sample': sample,
+                                'DetectionRate': detection_rate
+                            })
 
             if not data_for_plot:
                 logger.warning(f"No data for primary Cancer vs Normal boxplot (QC={apply_qc})")
@@ -606,6 +616,9 @@ class BoxplotMixin:
 
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
 
+        # STANDARDIZED: Use centralized statistics calculation
+        config = DataPreparationConfig(missing_data_method='skipna')
+
         # Generate both versions
         for apply_qc in [False, True]:
             data_for_plot = []
@@ -616,27 +629,28 @@ class BoxplotMixin:
                 for sample in sample_cols:
                     group = 'Cancer' if sample.startswith('C') else 'Normal'
 
-                    # Get TIC-normalized intensities for this classification and sample
-                    values = subset_df[sample].values
-                    nonzero_values = values[values > 0]
+                    # Use standardized statistics calculation
+                    if len(subset_df) > 0:
+                        stats_result = calculate_group_statistics_standardized(
+                            subset_df, [sample], method=config.missing_data_method
+                        )
 
-                    # Calculate detection rate
-                    detection_rate = len(nonzero_values) / len(values) if len(values) > 0 else 0
+                        mean_intensity = stats_result['mean'].iloc[0] if len(stats_result['mean']) > 0 else np.nan
+                        detection_rate = stats_result['detection_pct'].iloc[0] if len(stats_result['detection_pct']) > 0 else 0
 
-                    # Apply QC filter if needed
-                    if apply_qc and detection_rate < 0.1:
-                        continue  # Skip this sample
+                        # Apply QC filter if needed
+                        if apply_qc and detection_rate < 0.1:
+                            continue  # Skip this sample
 
-                    # Use mean of non-zero values (Option 2b)
-                    if len(nonzero_values) > 0:
-                        mean_intensity = nonzero_values.mean()
-                        data_for_plot.append({
-                            'Group': group,
-                            'Classification': classification,
-                            'Intensity': np.log2(mean_intensity + 1),
-                            'Sample': sample,
-                            'DetectionRate': detection_rate
-                        })
+                        # Only add if we have valid mean
+                        if not np.isnan(mean_intensity) and mean_intensity > 0:
+                            data_for_plot.append({
+                                'Group': group,
+                                'Classification': classification,
+                                'Intensity': np.log2(mean_intensity + 1),
+                                'Sample': sample,
+                                'DetectionRate': detection_rate
+                            })
 
             if not data_for_plot:
                 logger.warning(f"No data for secondary Cancer vs Normal boxplot (QC={apply_qc})")

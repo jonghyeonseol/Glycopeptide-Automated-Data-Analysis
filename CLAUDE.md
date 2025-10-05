@@ -104,9 +104,78 @@ All pipeline parameters are centralized in `config.yaml`:
 - **processing.required_columns**: Must be `["Peptide", "GlycanComposition", "IsotopeArea"]`
 - **annotation markers**: `A` for sialylation, `F` for fucosylation
 - **analysis.pca.log_transform**: Should remain `true` for intensity data
+- **analysis.detection_filter** (CRITICAL for data consistency):
+  - `min_detection_pct`: Minimum detection percentage (default: 0.30 = 30%)
+  - `min_samples`: Minimum detected samples for tests (default: 5)
+- **analysis.missing_data_handling** (CRITICAL for scientific validity):
+  - `method`: 'skipna' (recommended) or 'replace_zero' (legacy)
+  - **IMPORTANT**: 'skipna' is scientifically correct for MNAR data
 - **visualization**: Figure sizes, DPI, color schemes
 
 When modifying the pipeline, prefer changing config.yaml over hardcoding values.
+
+## Centralized Data Preparation (NEW - v2.0)
+
+**CRITICAL**: All visualizations now use standardized data preparation to ensure consistency.
+
+### Key Modules
+
+**src/data_preparation.py**
+- `DataPreparationConfig`: Configuration for filtering and processing
+- `prepare_visualization_data()`: Single source of truth for data prep
+- `calculate_group_statistics_standardized()`: Standardized mean/std calculations
+- `filter_by_detection_frequency()`: Uniform detection filtering
+- `calculate_statistical_significance()`: P-values and FDR correction
+
+**src/data_validator.py**
+- `DataConsistencyValidator`: Validates consistency across visualizations
+- `validate_glycopeptide_overlap()`: Checks dataset overlap
+- `validate_intensity_consistency()`: Verifies identical statistics
+
+### Data Processing Pipeline
+
+All visualizations follow this standardized pipeline:
+
+1. **Detection Filtering**: 30% detection OR 5 samples in at least one group
+2. **Mean Calculation**: Uses `skipna=True` to exclude missing values
+3. **Statistics**: Same method for all Cancer_Mean, Normal_Mean, etc.
+4. **Fold Change**: Log2(Cancer+1 / Normal+1) for symmetry
+
+**Before (INCONSISTENT)**:
+- Volcano plot: 20% filter, non-zero mean
+- VIP plots: No filter, include-zero mean
+- Comparison heatmap: 30% filter (inner join) + 50% filter = double filtering
+
+**After (CONSISTENT)**:
+- All visualizations: 30% filter, skipna mean
+- Same glycopeptides appear in all plots
+- Same intensity values across all visualizations
+
+### Modules Using Centralized Prep
+
+**Phase 1** (Initial Implementation):
+- volcano_plot.py
+- vip_score_plot.py (3 methods)
+- vip_score_plot_r.py (3 R-based methods)
+- glycopeptide_comparison_heatmap.py
+
+**Phase 2** (Completed):
+- site_specific_heatmap.py (fold change calculations)
+- cv_distribution_plot.py (CV calculations)
+- boxplot.py (Cancer vs Normal methods)
+
+**Total**: 7 modules, 12 methods updated
+
+### Modules Using Visualization-Specific Logic (Correctly)
+
+These modules use `replace_empty_with_zero()` appropriately for visualization purposes:
+- **heatmap.py**: TIC normalization (requires complete numeric matrix)
+- **histogram.py**: TIC normalization + aggregation for stacked bars
+- **glycopeptide_dot_heatmap.py**: Intensity extraction for dot visualization
+- **radar_chart_plot.py**: Total intensity sums for % calculations
+- **correlation_matrix_plot.py**: Correlation matrix creation
+
+**Verdict**: ✅ All correct - not used for statistical comparison
 
 ## Input Data Requirements
 
@@ -140,7 +209,10 @@ CSV files in `Dataset/` must:
 - boxplot_glycan_types.png: Intensity distributions by glycan type
 - glycan_type_distribution.png: Count of each glycan type
 - heatmap_top_glycopeptides.png: Top 50 abundant glycopeptides
-- **glycopeptide_comparison_heatmap.png** (NEW): Cancer vs Normal comparison with VIP-sorted peptides and glycan type grouping
+- **pie_chart_glycan_types.png** (v2.0): Glycan type distribution pie charts (Cancer vs Normal)
+- **pie_chart_primary_classification.png** (v2.0): Primary classification pie charts
+- **pie_chart_secondary_classification.png** (v2.0): Secondary classification pie charts
+- **glycopeptide_comparison_heatmap.png**: Cancer vs Normal comparison with VIP-sorted peptides
 
 **analysis_summary.txt**
 - Human-readable report of all key findings

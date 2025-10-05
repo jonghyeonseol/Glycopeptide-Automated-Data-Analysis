@@ -25,6 +25,7 @@ from src.constants import (
     OUTPUT_VIP_SCORES,
     OUTPUT_SUMMARY
 )
+from src.data_preparation import get_standard_config_from_dict
 
 # Setup logging (single configuration for entire application)
 setup_logging()
@@ -42,6 +43,13 @@ def main():
     try:
         config = load_and_validate_config('config.yaml')
         logger.info("Configuration validated successfully")
+
+        # Create standardized data preparation config
+        data_prep_config = get_standard_config_from_dict(config)
+        logger.info(f"Data preparation config loaded: "
+                   f"detection={data_prep_config.min_detection_pct*100:.0f}%, "
+                   f"min_samples={data_prep_config.min_samples}, "
+                   f"method={data_prep_config.missing_data_method}")
     except PGlycoAutoError as e:
         logger.error(f"Configuration error: {str(e)}")
         sys.exit(1)
@@ -176,7 +184,7 @@ def main():
     # Advanced visualizations (evidence-based from literature)
     logger.info("Creating advanced visualizations...")
     logger.info("  - Volcano plot (differential expression)...")
-    visualizer.plot_volcano(annotated_data, plsda_results['vip_scores'])
+    visualizer.plot_volcano(annotated_data, plsda_results['vip_scores'], config=data_prep_config)
 
     logger.info("  - Site-specific glycosylation heatmap...")
     visualizer.plot_site_specific_heatmap(annotated_data, plsda_results['vip_scores'])
@@ -194,11 +202,17 @@ def main():
     logger.info("  - Radar chart (glycan profile comparison)...")
     visualizer.plot_radar_chart(annotated_data)
 
+    logger.info("  - Pie charts (glycan distribution)...")
+    visualizer.plot_pie_chart_glycan_types(annotated_data)
+    visualizer.plot_pie_chart_primary_classification(annotated_data)
+    visualizer.plot_pie_chart_secondary_classification(annotated_data)
+
     logger.info("  - Glycopeptide comparison heatmap (Cancer vs Normal)...")
     if config['visualization']['glycopeptide_comparison']['enabled']:
         visualizer.plot_glycopeptide_comparison_heatmap(
             df=annotated_data,
             vip_scores=plsda_results['vip_scores'],
+            config=data_prep_config,  # Pass standardized config
             figsize=tuple(config['visualization']['glycopeptide_comparison']['figsize']),
             max_peptides=config['visualization']['glycopeptide_comparison']['max_peptides'],
             max_glycans_per_type=config['visualization']['glycopeptide_comparison']['max_glycans_per_type']
@@ -292,6 +306,9 @@ def main():
         f.write(f"  - Correlation clustermap (Normal): correlation_clustermap_normal.png\n")
         f.write(f"  - Venn diagram: venn_diagram_glycan_types.png\n")
         f.write(f"  - Radar chart: radar_chart_glycan_profile.png\n")
+        f.write(f"  - Pie chart (glycan types): pie_chart_glycan_types.png\n")
+        f.write(f"  - Pie chart (primary classification): pie_chart_primary_classification.png\n")
+        f.write(f"  - Pie chart (secondary classification): pie_chart_secondary_classification.png\n")
         f.write(f"  - Glycopeptide comparison heatmap (Cancer vs Normal): glycopeptide_comparison_heatmap.png\n")
         f.write("\n")
         f.write("Data Traceability:\n")

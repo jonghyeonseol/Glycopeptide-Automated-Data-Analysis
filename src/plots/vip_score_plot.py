@@ -1,6 +1,8 @@
 """
 VIP Score Plot Module for pGlyco Auto Combine
 Handles VIP score visualizations with heatmap
+
+UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
@@ -10,7 +12,11 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from matplotlib.gridspec import GridSpec
-from ..utils import replace_empty_with_zero, get_sample_columns, save_trace_data
+from ..utils import get_sample_columns, save_trace_data
+from ..data_preparation import (
+    DataPreparationConfig,
+    calculate_group_statistics_standardized
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,15 +44,25 @@ class VIPScorePlotMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        # Prepare heatmap data (Cancer mean, Normal mean for each glycopeptide)
+        # STANDARDIZED: Prepare heatmap data using centralized mean calculation
+        config = DataPreparationConfig(missing_data_method='skipna')
         heatmap_data = []
+
         for _, row in top_n_data.iterrows():
             mask = (df['Peptide'] == row['Peptide']) & (df['GlycanComposition'] == row['GlycanComposition'])
             if mask.sum() > 0:
-                glycopeptide_row = df[mask].iloc[0]
+                glycopeptide_row = df[mask]
 
-                cancer_mean = replace_empty_with_zero(glycopeptide_row[cancer_samples]).mean()
-                normal_mean = replace_empty_with_zero(glycopeptide_row[normal_samples]).mean()
+                # Use standardized statistics calculation
+                cancer_stats = calculate_group_statistics_standardized(
+                    glycopeptide_row, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    glycopeptide_row, normal_samples, method=config.missing_data_method
+                )
+
+                cancer_mean = cancer_stats['mean'].iloc[0] if not cancer_stats['mean'].isna().all() else 0
+                normal_mean = normal_stats['mean'].iloc[0] if not normal_stats['mean'].isna().all() else 0
 
                 heatmap_data.append([cancer_mean, normal_mean])
             else:
@@ -125,8 +141,10 @@ class VIPScorePlotMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        # Prepare heatmap data
+        # STANDARDIZED: Prepare heatmap data using centralized statistics
+        config = DataPreparationConfig(missing_data_method='skipna')
         heatmap_data = []
+
         for _, row in glycan_vip.iterrows():
             glycan_comp = row['GlycanComposition']
             mask = df['GlycanComposition'] == glycan_comp
@@ -134,12 +152,17 @@ class VIPScorePlotMixin:
             if mask.sum() > 0:
                 glycan_rows = df[mask]
 
-                # Calculate total intensity across all peptides with this glycan
-                cancer_total = 0
-                normal_total = 0
-                for _, gly_row in glycan_rows.iterrows():
-                    cancer_total += replace_empty_with_zero(gly_row[cancer_samples]).sum()
-                    normal_total += replace_empty_with_zero(gly_row[normal_samples]).sum()
+                # Use standardized statistics calculation
+                cancer_stats = calculate_group_statistics_standardized(
+                    glycan_rows, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    glycan_rows, normal_samples, method=config.missing_data_method
+                )
+
+                # Sum across all peptides with this glycan
+                cancer_total = cancer_stats['sum'].sum()
+                normal_total = normal_stats['sum'].sum()
 
                 heatmap_data.append([cancer_total, normal_total])
             else:
@@ -218,8 +241,10 @@ class VIPScorePlotMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        # Prepare heatmap data
+        # STANDARDIZED: Prepare heatmap data using centralized statistics
+        config = DataPreparationConfig(missing_data_method='skipna')
         heatmap_data = []
+
         for _, row in peptide_vip.iterrows():
             peptide = row['Peptide']
             mask = df['Peptide'] == peptide
@@ -227,12 +252,17 @@ class VIPScorePlotMixin:
             if mask.sum() > 0:
                 peptide_rows = df[mask]
 
-                # Calculate total intensity across all glycoforms of this peptide
-                cancer_total = 0
-                normal_total = 0
-                for _, pep_row in peptide_rows.iterrows():
-                    cancer_total += replace_empty_with_zero(pep_row[cancer_samples]).sum()
-                    normal_total += replace_empty_with_zero(pep_row[normal_samples]).sum()
+                # Use standardized statistics calculation
+                cancer_stats = calculate_group_statistics_standardized(
+                    peptide_rows, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    peptide_rows, normal_samples, method=config.missing_data_method
+                )
+
+                # Sum across all glycoforms of this peptide
+                cancer_total = cancer_stats['sum'].sum()
+                normal_total = normal_stats['sum'].sum()
 
                 heatmap_data.append([cancer_total, normal_total])
             else:

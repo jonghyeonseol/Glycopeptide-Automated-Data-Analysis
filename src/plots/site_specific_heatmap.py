@@ -1,6 +1,8 @@
 """
 Site-Specific Glycosylation Heatmap Module for pGlyco Auto Combine
 Visualizes glycan compositions per peptide site
+
+UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
@@ -9,7 +11,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import logging
-from ..utils import replace_empty_with_zero, save_trace_data
+from ..utils import save_trace_data
+from ..data_preparation import (
+    DataPreparationConfig,
+    calculate_group_statistics_standardized
+)
 from .plot_config import EXTENDED_CATEGORY_COLORS
 
 logger = logging.getLogger(__name__)
@@ -42,6 +48,9 @@ class SiteSpecificHeatmapMixin:
         row_labels = []
         glycan_types = []
 
+        # STANDARDIZED: Use centralized statistics calculation
+        config = DataPreparationConfig(missing_data_method='skipna')
+
         for peptide in top_peptides:
             # Get all glycan compositions for this peptide
             peptide_data = df[df['Peptide'] == peptide].copy()
@@ -49,12 +58,18 @@ class SiteSpecificHeatmapMixin:
             for idx, row in peptide_data.iterrows():
                 glycan_comp = row['GlycanComposition']
 
-                # Calculate mean intensities
-                cancer_values = replace_empty_with_zero(row[cancer_samples]).values.astype(float)
-                normal_values = replace_empty_with_zero(row[normal_samples]).values.astype(float)
+                # Use standardized statistics calculation
+                glycopeptide_row = peptide_data[peptide_data.index == idx]
 
-                cancer_mean = np.mean(cancer_values[cancer_values > 0]) if np.any(cancer_values > 0) else 0
-                normal_mean = np.mean(normal_values[normal_values > 0]) if np.any(normal_values > 0) else 0
+                cancer_stats = calculate_group_statistics_standardized(
+                    glycopeptide_row, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    glycopeptide_row, normal_samples, method=config.missing_data_method
+                )
+
+                cancer_mean = cancer_stats['mean'].iloc[0] if not cancer_stats['mean'].isna().all() else 0
+                normal_mean = normal_stats['mean'].iloc[0] if not normal_stats['mean'].isna().all() else 0
 
                 # Calculate log2 fold change
                 if normal_mean > 0 and cancer_mean > 0:

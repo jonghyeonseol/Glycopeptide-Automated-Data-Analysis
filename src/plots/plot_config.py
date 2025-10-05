@@ -159,7 +159,7 @@ VIP_POINT_STROKE = 3.5       # Very thick stroke for definition
 VIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish
 VIP_HEATMAP_HEIGHT = 0.95    # Full height
 VIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)
-VIP_FIGURE_WIDTH = 45        # ABSOLUTE MAXIMUM WIDE figure to accommodate full-length peptide labels
+VIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit
 VIP_FIGURE_HEIGHT = 8        # Taller for better proportions
 VIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box
 

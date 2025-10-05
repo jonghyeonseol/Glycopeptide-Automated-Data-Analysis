@@ -29,8 +29,21 @@ analysis:
     n_components: 2
     log_transform: true  # Log transform intensity values
 
+  # STANDARDIZED DATA PREPARATION SETTINGS (CRITICAL for reproducibility)
+  # These parameters ensure CONSISTENT filtering and processing across ALL visualizations
+  detection_filter:
+    min_detection_pct: 0.30  # Minimum 30% detection in at least one group (Cancer OR Normal)
+    min_samples: 5           # Minimum 5 detected samples for statistical tests
+
+  missing_data_handling:
+    method: 'skipna'  # 'skipna' (RECOMMENDED - exclude missing from mean) or 'replace_zero' (legacy - include as zero)
+    # SCIENTIFIC NOTE: 'skipna' is correct for Missing Not At Random (MNAR) data in proteomics
+    # Using 'replace_zero' will underestimate intensities for low-detection glycopeptides
+
   statistical_tests:
     alpha: 0.05  # Significance threshold
+    fdr_correction: true  # Apply Benjamini-Hochberg FDR correction
+    method: 'mannwhitneyu'  # 'mannwhitneyu' (non-parametric) or 'ttest' (parametric)
 
 # Visualization parameters
 visualization:

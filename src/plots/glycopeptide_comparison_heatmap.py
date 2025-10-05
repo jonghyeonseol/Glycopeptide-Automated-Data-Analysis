@@ -1,6 +1,8 @@
 """
 Glycopeptide Comparison Heatmap Plot Module for pGlyco Auto Combine
 Compares Cancer vs Normal groups with improved visualization
+
+UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
@@ -11,7 +13,11 @@ from matplotlib.patches import Rectangle
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 import logging
-from ..utils import replace_empty_with_zero, save_trace_data, calculate_group_statistics, calculate_fold_change
+from ..utils import save_trace_data
+from ..data_preparation import (
+    DataPreparationConfig,
+    prepare_visualization_data
+)
 from .plot_config import GLYCAN_COLORS, HEATMAP_FIGSIZE
 
 logger = logging.getLogger(__name__)
@@ -24,6 +30,7 @@ class GlycopeptideComparisonHeatmapMixin:
         self,
         df: pd.DataFrame,
         vip_scores: pd.DataFrame,
+        config: DataPreparationConfig = None,
         figsize: tuple = (24, 16),
         max_peptides: int = 50,
         max_glycans_per_type: int = 15
@@ -54,47 +61,28 @@ class GlycopeptideComparisonHeatmapMixin:
         """
         logger.info("Creating glycopeptide comparison heatmap (Cancer vs Normal)...")
 
+        # Use default config if not provided
+        if config is None:
+            config = DataPreparationConfig(
+                min_detection_pct=0.30,  # STANDARDIZED: 30% detection (same as other visualizations)
+                min_samples=5,
+                missing_data_method='skipna'
+            )
+
         # Define glycan type order and use standardized colors from plot_config
         glycan_type_order = ['HM', 'F', 'S', 'SF', 'C/H']
         glycan_type_colors = GLYCAN_COLORS  # Standardized colors (no conflicts with Cancer/Normal)
 
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
-
-        # ORIGINAL METHOD: Select top glycopeptides (peptide+glycan combinations) by individual VIP score
-        # This preserves the glycan-specific discrimination, which is key for glycoproteomics
-
-        # Merge VIP scores with full data
-        df_with_vip = df.merge(vip_scores, on=['Peptide', 'GlycanComposition'], how='inner')
-
-        # Calculate aggregated intensities for Cancer and Normal using proper missing data handling
-        # SCIENTIFIC VALIDITY: Uses skipna=True to avoid biasing means with zeros
-        cancer_stats = calculate_group_statistics(df_with_vip, cancer_samples)
-        normal_stats = calculate_group_statistics(df_with_vip, normal_samples)
-
-        df_with_vip['Cancer_Mean'] = cancer_stats['mean']
-        df_with_vip['Normal_Mean'] = normal_stats['mean']
-
-        # DETECTION FREQUENCY FILTERING (SCIENTIFIC VALIDITY)
-        # Calculate detection percentages
-        df_with_vip['Cancer_SampleCount'] = cancer_stats['count']
-        df_with_vip['Normal_SampleCount'] = normal_stats['count']
-        df_with_vip['Cancer_Detection_Pct'] = cancer_stats['count'] / len(cancer_samples)
-        df_with_vip['Normal_Detection_Pct'] = normal_stats['count'] / len(normal_samples)
-        df_with_vip['Max_Detection_Pct'] = df_with_vip[['Cancer_Detection_Pct', 'Normal_Detection_Pct']].max(axis=1)
-
-        # Filter: require ≥50% detection in at least one group
-        # This ensures comparisons are based on adequate sample sizes
-        min_detection_pct = 0.5  # 50% detection required
-        total_before = len(df_with_vip)
-        df_with_vip = df_with_vip[df_with_vip['Max_Detection_Pct'] >= min_detection_pct].copy()
-        total_after = len(df_with_vip)
-
-        logger.info(f"Detection filtering (≥{min_detection_pct*100:.0f}% in at least one group):")
-        logger.info(f"  Before: {total_before} glycopeptides")
-        logger.info(f"  After: {total_after} glycopeptides")
-        logger.info(f"  Removed: {total_before - total_after} glycopeptides ({(total_before - total_after)/total_before*100:.1f}%)")
+        # STANDARDIZED DATA PREPARATION (eliminates double-filtering)
+        # This now uses the SAME filter as volcano plot and VIP score plots
+        df_with_vip = prepare_visualization_data(
+            df=df,
+            config=config,
+            vip_scores=vip_scores,
+            merge_method='left',  # FIXED: Keep all glycopeptides (no pre-filtering via inner join)
+            apply_detection_filter=True,
+            log_prefix="[Comparison Heatmap] "
+        )
 
         if len(df_with_vip) == 0:
             logger.error("No glycopeptides pass detection filter!")

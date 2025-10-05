@@ -1,6 +1,8 @@
 """
 CV Distribution Plot Module for pGlyco Auto Combine
 Visualizes coefficient of variation for quality control
+
+UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
@@ -9,7 +11,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import logging
-from ..utils import replace_empty_with_zero, save_trace_data
+from ..utils import save_trace_data
+from ..data_preparation import (
+    DataPreparationConfig,
+    calculate_group_statistics_standardized
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +35,8 @@ class CVDistributionPlotMixin:
         cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
         normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
 
-        # Calculate CV for each glycopeptide
+        # STANDARDIZED: Calculate CV using centralized statistics
+        config = DataPreparationConfig(missing_data_method='skipna')
         cv_data = []
 
         for idx, row in df.iterrows():
@@ -37,24 +44,29 @@ class CVDistributionPlotMixin:
             glycan_comp = row['GlycanComposition']
             glycopeptide = f"{peptide}_{glycan_comp}"
 
-            # Cancer CV
-            cancer_values = replace_empty_with_zero(row[cancer_samples]).values.astype(float)
-            cancer_nonzero = cancer_values[cancer_values > 0]
+            # Get single row as DataFrame for standardized function
+            glycopeptide_row = df.loc[[idx]]
 
-            if len(cancer_nonzero) >= 3:
-                cancer_mean = np.mean(cancer_nonzero)
-                cancer_std = np.std(cancer_nonzero, ddof=1)
+            # Use standardized statistics calculation
+            cancer_stats = calculate_group_statistics_standardized(
+                glycopeptide_row, cancer_samples, method=config.missing_data_method
+            )
+            normal_stats = calculate_group_statistics_standardized(
+                glycopeptide_row, normal_samples, method=config.missing_data_method
+            )
+
+            # Calculate CV (coefficient of variation = std / mean * 100)
+            # Only calculate if we have at least 3 samples
+            if cancer_stats['count'].iloc[0] >= 3:
+                cancer_mean = cancer_stats['mean'].iloc[0]
+                cancer_std = cancer_stats['std'].iloc[0]
                 cancer_cv = (cancer_std / cancer_mean * 100) if cancer_mean > 0 else np.nan
             else:
                 cancer_cv = np.nan
 
-            # Normal CV
-            normal_values = replace_empty_with_zero(row[normal_samples]).values.astype(float)
-            normal_nonzero = normal_values[normal_values > 0]
-
-            if len(normal_nonzero) >= 3:
-                normal_mean = np.mean(normal_nonzero)
-                normal_std = np.std(normal_nonzero, ddof=1)
+            if normal_stats['count'].iloc[0] >= 3:
+                normal_mean = normal_stats['mean'].iloc[0]
+                normal_std = normal_stats['std'].iloc[0]
                 normal_cv = (normal_std / normal_mean * 100) if normal_mean > 0 else np.nan
             else:
                 normal_cv = np.nan
