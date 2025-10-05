@@ -16,12 +16,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.data_loader import DataLoader
 from src.annotator import GlycanAnnotator
-from src.analyzer import GlycanAnalyzer
 from src.visualizer import GlycanVisualizer
 from src.data_preparation import get_standard_config_from_dict
 from src.data_pipeline import DataPipeline
 from src.utils import validate_statistical_power
 from src.logger_config import get_logger
+
+# NEW: Use focused analyzers instead of monolithic GlycanAnalyzer
+from src.analysis import PCAAnalyzer, PLSDAAnalyzer, StatisticsAnalyzer
 
 logger = get_logger(__name__)
 
@@ -135,13 +137,14 @@ class PCAAnalysisStep(WorkflowStep):
         super().__init__("PCA Analysis", "Principal Component Analysis")
 
     def execute(self, state: PipelineState, config: Dict[str, Any]) -> None:
-        analyzer = GlycanAnalyzer(
+        # Use focused PCA analyzer
+        pca_analyzer = PCAAnalyzer(
             n_components=config['analysis']['pca']['n_components'],
             log_transform=config['analysis']['pca']['log_transform']
         )
 
-        state.analysis_results['pca'] = analyzer.perform_pca(state.filtered_data)
-        state.pca_analyzer = analyzer
+        state.analysis_results['pca'] = pca_analyzer.perform_pca(state.filtered_data)
+        state.pca_analyzer = pca_analyzer
 
 
 class StatisticsStep(WorkflowStep):
@@ -151,10 +154,14 @@ class StatisticsStep(WorkflowStep):
         super().__init__("Statistics", "Calculate statistics by glycan type")
 
     def execute(self, state: PipelineState, config: Dict[str, Any]) -> None:
-        analyzer = state.pca_analyzer
+        # Use focused statistics analyzer
+        stats_analyzer = StatisticsAnalyzer(
+            log_transform=config['analysis']['pca']['log_transform']
+        )
 
-        stats_df = analyzer.calculate_statistics_by_glycan_type(state.filtered_data)
+        stats_df = stats_analyzer.calculate_statistics_by_glycan_type(state.filtered_data)
         state.analysis_results['statistics'] = stats_df
+        state.stats_analyzer = stats_analyzer
 
         # Save statistics
         results_dir = config['paths']['results_dir']
@@ -170,12 +177,13 @@ class BoxplotDataStep(WorkflowStep):
         super().__init__("Boxplot Data", "Prepare boxplot visualization data")
 
     def execute(self, state: PipelineState, config: Dict[str, Any]) -> None:
-        analyzer = state.pca_analyzer
+        # Use statistics analyzer for boxplot data
+        stats_analyzer = state.stats_analyzer
 
-        state.analysis_results['boxplot_data'] = analyzer.prepare_boxplot_data(
+        state.analysis_results['boxplot_data'] = stats_analyzer.prepare_boxplot_data(
             state.filtered_data
         )
-        state.analysis_results['boxplot_data_extended'] = analyzer.prepare_boxplot_data_extended(
+        state.analysis_results['boxplot_data_extended'] = stats_analyzer.prepare_boxplot_data_extended(
             state.filtered_data
         )
 
@@ -187,10 +195,15 @@ class PLSDAStep(WorkflowStep):
         super().__init__("PLS-DA", "PLS-DA analysis and VIP scores")
 
     def execute(self, state: PipelineState, config: Dict[str, Any]) -> None:
-        analyzer = state.pca_analyzer
+        # Use focused PLS-DA analyzer
+        plsda_analyzer = PLSDAAnalyzer(
+            n_components=2,
+            log_transform=config['analysis']['pca']['log_transform']
+        )
 
-        plsda_results = analyzer.perform_plsda(state.filtered_data, n_components=2)
+        plsda_results = plsda_analyzer.perform_plsda(state.filtered_data)
         state.analysis_results['plsda'] = plsda_results
+        state.plsda_analyzer = plsda_analyzer
 
         # Save VIP scores
         results_dir = config['paths']['results_dir']
