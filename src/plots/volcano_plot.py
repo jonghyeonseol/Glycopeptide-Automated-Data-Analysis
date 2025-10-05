@@ -63,12 +63,13 @@ class VolcanoPlotMixin:
         logger.info("Creating volcano plot with STANDARDIZED data preparation...")
 
         # STANDARDIZED DATA PREPARATION (eliminates inline filtering)
+        # Data is already filtered by DataPipeline in main.py - no need to refilter
         volcano_df = prepare_visualization_data(
             df=df,
             config=config,
             vip_scores=vip_df,
             merge_method='left',  # Keep all glycopeptides, add VIP where available
-            apply_detection_filter=True,
+            apply_detection_filter=False,  # Data already filtered in main.py
             log_prefix="[Volcano Plot] "
         )
 

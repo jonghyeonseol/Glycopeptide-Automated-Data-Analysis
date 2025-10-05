@@ -75,13 +75,13 @@ class GlycopeptideComparisonHeatmapMixin:
         glycan_type_colors = GLYCAN_COLORS  # Standardized colors (no conflicts with Cancer/Normal)
 
         # STANDARDIZED DATA PREPARATION (eliminates double-filtering)
-        # This now uses the SAME filter as volcano plot and VIP score plots
+        # Data is already filtered by DataPipeline in main.py - no need to refilter
         df_with_vip = prepare_visualization_data(
             df=df,
             config=config,
             vip_scores=vip_scores,
             merge_method='left',  # FIXED: Keep all glycopeptides (no pre-filtering via inner join)
-            apply_detection_filter=True,
+            apply_detection_filter=False,  # Data already filtered in main.py
             log_prefix="[Comparison Heatmap] "
         )
 
