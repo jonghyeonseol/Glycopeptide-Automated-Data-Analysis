@@ -26,6 +26,7 @@ from src.constants import (
     OUTPUT_SUMMARY
 )
 from src.data_preparation import get_standard_config_from_dict
+from src.data_pipeline import DataPipeline
 
 # Setup logging (single configuration for entire application)
 setup_logging()
@@ -80,19 +81,41 @@ def main():
         fucosylation_marker=config['annotation']['fucosylation_marker']
     )
 
-    annotated_data = annotator.annotate_dataframe(integrated_data)
+    annotated_data_raw = annotator.annotate_dataframe(integrated_data)
 
-    # Prepare clean integrated data for output (only essential columns)
-    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid, PrimaryClassification, SecondaryClassification, GlycanTypeCategory, Proteins
+    # Step 3: Apply detection filter (SINGLE SOURCE OF TRUTH)
+    logger.info("\n[3.5/6] Applying detection filter via DataPipeline...")
+    logger.info("CRITICAL: This ensures ALL visualizations use the same filtered dataset")
+
+    pipeline = DataPipeline(data_prep_config)
+    annotated_data = pipeline.filter_dataset(annotated_data_raw)
+
+    # Validate filtering
+    pipeline.validate_filtering(annotated_data_raw, annotated_data)
+
+    # Prepare clean datasets for output
     sample_columns = [col for col in annotated_data.columns
                      if col.startswith('C') or col.startswith('N')]
 
     output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid', 'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory', 'Proteins']
-    clean_integrated_data = annotated_data[output_columns].copy()
 
-    # Save clean integrated data
-    logger.info(f"\nSaving integrated data to {output_file}...")
-    loader.save_integrated_data(clean_integrated_data, output_file)
+    # Save BOTH raw and filtered datasets
+    logger.info(f"\nSaving datasets to {results_dir}...")
+    clean_raw = annotated_data_raw[output_columns].copy()
+    clean_filtered = annotated_data[output_columns].copy()
+
+    pipeline.save_datasets(
+        clean_raw,
+        clean_filtered,
+        results_dir,
+        raw_filename='integrated.csv',
+        filtered_filename='integrated_filtered.csv'
+    )
+
+    logger.info(f"\nDATASETS SAVED:")
+    logger.info(f"  - integrated.csv (RAW, {len(clean_raw)} glycopeptides) - for reference")
+    logger.info(f"  - integrated_filtered.csv (FILTERED, {len(clean_filtered)} glycopeptides) - USED IN ALL ANALYSES")
+    logger.info(f"  - filtering_report.txt - detailed filtering statistics")
 
     # Validate sample sizes before statistical analysis
     from src.utils import validate_statistical_power
@@ -227,6 +250,10 @@ def main():
         f.write("pGlyco Auto Combine - Analysis Summary\n")
         f.write("="*80 + "\n\n")
 
+        # Add filtering report
+        f.write(pipeline.get_filtering_report())
+        f.write("\n")
+
         f.write("Data Integration:\n")
         f.write(f"  - Total glycopeptides: {len(annotated_data)}\n")
         f.write(f"  - Total samples: {len([col for col in annotated_data.columns if col.startswith(('C', 'N'))])}\n")
@@ -268,7 +295,9 @@ def main():
 
         f.write("\n\n" + "="*80 + "\n")
         f.write("Output Files:\n")
-        f.write(f"  - Integrated data: {output_file}\n")
+        f.write(f"  - Integrated data (RAW): integrated.csv ({len(clean_raw)} glycopeptides)\n")
+        f.write(f"  - Integrated data (FILTERED): integrated_filtered.csv ({len(clean_filtered)} glycopeptides - USED IN ALL ANALYSES)\n")
+        f.write(f"  - Filtering report: filtering_report.txt\n")
         f.write(f"  - Statistics: {stats_file}\n")
         f.write(f"  - VIP Scores (all): {vip_file}\n")
         f.write(f"\nVisualization Files:\n")

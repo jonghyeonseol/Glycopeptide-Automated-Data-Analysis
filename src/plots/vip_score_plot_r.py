@@ -384,12 +384,22 @@ class VIPScorePlotRMixin:
                 glycan_comp = row['GlycanComposition']
                 vip_score = row['VIP_Score']
 
-                # Get heatmap data
+                # Get heatmap data using STANDARDIZED statistics
                 mask = (df['Peptide'] == peptide) & (df['GlycanComposition'] == glycan_comp)
                 if mask.sum() > 0:
-                    glycopeptide_row = df[mask].iloc[0]
-                    cancer_mean = replace_empty_with_zero(glycopeptide_row[cancer_samples]).mean()
-                    normal_mean = replace_empty_with_zero(glycopeptide_row[normal_samples]).mean()
+                    glycopeptide_row = df[mask]
+
+                    # Use centralized statistics calculation for consistency
+                    config = DataPreparationConfig(missing_data_method='skipna')
+                    cancer_stats = calculate_group_statistics_standardized(
+                        glycopeptide_row, cancer_samples, method=config.missing_data_method
+                    )
+                    normal_stats = calculate_group_statistics_standardized(
+                        glycopeptide_row, normal_samples, method=config.missing_data_method
+                    )
+
+                    cancer_mean = cancer_stats['mean'].iloc[0] if not cancer_stats['mean'].isna().all() else 0
+                    normal_mean = normal_stats['mean'].iloc[0] if not normal_stats['mean'].isna().all() else 0
                 else:
                     cancer_mean = 0
                     normal_mean = 0

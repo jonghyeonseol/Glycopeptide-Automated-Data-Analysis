@@ -13,10 +13,11 @@ from matplotlib.patches import Rectangle
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 import logging
-from ..utils import save_trace_data
+from ..utils import save_trace_data, calculate_fold_change
 from ..data_preparation import (
     DataPreparationConfig,
-    prepare_visualization_data
+    prepare_visualization_data,
+    calculate_group_statistics_standardized
 )
 from .plot_config import GLYCAN_COLORS, HEATMAP_FIGSIZE
 
@@ -390,8 +391,8 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # Calculate individual sample statistics using proper missing data handling
         # SCIENTIFIC VALIDITY: Uses skipna=True to avoid zero-bias
-        cancer_trace_stats = calculate_group_statistics(trace_data, cancer_samples)
-        normal_trace_stats = calculate_group_statistics(trace_data, normal_samples)
+        cancer_trace_stats = calculate_group_statistics_standardized(trace_data, cancer_samples, method='skipna')
+        normal_trace_stats = calculate_group_statistics_standardized(trace_data, normal_samples, method='skipna')
 
         trace_data['Cancer_StdDev'] = cancer_trace_stats['std']
         trace_data['Normal_StdDev'] = normal_trace_stats['std']

@@ -90,6 +90,7 @@ class VolcanoPlotMixin:
 
         # Rename for backward compatibility
         volcano_df['Log2FC'] = volcano_df['Log2_Fold_Change']
+        volcano_df['-Log10FDR'] = -np.log10(volcano_df['FDR'])
 
         logger.info(f"Volcano plot data prepared: {len(volcano_df)} glycopeptides")
 

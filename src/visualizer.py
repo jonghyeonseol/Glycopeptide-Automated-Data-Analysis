@@ -26,7 +26,7 @@ from src.plots.venn_diagram_plot import VennDiagramPlotMixin
 from src.plots.radar_chart_plot import RadarChartPlotMixin
 from src.plots.glycopeptide_dot_heatmap import GlycopeptideDotHeatmapMixin
 from src.plots.glycopeptide_comparison_heatmap import GlycopeptideComparisonHeatmapMixin
-from src.plots.pie_chart_plot import PieChartPlotMixin  # NEW: Pie chart visualizations
+from src.plots.enhanced_pie_chart_plot import PieChartPlotMixin  # ENHANCED: Pie charts with fold change
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -193,6 +193,14 @@ HEATMAP_FIGSIZE = (12, 9)  # More compact
 HEATMAP_CBAR_LABEL_SIZE = 11
 
 # ==============================================================================
+# Statistical Annotation Settings (MetaboAnalyst/Prism style)
+# ==============================================================================
+ERROR_BAR_CAPSIZE = 4  # Error bar cap width
+ERROR_BAR_LINEWIDTH = 1.5  # Error bar line thickness
+STAT_BRACKET_LINEWIDTH = 2.0  # Statistical comparison bracket thickness
+SIGNIFICANCE_MARKER_SIZE = 14  # Size of *, **, *** markers
+
+# ==============================================================================
 # Utility Functions
 # ==============================================================================
 

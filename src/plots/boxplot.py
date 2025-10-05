@@ -330,7 +330,7 @@ class BoxplotMixin:
                         'Sample': sample,
                         'Group': group,
                         'Classification': row['PrimaryClassification'],
-                        'Intensity': intensity_col.iloc[idx] if normalization == 'raw' else intensity_col.iloc[idx]
+                        'Intensity': intensity_col.loc[idx]
                     })
 
         plot_df = pd.DataFrame(data_for_plot)
@@ -415,7 +415,7 @@ class BoxplotMixin:
                         'Sample': sample,
                         'Group': group,
                         'Classification': row['SecondaryClassification'],
-                        'Intensity': intensity_col.iloc[idx] if normalization == 'raw' else intensity_col.iloc[idx]
+                        'Intensity': intensity_col.loc[idx]
                     })
 
         plot_df = pd.DataFrame(data_for_plot)

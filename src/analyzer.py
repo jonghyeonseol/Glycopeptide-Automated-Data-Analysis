@@ -308,43 +308,25 @@ class GlycanAnalyzer:
 
         return df_long
 
-    def perform_plsda(self, df: pd.DataFrame, n_components: int = DEFAULT_PLSDA_COMPONENTS,
-                      min_detection_pct: float = 0.3) -> Dict:
+    def perform_plsda(self, df: pd.DataFrame, n_components: int = DEFAULT_PLSDA_COMPONENTS) -> Dict:
         """
         Perform PLS-DA (Partial Least Squares Discriminant Analysis)
         for Cancer vs Normal classification
 
-        SCIENTIFIC VALIDITY: Filters to glycopeptides with adequate detection frequency
-        before fitting PLS-DA model to avoid bias from sparse features.
+        UPDATED: Now accepts PRE-FILTERED data from DataPipeline.
+        Filtering is applied ONCE in main.py via DataPipeline to ensure consistency.
 
         Args:
-            df: Annotated DataFrame
+            df: Annotated DataFrame (ALREADY FILTERED by DataPipeline)
             n_components: Number of PLS components (default: 2)
-            min_detection_pct: Minimum detection % in at least one group (default: 0.3 = 30%)
 
         Returns:
             Dictionary containing PLS-DA results and VIP scores
         """
-        # DETECTION FREQUENCY FILTERING (SCIENTIFIC VALIDITY)
-        # Get sample columns
-        cancer_samples, normal_samples = get_sample_columns(df)
+        # NO FILTERING HERE - Data is pre-filtered by DataPipeline
+        logger.info(f"Performing PLS-DA analysis on {len(df)} pre-filtered glycopeptides...")
 
-        # Calculate detection frequency (non-empty values)
-        cancer_detection = (df[cancer_samples] != '').sum(axis=1) / len(cancer_samples)
-        normal_detection = (df[normal_samples] != '').sum(axis=1) / len(normal_samples)
-        max_detection = pd.concat([cancer_detection, normal_detection], axis=1).max(axis=1)
-
-        # Filter to features with adequate detection
-        total_before = len(df)
-        df_filtered = df[max_detection >= min_detection_pct].copy()
-        total_after = len(df_filtered)
-
-        logger.info(f"PLS-DA detection filtering (≥{min_detection_pct*100:.0f}% in at least one group):")
-        logger.info(f"  Before: {total_before} glycopeptides")
-        logger.info(f"  After: {total_after} glycopeptides")
-        logger.info(f"  Removed: {total_before - total_after} ({(total_before - total_after)/total_before*100:.1f}%)")
-
-        intensity_matrix, sample_names, feature_info = self.prepare_intensity_matrix(df_filtered)
+        intensity_matrix, sample_names, feature_info = self.prepare_intensity_matrix(df)
 
         # Create binary labels (0 = Normal, 1 = Cancer) using utility function
         y = np.array([1 if get_sample_group(name) == GROUP_CANCER else 0 for name in sample_names])
