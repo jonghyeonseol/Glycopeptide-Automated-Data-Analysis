@@ -4,31 +4,31 @@ pGlyco Auto Combine - Main Pipeline
 Automated glycoproteomics data integration and analysis
 """
 
-import yaml
 import sys
-import logging
 from pathlib import Path
+from typing import Dict, Any
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-from data_loader import DataLoader
-from annotator import GlycanAnnotator
-from analyzer import GlycanAnalyzer
-from visualizer import GlycanVisualizer
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# Import refactored modules
+from src.config_validator import load_and_validate_config
+from src.logger_config import setup_logging, get_logger
+from src.data_loader import DataLoader
+from src.annotator import GlycanAnnotator
+from src.analyzer import GlycanAnalyzer
+from src.visualizer import GlycanVisualizer
+from src.exceptions import PGlycoAutoError
+from src.constants import (
+    OUTPUT_INTEGRATED,
+    OUTPUT_STATISTICS,
+    OUTPUT_VIP_SCORES,
+    OUTPUT_SUMMARY
 )
-logger = logging.getLogger(__name__)
 
-
-def load_config(config_path: str = 'config.yaml') -> dict:
-    """Load configuration from YAML file"""
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    return config
+# Setup logging (single configuration for entire application)
+setup_logging()
+logger = get_logger(__name__)
 
 
 def main():
@@ -37,9 +37,14 @@ def main():
     logger.info("pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline")
     logger.info("="*80)
 
-    # Load configuration
-    logger.info("\n[1/6] Loading configuration...")
-    config = load_config('config.yaml')
+    # Load and validate configuration
+    logger.info("\n[1/6] Loading and validating configuration...")
+    try:
+        config = load_and_validate_config('config.yaml')
+        logger.info("Configuration validated successfully")
+    except PGlycoAutoError as e:
+        logger.error(f"Configuration error: {str(e)}")
+        sys.exit(1)
 
     # Paths
     dataset_dir = config['paths']['dataset_dir']
@@ -308,6 +313,14 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except PGlycoAutoError as e:
+        # Custom exceptions have user-friendly messages
+        logger.error(f"Pipeline failed: {str(e)}")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        logger.warning("\nPipeline interrupted by user")
+        sys.exit(130)
     except Exception as e:
-        logger.error(f"Pipeline failed with error: {str(e)}", exc_info=True)
+        # Unexpected errors - show full traceback
+        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
         sys.exit(1)

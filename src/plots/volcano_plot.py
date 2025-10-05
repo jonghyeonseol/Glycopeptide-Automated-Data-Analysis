@@ -11,7 +11,7 @@ from pathlib import Path
 import logging
 from scipy import stats
 from adjustText import adjust_text
-from utils import replace_empty_with_zero, save_trace_data
+from ..utils import replace_empty_with_zero, save_trace_data
 
 logger = logging.getLogger(__name__)
 

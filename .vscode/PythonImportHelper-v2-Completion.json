@@ -187,6 +187,22 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "matplotlib.pyplot",
         "kind": 6,
         "isExtraImport": true,
@@ -235,278 +251,6 @@
         "description": "scipy",
         "isExtraImport": true,
         "detail": "scipy",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "get_sample_columns",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "get_sample_columns",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "get_sample_columns",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "get_sample_columns",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "get_sample_columns",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "save_trace_data",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "replace_empty_with_zero",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
-        "documentation": {}
-    },
-    {
-        "label": "to_numeric_safe",
-        "importPath": "utils",
-        "description": "utils",
-        "isExtraImport": true,
-        "detail": "utils",
         "documentation": {}
     },
     {
@@ -615,6 +359,158 @@
         "documentation": {}
     },
     {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Set",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Union",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "PCA",
         "importPath": "sklearn.decomposition",
         "description": "sklearn.decomposition",
@@ -656,19 +552,28 @@
         "documentation": {}
     },
     {
-        "label": "List",
-        "importPath": "typing",
-        "description": "typing",
+        "label": "lru_cache",
+        "importPath": "functools",
+        "description": "functools",
         "isExtraImport": true,
-        "detail": "typing",
+        "detail": "functools",
         "documentation": {}
     },
     {
-        "label": "Dict",
-        "importPath": "typing",
-        "description": "typing",
+        "label": "lru_cache",
+        "importPath": "functools",
+        "description": "functools",
         "isExtraImport": true,
-        "detail": "typing",
+        "detail": "functools",
+        "documentation": {}
+    },
+    {
+        "label": "yaml",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "yaml",
+        "description": "yaml",
+        "detail": "yaml",
         "documentation": {}
     },
     {
@@ -792,44 +697,99 @@
         "documentation": {}
     },
     {
-        "label": "yaml",
-        "kind": 6,
+        "label": "load_and_validate_config",
+        "importPath": "src.config_validator",
+        "description": "src.config_validator",
         "isExtraImport": true,
-        "importPath": "yaml",
-        "description": "yaml",
-        "detail": "yaml",
+        "detail": "src.config_validator",
+        "documentation": {}
+    },
+    {
+        "label": "setup_logging",
+        "importPath": "src.logger_config",
+        "description": "src.logger_config",
+        "isExtraImport": true,
+        "detail": "src.logger_config",
+        "documentation": {}
+    },
+    {
+        "label": "get_logger",
+        "importPath": "src.logger_config",
+        "description": "src.logger_config",
+        "isExtraImport": true,
+        "detail": "src.logger_config",
         "documentation": {}
     },
     {
         "label": "DataLoader",
-        "importPath": "data_loader",
-        "description": "data_loader",
+        "importPath": "src.data_loader",
+        "description": "src.data_loader",
         "isExtraImport": true,
-        "detail": "data_loader",
+        "detail": "src.data_loader",
         "documentation": {}
     },
     {
         "label": "GlycanAnnotator",
-        "importPath": "annotator",
-        "description": "annotator",
+        "importPath": "src.annotator",
+        "description": "src.annotator",
         "isExtraImport": true,
-        "detail": "annotator",
+        "detail": "src.annotator",
         "documentation": {}
     },
     {
         "label": "GlycanAnalyzer",
-        "importPath": "analyzer",
-        "description": "analyzer",
+        "importPath": "src.analyzer",
+        "description": "src.analyzer",
         "isExtraImport": true,
-        "detail": "analyzer",
+        "detail": "src.analyzer",
         "documentation": {}
     },
     {
         "label": "GlycanVisualizer",
-        "importPath": "visualizer",
-        "description": "visualizer",
+        "importPath": "src.visualizer",
+        "description": "src.visualizer",
         "isExtraImport": true,
-        "detail": "visualizer",
+        "detail": "src.visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "PGlycoAutoError",
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "isExtraImport": true,
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "OUTPUT_INTEGRATED",
+        "importPath": "src.constants",
+        "description": "src.constants",
+        "isExtraImport": true,
+        "detail": "src.constants",
+        "documentation": {}
+    },
+    {
+        "label": "OUTPUT_STATISTICS",
+        "importPath": "src.constants",
+        "description": "src.constants",
+        "isExtraImport": true,
+        "detail": "src.constants",
+        "documentation": {}
+    },
+    {
+        "label": "OUTPUT_VIP_SCORES",
+        "importPath": "src.constants",
+        "description": "src.constants",
+        "isExtraImport": true,
+        "detail": "src.constants",
+        "documentation": {}
+    },
+    {
+        "label": "OUTPUT_SUMMARY",
+        "importPath": "src.constants",
+        "description": "src.constants",
+        "isExtraImport": true,
+        "detail": "src.constants",
         "documentation": {}
     },
     {
@@ -1116,7 +1076,7 @@
         "kind": 6,
         "importPath": "src.analyzer",
         "description": "src.analyzer",
-        "peekOfCode": "class GlycanAnalyzer:\n    \"\"\"Perform statistical analysis on glycoproteomics data\"\"\"\n    def __init__(self, n_components: int = 2, log_transform: bool = True):\n        \"\"\"\n        Initialize GlycanAnalyzer\n        Args:\n            n_components: Number of PCA components\n            log_transform: Whether to log-transform intensity values\n        \"\"\"\n        self.n_components = n_components",
+        "peekOfCode": "class GlycanAnalyzer:\n    \"\"\"Perform statistical analysis on glycoproteomics data\"\"\"\n    def __init__(self,\n                 n_components: int = DEFAULT_PCA_COMPONENTS,\n                 log_transform: bool = DEFAULT_LOG_TRANSFORM):\n        \"\"\"\n        Initialize GlycanAnalyzer\n        Args:\n            n_components: Number of PCA components (default: 2)\n            log_transform: Whether to log-transform intensity values (default: True)",
         "detail": "src.analyzer",
         "documentation": {}
     },
@@ -1125,7 +1085,7 @@
         "kind": 5,
         "importPath": "src.analyzer",
         "description": "src.analyzer",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanAnalyzer:\n    \"\"\"Perform statistical analysis on glycoproteomics data\"\"\"\n    def __init__(self, n_components: int = 2, log_transform: bool = True):\n        \"\"\"\n        Initialize GlycanAnalyzer\n        Args:\n            n_components: Number of PCA components\n            log_transform: Whether to log-transform intensity values\n        \"\"\"",
+        "peekOfCode": "logger = get_logger(__name__)\nclass GlycanAnalyzer:\n    \"\"\"Perform statistical analysis on glycoproteomics data\"\"\"\n    def __init__(self,\n                 n_components: int = DEFAULT_PCA_COMPONENTS,\n                 log_transform: bool = DEFAULT_LOG_TRANSFORM):\n        \"\"\"\n        Initialize GlycanAnalyzer\n        Args:\n            n_components: Number of PCA components (default: 2)",
         "detail": "src.analyzer",
         "documentation": {}
     },
@@ -1134,7 +1094,7 @@
         "kind": 6,
         "importPath": "src.annotator",
         "description": "src.annotator",
-        "peekOfCode": "class GlycanAnnotator:\n    \"\"\"Annotate glycopeptides based on glycan composition\"\"\"\n    def __init__(self, sialylation_marker: str = \"A\", fucosylation_marker: str = \"F\"):\n        \"\"\"\n        Initialize GlycanAnnotator\n        Args:\n            sialylation_marker: Marker for sialylation (default: 'A' for NeuAc)\n            fucosylation_marker: Marker for fucosylation (default: 'F')\n        \"\"\"\n        self.sialylation_marker = sialylation_marker",
+        "peekOfCode": "class GlycanAnnotator:\n    \"\"\"Annotate glycopeptides based on glycan composition\"\"\"\n    def __init__(self,\n                 sialylation_marker: str = DEFAULT_SIALYLATION_MARKER,\n                 fucosylation_marker: str = DEFAULT_FUCOSYLATION_MARKER):\n        \"\"\"\n        Initialize GlycanAnnotator\n        Args:\n            sialylation_marker: Marker for sialylation (default: 'A' for NeuAc)\n            fucosylation_marker: Marker for fucosylation (default: 'F')",
         "detail": "src.annotator",
         "documentation": {}
     },
@@ -1143,8 +1103,26 @@
         "kind": 5,
         "importPath": "src.annotator",
         "description": "src.annotator",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanAnnotator:\n    \"\"\"Annotate glycopeptides based on glycan composition\"\"\"\n    def __init__(self, sialylation_marker: str = \"A\", fucosylation_marker: str = \"F\"):\n        \"\"\"\n        Initialize GlycanAnnotator\n        Args:\n            sialylation_marker: Marker for sialylation (default: 'A' for NeuAc)\n            fucosylation_marker: Marker for fucosylation (default: 'F')\n        \"\"\"",
+        "peekOfCode": "logger = get_logger(__name__)\nclass GlycanAnnotator:\n    \"\"\"Annotate glycopeptides based on glycan composition\"\"\"\n    def __init__(self,\n                 sialylation_marker: str = DEFAULT_SIALYLATION_MARKER,\n                 fucosylation_marker: str = DEFAULT_FUCOSYLATION_MARKER):\n        \"\"\"\n        Initialize GlycanAnnotator\n        Args:\n            sialylation_marker: Marker for sialylation (default: 'A' for NeuAc)",
         "detail": "src.annotator",
+        "documentation": {}
+    },
+    {
+        "label": "ConfigValidator",
+        "kind": 6,
+        "importPath": "src.config_validator",
+        "description": "src.config_validator",
+        "peekOfCode": "class ConfigValidator:\n    \"\"\"Validates configuration dictionary\"\"\"\n    # Required top-level keys\n    REQUIRED_KEYS = ['paths', 'processing', 'annotation', 'analysis', 'visualization']\n    # Required nested keys\n    REQUIRED_NESTED_KEYS = {\n        'paths': ['dataset_dir', 'results_dir', 'output_file'],\n        'processing': ['required_columns', 'qc_filters'],\n        'annotation': ['sialylation_marker', 'fucosylation_marker'],\n        'analysis': ['pca', 'statistical_tests'],",
+        "detail": "src.config_validator",
+        "documentation": {}
+    },
+    {
+        "label": "load_and_validate_config",
+        "kind": 2,
+        "importPath": "src.config_validator",
+        "description": "src.config_validator",
+        "peekOfCode": "def load_and_validate_config(config_path: str) -> Dict[str, Any]:\n    \"\"\"\n    Load configuration from YAML file and validate it\n    Args:\n        config_path: Path to config.yaml file\n    Returns:\n        Validated configuration dictionary\n    Raises:\n        ConfigurationError: If config file is invalid or missing\n    \"\"\"",
+        "detail": "src.config_validator",
         "documentation": {}
     },
     {
@@ -1161,8 +1139,260 @@
         "kind": 5,
         "importPath": "src.data_loader",
         "description": "src.data_loader",
-        "peekOfCode": "logger = logging.getLogger(__name__)\nclass DataLoader:\n    \"\"\"Load and integrate glycoproteomics data from multiple CSV files\"\"\"\n    def __init__(self, dataset_dir: str, required_columns: List[str]):\n        \"\"\"\n        Initialize DataLoader\n        Args:\n            dataset_dir: Path to directory containing CSV files\n            required_columns: List of required column names\n        \"\"\"",
+        "peekOfCode": "logger = get_logger(__name__)\nclass DataLoader:\n    \"\"\"Load and integrate glycoproteomics data from multiple CSV files\"\"\"\n    def __init__(self, dataset_dir: str, required_columns: List[str]):\n        \"\"\"\n        Initialize DataLoader\n        Args:\n            dataset_dir: Path to directory containing CSV files\n            required_columns: List of required column names\n        \"\"\"",
         "detail": "src.data_loader",
+        "documentation": {}
+    },
+    {
+        "label": "PGlycoAutoError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class PGlycoAutoError(Exception):\n    \"\"\"Base exception for all pGlyco Auto Combine errors\"\"\"\n    pass\n# ==============================================================================\n# Configuration Errors\n# ==============================================================================\nclass ConfigurationError(PGlycoAutoError):\n    \"\"\"Raised when configuration is invalid or missing\"\"\"\n    pass\nclass MissingConfigKeyError(ConfigurationError):",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ConfigurationError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class ConfigurationError(PGlycoAutoError):\n    \"\"\"Raised when configuration is invalid or missing\"\"\"\n    pass\nclass MissingConfigKeyError(ConfigurationError):\n    \"\"\"Raised when a required configuration key is missing\"\"\"\n    def __init__(self, key: str):\n        self.key = key\n        super().__init__(f\"Missing required configuration key: {key}\")\nclass InvalidConfigValueError(ConfigurationError):\n    \"\"\"Raised when a configuration value is invalid\"\"\"",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "MissingConfigKeyError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class MissingConfigKeyError(ConfigurationError):\n    \"\"\"Raised when a required configuration key is missing\"\"\"\n    def __init__(self, key: str):\n        self.key = key\n        super().__init__(f\"Missing required configuration key: {key}\")\nclass InvalidConfigValueError(ConfigurationError):\n    \"\"\"Raised when a configuration value is invalid\"\"\"\n    def __init__(self, key: str, value, reason: str = \"\"):\n        self.key = key\n        self.value = value",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "InvalidConfigValueError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class InvalidConfigValueError(ConfigurationError):\n    \"\"\"Raised when a configuration value is invalid\"\"\"\n    def __init__(self, key: str, value, reason: str = \"\"):\n        self.key = key\n        self.value = value\n        self.reason = reason\n        message = f\"Invalid configuration value for '{key}': {value}\"\n        if reason:\n            message += f\" - {reason}\"\n        super().__init__(message)",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "DataLoadError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class DataLoadError(PGlycoAutoError):\n    \"\"\"Raised when data loading fails\"\"\"\n    pass\nclass NoDataFilesError(DataLoadError):\n    \"\"\"Raised when no CSV files are found in the dataset directory\"\"\"\n    def __init__(self, directory: str):\n        self.directory = directory\n        super().__init__(f\"No CSV files found in directory: {directory}\")\nclass MissingColumnError(DataLoadError):\n    \"\"\"Raised when required columns are missing from input data\"\"\"",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "NoDataFilesError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class NoDataFilesError(DataLoadError):\n    \"\"\"Raised when no CSV files are found in the dataset directory\"\"\"\n    def __init__(self, directory: str):\n        self.directory = directory\n        super().__init__(f\"No CSV files found in directory: {directory}\")\nclass MissingColumnError(DataLoadError):\n    \"\"\"Raised when required columns are missing from input data\"\"\"\n    def __init__(self, filename: str, missing_columns: list):\n        self.filename = filename\n        self.missing_columns = missing_columns",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "MissingColumnError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class MissingColumnError(DataLoadError):\n    \"\"\"Raised when required columns are missing from input data\"\"\"\n    def __init__(self, filename: str, missing_columns: list):\n        self.filename = filename\n        self.missing_columns = missing_columns\n        super().__init__(\n            f\"Missing required columns in {filename}: {', '.join(missing_columns)}\"\n        )\nclass InvalidDataFormatError(DataLoadError):\n    \"\"\"Raised when data format is invalid\"\"\"",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "InvalidDataFormatError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class InvalidDataFormatError(DataLoadError):\n    \"\"\"Raised when data format is invalid\"\"\"\n    def __init__(self, filename: str, reason: str):\n        self.filename = filename\n        self.reason = reason\n        super().__init__(f\"Invalid data format in {filename}: {reason}\")\nclass EmptyDataError(DataLoadError):\n    \"\"\"Raised when no valid data is loaded\"\"\"\n    def __init__(self, context: str = \"\"):\n        message = \"No valid data loaded\"",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "EmptyDataError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class EmptyDataError(DataLoadError):\n    \"\"\"Raised when no valid data is loaded\"\"\"\n    def __init__(self, context: str = \"\"):\n        message = \"No valid data loaded\"\n        if context:\n            message += f\": {context}\"\n        super().__init__(message)\n# ==============================================================================\n# Annotation Errors\n# ==============================================================================",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "AnnotationError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class AnnotationError(PGlycoAutoError):\n    \"\"\"Raised when annotation fails\"\"\"\n    pass\nclass InvalidGlycanCompositionError(AnnotationError):\n    \"\"\"Raised when glycan composition string is invalid\"\"\"\n    def __init__(self, composition: str, reason: str = \"\"):\n        self.composition = composition\n        self.reason = reason\n        message = f\"Invalid glycan composition: {composition}\"\n        if reason:",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "InvalidGlycanCompositionError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class InvalidGlycanCompositionError(AnnotationError):\n    \"\"\"Raised when glycan composition string is invalid\"\"\"\n    def __init__(self, composition: str, reason: str = \"\"):\n        self.composition = composition\n        self.reason = reason\n        message = f\"Invalid glycan composition: {composition}\"\n        if reason:\n            message += f\" - {reason}\"\n        super().__init__(message)\n# ==============================================================================",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "AnalysisError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class AnalysisError(PGlycoAutoError):\n    \"\"\"Raised when statistical analysis fails\"\"\"\n    pass\nclass InsufficientDataError(AnalysisError):\n    \"\"\"Raised when insufficient data for analysis\"\"\"\n    def __init__(self, analysis_type: str, required: int, actual: int):\n        self.analysis_type = analysis_type\n        self.required = required\n        self.actual = actual\n        super().__init__(",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "InsufficientDataError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class InsufficientDataError(AnalysisError):\n    \"\"\"Raised when insufficient data for analysis\"\"\"\n    def __init__(self, analysis_type: str, required: int, actual: int):\n        self.analysis_type = analysis_type\n        self.required = required\n        self.actual = actual\n        super().__init__(\n            f\"Insufficient data for {analysis_type}: \"\n            f\"required {required}, got {actual}\"\n        )",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "MatrixShapeError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class MatrixShapeError(AnalysisError):\n    \"\"\"Raised when matrix dimensions are incompatible\"\"\"\n    def __init__(self, expected_shape: tuple, actual_shape: tuple, context: str = \"\"):\n        self.expected_shape = expected_shape\n        self.actual_shape = actual_shape\n        message = f\"Matrix shape mismatch: expected {expected_shape}, got {actual_shape}\"\n        if context:\n            message += f\" - {context}\"\n        super().__init__(message)\nclass NormalizationError(AnalysisError):",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "NormalizationError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class NormalizationError(AnalysisError):\n    \"\"\"Raised when normalization fails\"\"\"\n    def __init__(self, reason: str):\n        super().__init__(f\"Normalization failed: {reason}\")\n# ==============================================================================\n# Visualization Errors\n# ==============================================================================\nclass VisualizationError(PGlycoAutoError):\n    \"\"\"Raised when visualization generation fails\"\"\"\n    pass",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "VisualizationError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class VisualizationError(PGlycoAutoError):\n    \"\"\"Raised when visualization generation fails\"\"\"\n    pass\nclass PlotGenerationError(VisualizationError):\n    \"\"\"Raised when a specific plot fails to generate\"\"\"\n    def __init__(self, plot_type: str, reason: str):\n        self.plot_type = plot_type\n        self.reason = reason\n        super().__init__(f\"Failed to generate {plot_type}: {reason}\")\nclass MissingVisualizationDataError(VisualizationError):",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "PlotGenerationError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class PlotGenerationError(VisualizationError):\n    \"\"\"Raised when a specific plot fails to generate\"\"\"\n    def __init__(self, plot_type: str, reason: str):\n        self.plot_type = plot_type\n        self.reason = reason\n        super().__init__(f\"Failed to generate {plot_type}: {reason}\")\nclass MissingVisualizationDataError(VisualizationError):\n    \"\"\"Raised when required data for visualization is missing\"\"\"\n    def __init__(self, plot_type: str, missing_data: str):\n        self.plot_type = plot_type",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "MissingVisualizationDataError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class MissingVisualizationDataError(VisualizationError):\n    \"\"\"Raised when required data for visualization is missing\"\"\"\n    def __init__(self, plot_type: str, missing_data: str):\n        self.plot_type = plot_type\n        self.missing_data = missing_data\n        super().__init__(\n            f\"Missing required data for {plot_type}: {missing_data}\"\n        )\n# ==============================================================================\n# File I/O Errors",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "FileOperationError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class FileOperationError(PGlycoAutoError):\n    \"\"\"Raised when file operations fail\"\"\"\n    pass\nclass OutputDirectoryError(FileOperationError):\n    \"\"\"Raised when output directory cannot be created or accessed\"\"\"\n    def __init__(self, directory: str, reason: str):\n        self.directory = directory\n        self.reason = reason\n        super().__init__(\n            f\"Cannot access/create output directory {directory}: {reason}\"",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "OutputDirectoryError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class OutputDirectoryError(FileOperationError):\n    \"\"\"Raised when output directory cannot be created or accessed\"\"\"\n    def __init__(self, directory: str, reason: str):\n        self.directory = directory\n        self.reason = reason\n        super().__init__(\n            f\"Cannot access/create output directory {directory}: {reason}\"\n        )\nclass TraceDataSaveError(FileOperationError):\n    \"\"\"Raised when trace data cannot be saved\"\"\"",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "TraceDataSaveError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class TraceDataSaveError(FileOperationError):\n    \"\"\"Raised when trace data cannot be saved\"\"\"\n    def __init__(self, filename: str, reason: str):\n        self.filename = filename\n        self.reason = reason\n        super().__init__(f\"Failed to save trace data {filename}: {reason}\")\n# ==============================================================================\n# Validation Errors\n# ==============================================================================\nclass ValidationError(PGlycoAutoError):",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ValidationError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class ValidationError(PGlycoAutoError):\n    \"\"\"Raised when data validation fails\"\"\"\n    pass\nclass SampleCountMismatchError(ValidationError):\n    \"\"\"Raised when sample counts don't match expected values\"\"\"\n    def __init__(self, expected: int, actual: int, sample_type: str = \"\"):\n        self.expected = expected\n        self.actual = actual\n        self.sample_type = sample_type\n        message = f\"Sample count mismatch: expected {expected}, got {actual}\"",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "SampleCountMismatchError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class SampleCountMismatchError(ValidationError):\n    \"\"\"Raised when sample counts don't match expected values\"\"\"\n    def __init__(self, expected: int, actual: int, sample_type: str = \"\"):\n        self.expected = expected\n        self.actual = actual\n        self.sample_type = sample_type\n        message = f\"Sample count mismatch: expected {expected}, got {actual}\"\n        if sample_type:\n            message += f\" for {sample_type}\"\n        super().__init__(message)",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ValueRangeError",
+        "kind": 6,
+        "importPath": "src.exceptions",
+        "description": "src.exceptions",
+        "peekOfCode": "class ValueRangeError(ValidationError):\n    \"\"\"Raised when values are outside expected range\"\"\"\n    def __init__(self, value, min_val, max_val, field_name: str = \"\"):\n        self.value = value\n        self.min_val = min_val\n        self.max_val = max_val\n        message = f\"Value {value} outside valid range [{min_val}, {max_val}]\"\n        if field_name:\n            message = f\"{field_name}: {message}\"\n        super().__init__(message)",
+        "detail": "src.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "setup_logging",
+        "kind": 2,
+        "importPath": "src.logger_config",
+        "description": "src.logger_config",
+        "peekOfCode": "def setup_logging(level: str = LOG_LEVEL_INFO,\n                 log_file: Optional[Path] = None,\n                 console: bool = True) -> None:\n    \"\"\"\n    Configure logging for the entire application\n    Should be called once at the start of the application.\n    Subsequent calls will be ignored to prevent reconfiguration.\n    Args:\n        level: Logging level (INFO, DEBUG, WARNING, ERROR)\n        log_file: Optional path to log file for file output",
+        "detail": "src.logger_config",
+        "documentation": {}
+    },
+    {
+        "label": "get_logger",
+        "kind": 2,
+        "importPath": "src.logger_config",
+        "description": "src.logger_config",
+        "peekOfCode": "def get_logger(name: str) -> logging.Logger:\n    \"\"\"\n    Get a logger instance for a specific module\n    Args:\n        name: Name of the logger (typically __name__)\n    Returns:\n        Logger instance\n    \"\"\"\n    return logging.getLogger(name)\ndef reset_logging() -> None:",
+        "detail": "src.logger_config",
+        "documentation": {}
+    },
+    {
+        "label": "reset_logging",
+        "kind": 2,
+        "importPath": "src.logger_config",
+        "description": "src.logger_config",
+        "peekOfCode": "def reset_logging() -> None:\n    \"\"\"\n    Reset logging configuration (mainly for testing)\n    \"\"\"\n    global _logging_configured\n    _logging_configured = False\n    root_logger = logging.getLogger()\n    root_logger.handlers = []",
+        "detail": "src.logger_config",
+        "documentation": {}
+    },
+    {
+        "label": "_logging_configured",
+        "kind": 5,
+        "importPath": "src.logger_config",
+        "description": "src.logger_config",
+        "peekOfCode": "_logging_configured = False\ndef setup_logging(level: str = LOG_LEVEL_INFO,\n                 log_file: Optional[Path] = None,\n                 console: bool = True) -> None:\n    \"\"\"\n    Configure logging for the entire application\n    Should be called once at the start of the application.\n    Subsequent calls will be ignored to prevent reconfiguration.\n    Args:\n        level: Logging level (INFO, DEBUG, WARNING, ERROR)",
+        "detail": "src.logger_config",
         "documentation": {}
     },
     {
@@ -1170,7 +1400,7 @@
         "kind": 2,
         "importPath": "src.utils",
         "description": "src.utils",
-        "peekOfCode": "def replace_empty_with_zero(data):\n    \"\"\"\n    Replace empty strings with 0 without FutureWarning\n    Uses mask() instead of replace() to avoid pandas downcasting warnings.\n    Args:\n        data: pandas Series or DataFrame\n    Returns:\n        Data with empty strings replaced by 0\n    \"\"\"\n    if isinstance(data, pd.DataFrame):",
+        "peekOfCode": "def replace_empty_with_zero(data: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series]:\n    \"\"\"\n    Replace empty strings with 0 without FutureWarning\n    Uses mask() instead of replace() to avoid pandas downcasting warnings.\n    Args:\n        data: pandas Series or DataFrame\n    Returns:\n        Data with empty strings replaced by 0\n    \"\"\"\n    if isinstance(data, pd.DataFrame):",
         "detail": "src.utils",
         "documentation": {}
     },
@@ -1179,7 +1409,16 @@
         "kind": 2,
         "importPath": "src.utils",
         "description": "src.utils",
-        "peekOfCode": "def to_numeric_safe(data):\n    \"\"\"\n    Convert to numeric safely without downcasting warnings\n    Args:\n        data: pandas Series or DataFrame\n    Returns:\n        Numeric data\n    \"\"\"\n    if isinstance(data, pd.DataFrame):\n        return data.apply(pd.to_numeric, errors='coerce').fillna(0)",
+        "peekOfCode": "def to_numeric_safe(data: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series]:\n    \"\"\"\n    Convert to numeric safely without downcasting warnings\n    Args:\n        data: pandas Series or DataFrame\n    Returns:\n        Numeric data\n    \"\"\"\n    if isinstance(data, pd.DataFrame):\n        return data.apply(pd.to_numeric, errors='coerce').fillna(0)",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "ensure_directory",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def ensure_directory(directory: Union[str, Path]) -> Path:\n    \"\"\"\n    Ensure a directory exists, create if it doesn't\n    Args:\n        directory: Path to directory\n    Returns:\n        Path object to the directory\n    Raises:\n        OutputDirectoryError: If directory cannot be created\n    \"\"\"",
         "detail": "src.utils",
         "documentation": {}
     },
@@ -1188,7 +1427,7 @@
         "kind": 2,
         "importPath": "src.utils",
         "description": "src.utils",
-        "peekOfCode": "def ensure_trace_dir(output_dir: Path) -> Path:\n    \"\"\"\n    Ensure Trace directory exists for visualization data exports\n    Args:\n        output_dir: Base output directory\n    Returns:\n        Path to Trace directory\n    \"\"\"\n    trace_dir = Path(output_dir) / 'Trace'\n    trace_dir.mkdir(parents=True, exist_ok=True)",
+        "peekOfCode": "def ensure_trace_dir(output_dir: Union[str, Path]) -> Path:\n    \"\"\"\n    Ensure Trace directory exists for visualization data exports\n    Args:\n        output_dir: Base output directory\n    Returns:\n        Path to Trace directory\n    \"\"\"\n    trace_dir = Path(output_dir) / TRACE_DIR\n    return ensure_directory(trace_dir)",
         "detail": "src.utils",
         "documentation": {}
     },
@@ -1197,7 +1436,7 @@
         "kind": 2,
         "importPath": "src.utils",
         "description": "src.utils",
-        "peekOfCode": "def save_trace_data(data: pd.DataFrame, output_dir: Path, filename: str):\n    \"\"\"\n    Save visualization source data to Trace folder\n    Args:\n        data: DataFrame to save\n        output_dir: Base output directory\n        filename: Name of the trace file (e.g., 'heatmap_data.csv')\n    \"\"\"\n    trace_dir = ensure_trace_dir(output_dir)\n    output_path = trace_dir / filename",
+        "peekOfCode": "def save_trace_data(data: pd.DataFrame, output_dir: Union[str, Path], filename: str) -> Path:\n    \"\"\"\n    Save visualization source data to Trace folder\n    Args:\n        data: DataFrame to save\n        output_dir: Base output directory\n        filename: Name of the trace file (e.g., 'heatmap_data.csv')\n    Returns:\n        Path to saved file\n    Raises:",
         "detail": "src.utils",
         "documentation": {}
     },
@@ -1206,7 +1445,151 @@
         "kind": 2,
         "importPath": "src.utils",
         "description": "src.utils",
-        "peekOfCode": "def get_sample_columns(df: pd.DataFrame) -> tuple:\n    \"\"\"\n    Extract cancer and normal sample columns from DataFrame\n    Identifies columns that represent cancer samples (start with 'C' followed by digits)\n    and normal samples (start with 'N' followed by digits).\n    Args:\n        df: DataFrame with sample columns\n    Returns:\n        Tuple of (cancer_samples, normal_samples) where each is a list of column names\n    \"\"\"",
+        "peekOfCode": "def get_sample_columns(df: pd.DataFrame,\n                       exclude_metadata: bool = True) -> Tuple[List[str], List[str]]:\n    \"\"\"\n    Extract cancer and normal sample columns from DataFrame\n    Identifies columns that represent cancer samples (start with 'C' followed by digits)\n    and normal samples (start with 'N' followed by digits).\n    Args:\n        df: DataFrame with sample columns\n        exclude_metadata: If True, only return sample columns (no metadata)\n    Returns:",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_all_sample_columns",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def get_all_sample_columns(df: pd.DataFrame) -> List[str]:\n    \"\"\"\n    Get all sample columns (both cancer and normal)\n    Args:\n        df: DataFrame with sample columns\n    Returns:\n        List of all sample column names sorted (C samples first, then N samples)\n    \"\"\"\n    cancer_samples, normal_samples = get_sample_columns(df)\n    return cancer_samples + normal_samples",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_metadata_columns",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def get_metadata_columns(df: pd.DataFrame) -> List[str]:\n    \"\"\"\n    Get metadata columns from DataFrame\n    Args:\n        df: DataFrame\n    Returns:\n        List of metadata column names that exist in the DataFrame\n    \"\"\"\n    return [col for col in df.columns if col in METADATA_COLUMNS]\n# ==============================================================================",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "extract_sample_id",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def extract_sample_id(filename: str) -> str:\n    \"\"\"\n    Extract sample ID from filename (e.g., C_01.csv -> C1)\n    Args:\n        filename: Name of the CSV file\n    Returns:\n        Sample ID (e.g., 'C1', 'N10')\n    \"\"\"\n    match = re.search(SAMPLE_ID_PATTERN, filename)\n    if match:",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_sample_group",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def get_sample_group(sample_name: str) -> str:\n    \"\"\"\n    Determine if sample is Cancer or Normal based on name\n    Args:\n        sample_name: Sample column name (e.g., 'C1', 'N10')\n    Returns:\n        'Cancer' or 'Normal'\n    \"\"\"\n    if sample_name.startswith(CANCER_PREFIX):\n        return GROUP_CANCER",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "is_cancer_sample",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def is_cancer_sample(sample_name: str) -> bool:\n    \"\"\"Check if sample is a cancer sample\"\"\"\n    return sample_name.startswith(CANCER_PREFIX)\ndef is_normal_sample(sample_name: str) -> bool:\n    \"\"\"Check if sample is a normal sample\"\"\"\n    return sample_name.startswith(NORMAL_PREFIX)\n# ==============================================================================\n# Data Transformation\n# ==============================================================================\ndef log_transform(data: Union[pd.DataFrame, pd.Series, np.ndarray],",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "is_normal_sample",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def is_normal_sample(sample_name: str) -> bool:\n    \"\"\"Check if sample is a normal sample\"\"\"\n    return sample_name.startswith(NORMAL_PREFIX)\n# ==============================================================================\n# Data Transformation\n# ==============================================================================\ndef log_transform(data: Union[pd.DataFrame, pd.Series, np.ndarray],\n                 pseudocount: float = LOG_TRANSFORM_PSEUDOCOUNT) -> Union[pd.DataFrame, pd.Series, np.ndarray]:\n    \"\"\"\n    Apply log2 transformation with pseudocount",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "log_transform",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def log_transform(data: Union[pd.DataFrame, pd.Series, np.ndarray],\n                 pseudocount: float = LOG_TRANSFORM_PSEUDOCOUNT) -> Union[pd.DataFrame, pd.Series, np.ndarray]:\n    \"\"\"\n    Apply log2 transformation with pseudocount\n    Args:\n        data: Data to transform\n        pseudocount: Value to add before log transform (default: 1.0)\n    Returns:\n        Log2-transformed data\n    \"\"\"",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_fold_change",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def calculate_fold_change(cancer_mean: float, normal_mean: float,\n                         log_scale: bool = False) -> float:\n    \"\"\"\n    Calculate fold change between cancer and normal\n    Args:\n        cancer_mean: Mean intensity in cancer samples\n        normal_mean: Mean intensity in normal samples\n        log_scale: If True, return log2 fold change\n    Returns:\n        Fold change value",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_statistics",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def calculate_statistics(values: Union[pd.Series, np.ndarray]) -> dict:\n    \"\"\"\n    Calculate basic statistics for a set of values\n    Args:\n        values: Array of values\n    Returns:\n        Dictionary with mean, median, std, min, max\n    \"\"\"\n    if isinstance(values, pd.Series):\n        values = values.values",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "validate_sample_counts",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def validate_sample_counts(df: pd.DataFrame,\n                          min_cancer: int = 1,\n                          min_normal: int = 1) -> Tuple[int, int]:\n    \"\"\"\n    Validate sample counts in DataFrame\n    Args:\n        df: DataFrame with sample columns\n        min_cancer: Minimum number of cancer samples required\n        min_normal: Minimum number of normal samples required\n    Returns:",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "validate_dataframe_not_empty",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def validate_dataframe_not_empty(df: pd.DataFrame, context: str = \"\") -> None:\n    \"\"\"\n    Validate that DataFrame is not empty\n    Args:\n        df: DataFrame to validate\n        context: Context message for error\n    Raises:\n        ValidationError: If DataFrame is empty\n    \"\"\"\n    if df is None or len(df) == 0:",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "format_percentage",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def format_percentage(value: float, decimals: int = 1) -> str:\n    \"\"\"Format value as percentage string\"\"\"\n    return f\"{value * 100:.{decimals}f}%\"\ndef format_scientific(value: float, decimals: int = 2) -> str:\n    \"\"\"Format value in scientific notation\"\"\"\n    return f\"{value:.{decimals}e}\"\ndef format_pvalue(pvalue: float) -> str:\n    \"\"\"\n    Format p-value with appropriate precision\n    Args:",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "format_scientific",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def format_scientific(value: float, decimals: int = 2) -> str:\n    \"\"\"Format value in scientific notation\"\"\"\n    return f\"{value:.{decimals}e}\"\ndef format_pvalue(pvalue: float) -> str:\n    \"\"\"\n    Format p-value with appropriate precision\n    Args:\n        pvalue: P-value to format\n    Returns:\n        Formatted string (e.g., \"0.001\" or \"< 0.001\")",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "format_pvalue",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def format_pvalue(pvalue: float) -> str:\n    \"\"\"\n    Format p-value with appropriate precision\n    Args:\n        pvalue: P-value to format\n    Returns:\n        Formatted string (e.g., \"0.001\" or \"< 0.001\")\n    \"\"\"\n    if pvalue < 0.001:\n        return \"< 0.001\"",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "get_cached_metadata_columns",
+        "kind": 2,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "def get_cached_metadata_columns() -> Tuple[str, ...]:\n    \"\"\"\n    Get metadata columns (cached for performance)\n    Returns:\n        Tuple of metadata column names\n    \"\"\"\n    return tuple(METADATA_COLUMNS)",
+        "detail": "src.utils",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.utils",
+        "description": "src.utils",
+        "peekOfCode": "logger = logging.getLogger(__name__)\n# ==============================================================================\n# Data Type Conversion\n# ==============================================================================\ndef replace_empty_with_zero(data: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series]:\n    \"\"\"\n    Replace empty strings with 0 without FutureWarning\n    Uses mask() instead of replace() to avoid pandas downcasting warnings.\n    Args:\n        data: pandas Series or DataFrame",
         "detail": "src.utils",
         "documentation": {}
     },
@@ -1229,20 +1612,11 @@
         "documentation": {}
     },
     {
-        "label": "load_config",
-        "kind": 2,
-        "importPath": "main",
-        "description": "main",
-        "peekOfCode": "def load_config(config_path: str = 'config.yaml') -> dict:\n    \"\"\"Load configuration from YAML file\"\"\"\n    with open(config_path, 'r') as f:\n        config = yaml.safe_load(f)\n    return config\ndef main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")\n    logger.info(\"=\"*80)",
-        "detail": "main",
-        "documentation": {}
-    },
-    {
         "label": "main",
         "kind": 2,
         "importPath": "main",
         "description": "main",
-        "peekOfCode": "def main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")\n    logger.info(\"=\"*80)\n    # Load configuration\n    logger.info(\"\\n[1/6] Loading configuration...\")\n    config = load_config('config.yaml')\n    # Paths\n    dataset_dir = config['paths']['dataset_dir']",
+        "peekOfCode": "def main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")\n    logger.info(\"=\"*80)\n    # Load and validate configuration\n    logger.info(\"\\n[1/6] Loading and validating configuration...\")\n    try:\n        config = load_and_validate_config('config.yaml')\n        logger.info(\"Configuration validated successfully\")",
         "detail": "main",
         "documentation": {}
     },
@@ -1251,7 +1625,7 @@
         "kind": 5,
         "importPath": "main",
         "description": "main",
-        "peekOfCode": "logger = logging.getLogger(__name__)\ndef load_config(config_path: str = 'config.yaml') -> dict:\n    \"\"\"Load configuration from YAML file\"\"\"\n    with open(config_path, 'r') as f:\n        config = yaml.safe_load(f)\n    return config\ndef main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")",
+        "peekOfCode": "logger = get_logger(__name__)\ndef main():\n    \"\"\"Main pipeline execution\"\"\"\n    logger.info(\"=\"*80)\n    logger.info(\"pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline\")\n    logger.info(\"=\"*80)\n    # Load and validate configuration\n    logger.info(\"\\n[1/6] Loading and validating configuration...\")\n    try:\n        config = load_and_validate_config('config.yaml')",
         "detail": "main",
         "documentation": {}
     }

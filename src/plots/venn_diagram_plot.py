@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib_venn import venn3, venn3_circles
 from pathlib import Path
 import logging
-from utils import save_trace_data
+from ..utils import save_trace_data
 
 logger = logging.getLogger(__name__)
 

@@ -35,12 +35,19 @@ pGlyco_auto_combine/
 │   └── verify_trace_data.py  # Data verification
 │
 ├── src/                       # Source code
-│   ├── Core Modules
+│   ├── Infrastructure ⭐ NEW (v2.0 Refactoring)
+│   │   ├── __init__.py         # Package initialization
+│   │   ├── constants.py        # 180+ named constants
+│   │   ├── exceptions.py       # 25 custom exception types
+│   │   ├── logger_config.py    # Centralized logging
+│   │   ├── config_validator.py # YAML validation
+│   │   └── utils.py            # 21 utility functions
+│   │
+│   ├── Core Modules (Refactored v2.0)
 │   │   ├── data_loader.py     # CSV integration
 │   │   ├── annotator.py       # Glycan classification
 │   │   ├── analyzer.py        # Statistical analysis
-│   │   ├── visualizer.py      # Visualization coordinator
-│   │   └── utils.py           # Shared utilities
+│   │   └── visualizer.py      # Visualization coordinator
 │   │
 │   └── plots/                 # Visualization modules
 │       ├── boxplot.py
@@ -115,6 +122,182 @@ main.py
   └─[6]─> Summary Report
           └─ Output: analysis_summary.txt
 ```
+
+---
+
+## Infrastructure Modules ⭐ NEW (v2.0 Refactoring)
+
+### 1. constants.py
+
+**Purpose**: Single source of truth for all configuration values, eliminating magic strings and numbers
+
+**Key Constants** (180+ total):
+```python
+# Column definitions
+REQUIRED_INPUT_COLUMNS = ['Peptide', 'GlycanComposition', 'IsotopeArea', 'Proteins']
+METADATA_COLUMNS = ['Peptide', 'GlycanComposition', 'Proteins', ...]
+
+# Sample group prefixes
+CANCER_PREFIX = 'C'
+NORMAL_PREFIX = 'N'
+
+# Glycan type categories
+GLYCAN_TYPE_HM = 'HM'      # High-mannose
+GLYCAN_TYPE_F = 'F'        # Fucosylated
+GLYCAN_TYPE_S = 'S'        # Sialylated
+GLYCAN_TYPE_SF = 'SF'      # Sialofucosylated
+GLYCAN_TYPE_CH = 'C/H'     # Complex/Hybrid
+
+# High-mannose criteria
+HIGH_MANNOSE_MIN_H = 5
+HIGH_MANNOSE_EXACT_N = 2
+
+# ... 180+ total constants
+```
+
+**Benefits**:
+- No hardcoded values
+- Easy to modify thresholds
+- Better IDE autocomplete
+- Self-documenting code
+
+### 2. exceptions.py
+
+**Purpose**: Specific exception types for better error handling and debugging
+
+**Exception Hierarchy**:
+```
+PGlycoAutoError (base)
+├── ConfigurationError
+│   ├── MissingConfigKeyError
+│   └── InvalidConfigValueError
+├── DataLoadError
+│   ├── NoDataFilesError
+│   ├── MissingColumnError
+│   ├── InvalidDataFormatError
+│   └── EmptyDataError
+├── AnnotationError
+│   └── InvalidGlycanCompositionError
+├── AnalysisError
+│   ├── InsufficientDataError
+│   ├── MatrixShapeError
+│   └── NormalizationError
+├── VisualizationError
+│   ├── PlotGenerationError
+│   └── MissingVisualizationDataError
+├── FileOperationError
+│   ├── OutputDirectoryError
+│   └── TraceDataSaveError
+└── ValidationError
+    ├── SampleCountMismatchError
+    └── ValueRangeError
+```
+
+**Usage Example**:
+```python
+# Before:
+if not csv_files:
+    raise ValueError("No CSV files found")
+
+# After:
+if not csv_files:
+    raise NoDataFilesError(dataset_dir)  # Specific context
+```
+
+### 3. logger_config.py
+
+**Purpose**: Centralized logging configuration to prevent conflicts
+
+**Key Functions**:
+- `setup_logging()` - Configure logging once for entire application
+- `get_logger(name)` - Get module-specific logger
+
+**Benefits**:
+- No more `logging.basicConfig()` conflicts
+- Consistent format across all modules
+- Easy to change log level globally
+
+**Usage**:
+```python
+# In main.py (once):
+from src.logger_config import setup_logging, get_logger
+setup_logging()
+
+# In any module:
+logger = get_logger(__name__)
+logger.info("Processing data...")
+```
+
+### 4. config_validator.py
+
+**Purpose**: Validate config.yaml structure and values before pipeline execution
+
+**Validation Checks**:
+- ✓ All required keys present
+- ✓ Data types correct (string, int, float, bool, list)
+- ✓ Value ranges valid (e.g., DPI ≥ 72)
+- ✓ File paths sensible
+- ✓ Numeric parameters in bounds
+- ✓ List contents expected
+
+**Usage**:
+```python
+from src.config_validator import load_and_validate_config
+
+# Loads and validates in one step
+config = load_and_validate_config('config.yaml')
+
+# If validation fails, raises ConfigurationError with all issues:
+# ConfigurationError: Configuration validation failed:
+#   - Missing required key: 'paths.dataset_dir'
+#   - analysis.pca.n_components must be a positive integer
+#   - visualization.dpi must be an integer >= 72
+```
+
+### 5. utils.py
+
+**Purpose**: Reusable utility functions to eliminate code duplication
+
+**Key Functions** (21 total):
+```python
+def get_sample_columns(df: pd.DataFrame) -> Tuple[List[str], List[str]]:
+    """Extract cancer and normal sample columns - ELIMINATES 4X DUPLICATION"""
+    # Returns (cancer_samples, normal_samples)
+
+def calculate_fold_change(cancer_mean: float, normal_mean: float,
+                         log_scale: bool = False) -> float:
+    """Calculate fold change with edge case handling"""
+    # Handles division by zero, log scale
+
+def log_transform(data: np.ndarray) -> np.ndarray:
+    """Apply log2(x+1) transformation"""
+
+def validate_sample_counts(cancer_samples: List[str], normal_samples: List[str],
+                          min_samples: int = 3) -> None:
+    """Ensure sufficient samples for analysis"""
+    # Raises InsufficientDataError if not enough samples
+
+# ... 21 total functions
+```
+
+**Performance**:
+- LRU caching: `@lru_cache(maxsize=1024)` for metadata access
+- Reduced redundant computations
+
+### 6. \_\_init\_\_.py
+
+**Purpose**: Make src/ a proper Python package
+
+**Features**:
+- Package initialization
+- Version information: `__version__ = "2.0.0"`
+- Convenient imports
+- Public API definition via `__all__`
+
+**Benefits**:
+- Enables `from src import DataLoader`
+- Relative imports work correctly
+- Clear public API
 
 ---
 
@@ -311,6 +494,29 @@ glycopeptide_comparison:
   max_glycans_per_type: 15
 ```
 
+### Configuration Validation ⭐ NEW (v2.0)
+
+**Automatic Validation**: All config.yaml files are validated before pipeline execution
+
+**Validation Process**:
+```python
+from src.config_validator import load_and_validate_config
+
+# main.py loads and validates config
+config = load_and_validate_config('config.yaml')  # Raises ConfigurationError if invalid
+```
+
+**Checks Performed**:
+1. Required keys present (paths, processing, annotation, analysis, visualization)
+2. Data types correct (string, int, float, bool, list)
+3. Value ranges valid (e.g., DPI ≥ 72, n_components > 0)
+4. List contents expected (e.g., required_columns has correct values)
+
+**Benefits**:
+- Catch configuration errors early (before processing starts)
+- Clear error messages showing all issues at once
+- Prevents runtime failures due to invalid config
+
 ---
 
 ## Design Patterns
@@ -445,19 +651,70 @@ See `requirements.txt` for complete list.
 - Visualizations generated sequentially
 - Results saved incrementally
 
+### Optimizations ⭐ NEW (v2.0)
+
+**LRU Caching**:
+- Glycan composition parsing: 1024-entry cache in `annotator.py`
+- Metadata columns access: cached in `utils.py`
+- Reduces redundant computations for repeated glycan strings
+
+**Code Deduplication**:
+- Eliminated 4x repetition of metadata_cols list
+- Single `get_sample_columns()` function replaces duplicated logic
+- Faster execution and reduced maintenance overhead
+
+**Example Impact**:
+```python
+# Before: Repeated 4 times in analyzer.py
+metadata_cols = ['Peptide', 'GlycanComposition', ...]  # 17 items
+sample_cols = [col for col in df.columns if col not in metadata_cols]
+
+# After: Called once from utils
+sample_cols = get_all_sample_columns(df)  # Cached, reusable
+```
+
 ---
 
 ## Error Handling
 
+### Custom Exception System ⭐ NEW (v2.0)
+
+**25 Specific Exception Types** organized in 7 categories:
+
+1. **ConfigurationError** - Invalid or missing configuration
+2. **DataLoadError** - Data loading failures
+3. **AnnotationError** - Glycan annotation issues
+4. **AnalysisError** - Statistical analysis problems
+5. **VisualizationError** - Plot generation failures
+6. **FileOperationError** - File I/O issues
+7. **ValidationError** - Data validation problems
+
+**Benefits**:
+- Specific error messages with context
+- Better debugging information
+- User-friendly error descriptions
+- Easier error handling in code
+
+**Example**:
+```python
+# Before:
+raise ValueError("No CSV files found")
+
+# After:
+raise NoDataFilesError(dataset_dir)  # Shows directory path, suggests fixes
+```
+
 ### Input Validation
-- CSV file existence check
-- Required column verification
-- Data type validation
+- CSV file existence check → `NoDataFilesError`
+- Required column verification → `MissingColumnError`
+- Data type validation → `InvalidDataFormatError`
+- Configuration validation → `ConfigurationError`
 
 ### Graceful Degradation
-- Skip missing samples (e.g., N19)
+- Skip missing samples (e.g., N19) with warning
 - Handle empty cells (fillna with 0)
-- Continue pipeline if individual plots fail
+- Continue pipeline if individual plots fail with `PlotGenerationError`
+- Validate sample counts with `InsufficientDataError`
 
 ---
 

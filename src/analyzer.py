@@ -5,36 +5,64 @@ Handles PCA and statistical analysis
 
 import pandas as pd
 import numpy as np
+from typing import Dict, Tuple, Optional
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.cross_decomposition import PLSRegression
 from scipy import stats
-import logging
-from utils import replace_empty_with_zero, to_numeric_safe
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from .constants import (
+    DEFAULT_PCA_COMPONENTS,
+    DEFAULT_LOG_TRANSFORM,
+    DEFAULT_PLSDA_COMPONENTS,
+    LOG_TRANSFORM_PSEUDOCOUNT,
+    GROUP_CANCER,
+    GROUP_NORMAL,
+    CANCER_PREFIX,
+    NORMAL_PREFIX
+)
+from .exceptions import (
+    InsufficientDataError,
+    MatrixShapeError,
+    NormalizationError,
+    AnalysisError
+)
+from .utils import (
+    replace_empty_with_zero,
+    to_numeric_safe,
+    get_sample_columns,
+    get_all_sample_columns,
+    get_metadata_columns,
+    get_sample_group,
+    log_transform as utils_log_transform,
+    calculate_fold_change
+)
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class GlycanAnalyzer:
     """Perform statistical analysis on glycoproteomics data"""
 
-    def __init__(self, n_components: int = 2, log_transform: bool = True):
+    def __init__(self,
+                 n_components: int = DEFAULT_PCA_COMPONENTS,
+                 log_transform: bool = DEFAULT_LOG_TRANSFORM):
         """
         Initialize GlycanAnalyzer
 
         Args:
-            n_components: Number of PCA components
-            log_transform: Whether to log-transform intensity values
+            n_components: Number of PCA components (default: 2)
+            log_transform: Whether to log-transform intensity values (default: True)
         """
         self.n_components = n_components
         self.log_transform = log_transform
-        self.pca = None
-        self.scaler = None
-        self.plsda = None
-        self.vip_scores = None
+        self.pca: Optional[PCA] = None
+        self.scaler: Optional[RobustScaler] = None
+        self.plsda: Optional[PLSRegression] = None
+        self.vip_scores: Optional[pd.DataFrame] = None
 
-    def prepare_intensity_matrix(self, df: pd.DataFrame) -> tuple:
+    def prepare_intensity_matrix(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, list, np.ndarray]:
         """
         Prepare intensity matrix for analysis with TIC normalization
 
@@ -43,15 +71,15 @@ class GlycanAnalyzer:
 
         Returns:
             Tuple of (intensity_matrix, sample_names, feature_names)
-        """
-        # Identify sample columns (C1, C2, ..., N1, N2, ...)
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
 
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        Raises:
+            InsufficientDataError: If insufficient samples are present
+        """
+        # Get sample columns using utility function (eliminates duplication)
+        sample_cols = get_all_sample_columns(df)
+
+        if len(sample_cols) < 2:
+            raise InsufficientDataError("PCA", 2, len(sample_cols))
 
         # Extract intensity matrix
         intensity_matrix = df[sample_cols].copy()
@@ -77,8 +105,8 @@ class GlycanAnalyzer:
         # Step 2: Log2 transform if specified
         if self.log_transform:
             logger.info("Applying Log2 transformation...")
-            # Add pseudocount to avoid log(0)
-            intensity_matrix_t = np.log2(intensity_matrix_t + 1)
+            # Use utility function with constant pseudocount
+            intensity_matrix_t = utils_log_transform(intensity_matrix_t, LOG_TRANSFORM_PSEUDOCOUNT)
 
         logger.info(f"Intensity matrix shape: {intensity_matrix_t.shape} (samples x features)")
 
@@ -114,8 +142,8 @@ class GlycanAnalyzer:
             index=sample_names
         )
 
-        # Add sample group information (C or N)
-        pca_df['Group'] = pca_df.index.map(lambda x: 'Cancer' if x.startswith('C') else 'Normal')
+        # Add sample group information (C or N) using utility function
+        pca_df['Group'] = pca_df.index.map(get_sample_group)
 
         # Calculate explained variance
         explained_variance = self.pca.explained_variance_ratio_
@@ -143,18 +171,8 @@ class GlycanAnalyzer:
         Returns:
             DataFrame with statistics for each glycan type
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
-
-        # Separate C and N samples
-        c_samples = [col for col in sample_cols if col.startswith('C')]
-        n_samples = [col for col in sample_cols if col.startswith('N')]
+        # Get sample columns using utility function (eliminates duplication #2)
+        c_samples, n_samples = get_sample_columns(df)
 
         # Calculate statistics for each glycan type
         stats_list = []
@@ -177,6 +195,7 @@ class GlycanAnalyzer:
             # Count glycopeptides
             count = len(subset)
 
+            # Use utility function for fold change calculation
             stats_list.append({
                 'GlycanType': glycan_type,
                 'Count': count,
@@ -184,8 +203,8 @@ class GlycanAnalyzer:
                 'Normal_Mean': n_mean,
                 'Cancer_Total': c_total,
                 'Normal_Total': n_total,
-                'Fold_Change': c_mean / n_mean if n_mean > 0 else np.inf,
-                'Log2_Fold_Change': np.log2(c_mean / n_mean) if (c_mean > 0 and n_mean > 0) else np.nan
+                'Fold_Change': calculate_fold_change(c_mean, n_mean, log_scale=False),
+                'Log2_Fold_Change': calculate_fold_change(c_mean, n_mean, log_scale=True)
             })
 
         stats_df = pd.DataFrame(stats_list)
@@ -205,14 +224,8 @@ class GlycanAnalyzer:
         Returns:
             Long-format DataFrame for plotting
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns using utility function (eliminates duplication #3)
+        sample_cols = get_all_sample_columns(df)
 
         # Melt to long format
         df_long = df.melt(
@@ -225,8 +238,8 @@ class GlycanAnalyzer:
         # Convert intensity to numeric
         df_long['Intensity'] = to_numeric_safe(df_long['Intensity'].replace('', np.nan))
 
-        # Add group information
-        df_long['Group'] = df_long['Sample'].apply(lambda x: 'Cancer' if x.startswith('C') else 'Normal')
+        # Add group information using utility function
+        df_long['Group'] = df_long['Sample'].apply(get_sample_group)
 
         # Log transform
         if self.log_transform:
@@ -249,14 +262,8 @@ class GlycanAnalyzer:
         Returns:
             Long-format DataFrame for plotting with extended categories
         """
-        # Identify sample columns
-        metadata_cols = ['Peptide', 'GlycanComposition', 'Sialylation', 'Fucosylation',
-                        'IsSialylated', 'IsFucosylated', 'SialylationCount',
-                        'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
-                        'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
-
-        sample_cols = [col for col in df.columns if col not in metadata_cols]
+        # Get sample columns using utility function (eliminates duplication #4)
+        sample_cols = get_all_sample_columns(df)
 
         # Create extended category based on all annotations
         def determine_extended_category(row):
@@ -287,8 +294,8 @@ class GlycanAnalyzer:
         # Convert intensity to numeric
         df_long['Intensity'] = to_numeric_safe(df_long['Intensity'].replace('', np.nan))
 
-        # Add group information
-        df_long['Group'] = df_long['Sample'].apply(lambda x: 'Cancer' if x.startswith('C') else 'Normal')
+        # Add group information using utility function
+        df_long['Group'] = df_long['Sample'].apply(get_sample_group)
 
         # Log transform
         if self.log_transform:
@@ -301,7 +308,7 @@ class GlycanAnalyzer:
 
         return df_long
 
-    def perform_plsda(self, df: pd.DataFrame, n_components: int = 2) -> dict:
+    def perform_plsda(self, df: pd.DataFrame, n_components: int = DEFAULT_PLSDA_COMPONENTS) -> Dict:
         """
         Perform PLS-DA (Partial Least Squares Discriminant Analysis)
         for Cancer vs Normal classification
@@ -315,8 +322,8 @@ class GlycanAnalyzer:
         """
         intensity_matrix, sample_names, feature_info = self.prepare_intensity_matrix(df)
 
-        # Create binary labels (0 = Normal, 1 = Cancer)
-        y = np.array([1 if name.startswith('C') else 0 for name in sample_names])
+        # Create binary labels (0 = Normal, 1 = Cancer) using utility function
+        y = np.array([1 if get_sample_group(name) == GROUP_CANCER else 0 for name in sample_names])
 
         # Scale data using RobustScaler
         logger.info("Performing PLS-DA analysis...")

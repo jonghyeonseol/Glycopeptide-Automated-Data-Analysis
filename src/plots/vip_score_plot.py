@@ -10,7 +10,7 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from matplotlib.gridspec import GridSpec
-from utils import replace_empty_with_zero, get_sample_columns, save_trace_data
+from ..utils import replace_empty_with_zero, get_sample_columns, save_trace_data
 
 logger = logging.getLogger(__name__)
 

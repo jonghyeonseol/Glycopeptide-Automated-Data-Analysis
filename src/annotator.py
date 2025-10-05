@@ -5,16 +5,57 @@ Handles Fucosylation and Sialylation annotation
 
 import pandas as pd
 import re
-import logging
+from functools import lru_cache
+from typing import Optional
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from .constants import (
+    DEFAULT_SIALYLATION_MARKER,
+    DEFAULT_FUCOSYLATION_MARKER,
+    MONOSACCHARIDE_H,
+    MONOSACCHARIDE_N,
+    MONOSACCHARIDE_A,
+    MONOSACCHARIDE_F,
+    MONOSACCHARIDE_G,
+    GLYCAN_TYPE_HM,
+    GLYCAN_TYPE_F,
+    GLYCAN_TYPE_S,
+    GLYCAN_TYPE_SF,
+    GLYCAN_TYPE_CH,
+    GLYCAN_TYPE_UNKNOWN,
+    PRIMARY_TRUNCATED,
+    PRIMARY_HIGH_MANNOSE,
+    PRIMARY_COMPLEX_HYBRID,
+    PRIMARY_OUTLIER,
+    PRIMARY_UNKNOWN,
+    SECONDARY_TRUNCATED,
+    SECONDARY_HIGH_MANNOSE,
+    SECONDARY_COMPLEX_HYBRID,
+    SECONDARY_FUCOSYLATED,
+    SECONDARY_SIALYLATED,
+    SECONDARY_SIALOFUCOSYLATED,
+    SECONDARY_OUTLIER,
+    SECONDARY_UNKNOWN,
+    LEGACY_NON,
+    LEGACY_SIALYLATED,
+    LEGACY_FUCOSYLATED,
+    LEGACY_BOTH,
+    HIGH_MANNOSE_MIN_H,
+    HIGH_MANNOSE_EXACT_N,
+    COMPLEX_HYBRID_MIN_N,
+    GLYCAN_COMPOSITION_PATTERN
+)
+from .exceptions import InvalidGlycanCompositionError, AnnotationError
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class GlycanAnnotator:
     """Annotate glycopeptides based on glycan composition"""
 
-    def __init__(self, sialylation_marker: str = "A", fucosylation_marker: str = "F"):
+    def __init__(self,
+                 sialylation_marker: str = DEFAULT_SIALYLATION_MARKER,
+                 fucosylation_marker: str = DEFAULT_FUCOSYLATION_MARKER):
         """
         Initialize GlycanAnnotator
 
@@ -25,9 +66,32 @@ class GlycanAnnotator:
         self.sialylation_marker = sialylation_marker
         self.fucosylation_marker = fucosylation_marker
 
+        # Create cached extraction method with current markers
+        self._extract_cached = lru_cache(maxsize=1024)(self._extract_monosaccharide_impl)
+
+    def _extract_monosaccharide_impl(self, glycan_composition: str, monosaccharide: str) -> int:
+        """
+        Implementation of monosaccharide extraction (cached)
+
+        Args:
+            glycan_composition: Glycan composition string
+            monosaccharide: Monosaccharide symbol
+
+        Returns:
+            Count of the monosaccharide
+        """
+        # Pattern to match monosaccharide with count: e.g., A(2), F(1)
+        pattern = rf'{monosaccharide}\((\d+)\)'
+        match = re.search(pattern, glycan_composition)
+
+        if match:
+            return int(match.group(1))
+        return 0
+
     def extract_monosaccharide_count(self, glycan_composition: str, monosaccharide: str) -> int:
         """
         Extract the count of a specific monosaccharide from glycan composition
+        Results are cached for performance.
 
         Args:
             glycan_composition: Glycan composition string (e.g., "H(5)N(4)A(2)F(1)")
@@ -39,13 +103,7 @@ class GlycanAnnotator:
         if pd.isna(glycan_composition) or glycan_composition == "":
             return 0
 
-        # Pattern to match monosaccharide with count: e.g., A(2), F(1)
-        pattern = rf'{monosaccharide}\((\d+)\)'
-        match = re.search(pattern, str(glycan_composition))
-
-        if match:
-            return int(match.group(1))
-        return 0
+        return self._extract_cached(str(glycan_composition), monosaccharide)
 
     def is_sialylated(self, glycan_composition: str) -> bool:
         """
@@ -98,16 +156,16 @@ class GlycanAnnotator:
         # Must not have F, A, or G
         has_f = self.is_fucosylated(glycan_composition)
         has_a = self.is_sialylated(glycan_composition)
-        has_g = self.extract_monosaccharide_count(glycan_composition, 'G') > 0
+        has_g = self.extract_monosaccharide_count(glycan_composition, MONOSACCHARIDE_G) > 0
 
         if has_f or has_a or has_g:
             return False
 
-        # Must have H≥5 and N=2
-        h_count = self.extract_monosaccharide_count(glycan_composition, 'H')
-        n_count = self.extract_monosaccharide_count(glycan_composition, 'N')
+        # Must have H≥5 and N=2 (using constants)
+        h_count = self.extract_monosaccharide_count(glycan_composition, MONOSACCHARIDE_H)
+        n_count = self.extract_monosaccharide_count(glycan_composition, MONOSACCHARIDE_N)
 
-        return h_count >= 5 and n_count == 2
+        return h_count >= HIGH_MANNOSE_MIN_H and n_count == HIGH_MANNOSE_EXACT_N
 
     def is_complex_hybrid(self, glycan_composition: str) -> bool:
         """
@@ -130,9 +188,9 @@ class GlycanAnnotator:
         if has_f or has_a:
             return False
 
-        # Must have N >= 3
-        n_count = self.extract_monosaccharide_count(glycan_composition, 'N')
-        return n_count >= 3
+        # Must have N >= 3 (using constant)
+        n_count = self.extract_monosaccharide_count(glycan_composition, MONOSACCHARIDE_N)
+        return n_count >= COMPLEX_HYBRID_MIN_N
 
     def get_glycan_type_category(self, glycan_composition: str) -> str:
         """
@@ -147,11 +205,11 @@ class GlycanAnnotator:
             Glycan type category string
         """
         if pd.isna(glycan_composition) or glycan_composition == "":
-            return 'Unknown'
+            return GLYCAN_TYPE_UNKNOWN
 
         # Check for high mannose first (H≥5, N=2, no A/F/G)
         if self.is_high_mannose(glycan_composition):
-            return 'HM'
+            return GLYCAN_TYPE_HM
 
         # Check for sialylation and fucosylation
         has_a = self.is_sialylated(glycan_composition)
@@ -159,14 +217,14 @@ class GlycanAnnotator:
 
         # Determine category based on modifications
         if has_a and has_f:
-            return 'SF'
+            return GLYCAN_TYPE_SF
         elif has_a:
-            return 'S'
+            return GLYCAN_TYPE_S
         elif has_f:
-            return 'F'
+            return GLYCAN_TYPE_F
         else:
             # Everything else is Complex/Hybrid
-            return 'C/H'
+            return GLYCAN_TYPE_CH
 
     def get_primary_classification(self, glycan_composition: str) -> str:
         """
@@ -179,21 +237,21 @@ class GlycanAnnotator:
             Primary classification: 'Truncated', 'High Mannose', 'ComplexHybrid', or 'Outlier'
         """
         if pd.isna(glycan_composition) or glycan_composition == "":
-            return 'Unknown'
+            return PRIMARY_UNKNOWN
 
-        n_count = self.extract_monosaccharide_count(glycan_composition, 'N')
+        n_count = self.extract_monosaccharide_count(glycan_composition, MONOSACCHARIDE_N)
         has_f = self.is_fucosylated(glycan_composition)
         has_a = self.is_sialylated(glycan_composition)
 
         if n_count < 2:
-            return 'Truncated'
+            return PRIMARY_TRUNCATED
         elif n_count == 2:
             if has_f or has_a:
-                return 'Outlier'
+                return PRIMARY_OUTLIER
             else:
-                return 'High Mannose'
+                return PRIMARY_HIGH_MANNOSE
         else:  # n_count >= 3
-            return 'ComplexHybrid'
+            return PRIMARY_COMPLEX_HYBRID
 
     def get_secondary_classification(self, glycan_composition: str) -> str:
         """
@@ -206,29 +264,29 @@ class GlycanAnnotator:
             Secondary classification string
         """
         if pd.isna(glycan_composition) or glycan_composition == "":
-            return 'Unknown'
+            return SECONDARY_UNKNOWN
 
         primary = self.get_primary_classification(glycan_composition)
         has_f = self.is_fucosylated(glycan_composition)
         has_a = self.is_sialylated(glycan_composition)
 
-        if primary == 'Truncated':
-            return 'Truncated'
-        elif primary == 'Outlier':
-            return 'Outlier'
-        elif primary == 'High Mannose':
-            return 'High Mannose'
-        elif primary == 'ComplexHybrid':
+        if primary == PRIMARY_TRUNCATED:
+            return SECONDARY_TRUNCATED
+        elif primary == PRIMARY_OUTLIER:
+            return SECONDARY_OUTLIER
+        elif primary == PRIMARY_HIGH_MANNOSE:
+            return SECONDARY_HIGH_MANNOSE
+        elif primary == PRIMARY_COMPLEX_HYBRID:
             if not has_f and not has_a:
-                return 'Complex/Hybrid'
+                return SECONDARY_COMPLEX_HYBRID
             elif has_f and not has_a:
-                return 'Fucosylated'
+                return SECONDARY_FUCOSYLATED
             elif not has_f and has_a:
-                return 'Sialylated'
+                return SECONDARY_SIALYLATED
             else:  # has_f and has_a
-                return 'Sialofucosylated'
+                return SECONDARY_SIALOFUCOSYLATED
         else:
-            return 'Unknown'
+            return SECONDARY_UNKNOWN
 
     def annotate_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -286,19 +344,19 @@ class GlycanAnnotator:
             self.get_glycan_type_category
         )
 
-        # Legacy columns for backward compatibility
+        # Legacy columns for backward compatibility (using constants)
         def determine_glycan_type(row):
             sia = row['IsSialylated']
             fuc = row['IsFucosylated']
 
             if sia and fuc:
-                return 'Both'
+                return LEGACY_BOTH
             elif sia:
-                return 'Sialylated'
+                return LEGACY_SIALYLATED
             elif fuc:
-                return 'Fucosylated'
+                return LEGACY_FUCOSYLATED
             else:
-                return 'Non'
+                return LEGACY_NON
 
         df_annotated['GlycanType'] = df_annotated.apply(determine_glycan_type, axis=1)
 

@@ -11,7 +11,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 import logging
-from utils import replace_empty_with_zero, save_trace_data
+from ..utils import replace_empty_with_zero, save_trace_data
 
 logger = logging.getLogger(__name__)
 

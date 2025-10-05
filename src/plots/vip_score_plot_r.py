@@ -11,7 +11,7 @@ import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import importr
 from rpy2.robjects.conversion import localconverter
-from utils import replace_empty_with_zero, get_sample_columns, save_trace_data
+from ..utils import replace_empty_with_zero, get_sample_columns, save_trace_data
 
 logger = logging.getLogger(__name__)
 

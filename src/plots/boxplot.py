@@ -10,7 +10,7 @@ import seaborn as sns
 from pathlib import Path
 import logging
 from scipy import stats
-from utils import replace_empty_with_zero, save_trace_data, get_sample_columns
+from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 
 logger = logging.getLogger(__name__)
 
