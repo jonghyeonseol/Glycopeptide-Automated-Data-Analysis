@@ -70,11 +70,11 @@ def main():
     annotated_data = annotator.annotate_dataframe(integrated_data)
 
     # Prepare clean integrated data for output (only essential columns)
-    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid, PrimaryClassification, SecondaryClassification, Proteins
+    # Keep: Peptide, GlycanComposition, all sample columns (C1-C24, N1-N24), Sialylation, Fucosylation, HighMannose, ComplexHybrid, PrimaryClassification, SecondaryClassification, GlycanTypeCategory, Proteins
     sample_columns = [col for col in annotated_data.columns
                      if col.startswith('C') or col.startswith('N')]
 
-    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid', 'PrimaryClassification', 'SecondaryClassification', 'Proteins']
+    output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + ['Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid', 'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory', 'Proteins']
     clean_integrated_data = annotated_data[output_columns].copy()
 
     # Save clean integrated data
@@ -182,6 +182,16 @@ def main():
     logger.info("  - Radar chart (glycan profile comparison)...")
     visualizer.plot_radar_chart(annotated_data)
 
+    logger.info("  - Glycopeptide comparison heatmap (Cancer vs Normal)...")
+    if config['visualization']['glycopeptide_comparison']['enabled']:
+        visualizer.plot_glycopeptide_comparison_heatmap(
+            df=annotated_data,
+            vip_scores=plsda_results['vip_scores'],
+            figsize=tuple(config['visualization']['glycopeptide_comparison']['figsize']),
+            max_peptides=config['visualization']['glycopeptide_comparison']['max_peptides'],
+            max_glycans_per_type=config['visualization']['glycopeptide_comparison']['max_glycans_per_type']
+        )
+
     # Step 5: Summary report
     logger.info("\n[6/6] Generating summary report...")
 
@@ -200,6 +210,11 @@ def main():
         f.write("Glycan Annotation:\n")
         f.write(f"  - Sialylated: {annotated_data['IsSialylated'].sum()} ({annotated_data['IsSialylated'].sum()/len(annotated_data)*100:.1f}%)\n")
         f.write(f"  - Fucosylated: {annotated_data['IsFucosylated'].sum()} ({annotated_data['IsFucosylated'].sum()/len(annotated_data)*100:.1f}%)\n\n")
+
+        f.write("Glycan Type Category Distribution (for Comparison Heatmap):\n")
+        for glycan_cat, count in annotated_data['GlycanTypeCategory'].value_counts().items():
+            f.write(f"  - {glycan_cat}: {count} ({count/len(annotated_data)*100:.1f}%)\n")
+        f.write("\n")
 
         f.write("Primary Classification Distribution:\n")
         for primary_class, count in annotated_data['PrimaryClassification'].value_counts().items():
@@ -265,6 +280,7 @@ def main():
         f.write(f"  - Correlation clustermap (Normal): correlation_clustermap_normal.png\n")
         f.write(f"  - Venn diagram: venn_diagram_glycan_types.png\n")
         f.write(f"  - Radar chart: radar_chart_glycan_profile.png\n")
+        f.write(f"  - Glycopeptide comparison heatmap (Cancer vs Normal): glycopeptide_comparison_heatmap.png\n")
         f.write("\n")
         f.write("Data Traceability:\n")
         f.write("  All visualization source data is exported to Results/Trace/ folder as CSV files.\n")

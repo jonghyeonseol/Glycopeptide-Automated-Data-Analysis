@@ -49,8 +49,15 @@ The pipeline executes in 6 sequential steps:
 - Annotation logic:
   - Sialylation: Presence of `A` (NeuAc/sialic acid) → "Sialylated"
   - Fucosylation: Presence of `F` (fucose) → "Fucosylated"
+  - High-mannose: H≥5, N=2, no A/F/G → "HM"
 - Creates internal columns (`IsSialylated`, `IsFucosylated`, `GlycanType`) used for analysis
-- Only `Sialylation` and `Fucosylation` columns are included in final output
+- **GlycanTypeCategory** (NEW): Five-category classification for visualization:
+  - **HM**: High-mannose (H≥5, N=2, no modifications)
+  - **F**: Fucosylated only (has F, no A)
+  - **S**: Sialylated only (has A, no F)
+  - **SF**: Sialofucosylated (has both A and F)
+  - **C/H**: Complex/Hybrid (everything else)
+- Output includes: `Sialylation`, `Fucosylation`, `HighMannose`, `ComplexHybrid`, `PrimaryClassification`, `SecondaryClassification`, `GlycanTypeCategory`
 
 **analyzer.py (GlycanAnalyzer)**
 - Transposes data matrix: samples become rows, glycopeptides become columns
@@ -64,6 +71,15 @@ The pipeline executes in 6 sequential steps:
 - Uses seaborn "whitegrid" style
 - Color scheme for glycan types defined in config.yaml
 - Heatmap shows top 50 glycopeptides by mean intensity
+- **Glycopeptide Comparison Heatmap** (NEW):
+  - Compares Cancer vs Normal groups in single visualization
+  - Y-axis: Peptides sorted by VIP score (PLS-DA derived)
+  - X-axis: Glycan compositions grouped by type (HM, F, S, SF, C/H)
+  - Side-by-side dots: Circle (Cancer) vs Square (Normal)
+  - Color by glycan type, transparency by intensity
+  - Bottom panel: Gradient colored bar showing glycan type regions
+  - Top panel: Aggregated intensity comparison between groups
+  - Configurable via `config.yaml`: `visualization.glycopeptide_comparison`
 
 ## Data Integration Logic
 
@@ -105,14 +121,18 @@ CSV files in `Dataset/` must:
 
 ## Output Files
 
-**integrated_example.csv**
+**integrated.csv**
 - Primary output with all integrated sample data
-- Contains only: Peptide, GlycanComposition, sample columns, Sialylation, Fucosylation
+- Contains: Peptide, GlycanComposition, sample columns (C1-C24, N1-N23), Sialylation, Fucosylation, HighMannose, ComplexHybrid, PrimaryClassification, SecondaryClassification, GlycanTypeCategory, Proteins
 - Users should be able to open and analyze this file directly
 
 **glycan_type_statistics.csv**
 - Summary statistics per glycan type (Non/Sialylated/Fucosylated/Both)
 - Includes cancer vs normal means and fold changes
+
+**vip_scores_all.csv**
+- Complete VIP scores for all glycopeptides from PLS-DA analysis
+- Used for peptide ranking in comparison heatmap
 
 **Visualization files** (PNG):
 - pca_plot.png: Cancer vs Normal sample separation
@@ -120,6 +140,7 @@ CSV files in `Dataset/` must:
 - boxplot_glycan_types.png: Intensity distributions by glycan type
 - glycan_type_distribution.png: Count of each glycan type
 - heatmap_top_glycopeptides.png: Top 50 abundant glycopeptides
+- **glycopeptide_comparison_heatmap.png** (NEW): Cancer vs Normal comparison with VIP-sorted peptides and glycan type grouping
 
 **analysis_summary.txt**
 - Human-readable report of all key findings

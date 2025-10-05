@@ -24,6 +24,8 @@ from src.plots.cv_distribution_plot import CVDistributionPlotMixin
 from src.plots.correlation_matrix_plot import CorrelationMatrixPlotMixin
 from src.plots.venn_diagram_plot import VennDiagramPlotMixin
 from src.plots.radar_chart_plot import RadarChartPlotMixin
+from src.plots.glycopeptide_dot_heatmap import GlycopeptideDotHeatmapMixin
+from src.plots.glycopeptide_comparison_heatmap import GlycopeptideComparisonHeatmapMixin
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,7 +44,9 @@ class GlycanVisualizer(
     CVDistributionPlotMixin,
     CorrelationMatrixPlotMixin,
     VennDiagramPlotMixin,
-    RadarChartPlotMixin
+    RadarChartPlotMixin,
+    GlycopeptideDotHeatmapMixin,
+    GlycopeptideComparisonHeatmapMixin
 ):
     """Create visualizations for glycoproteomics data"""
 

@@ -84,7 +84,7 @@ class GlycanAnnotator:
     def is_high_mannose(self, glycan_composition: str) -> bool:
         """
         Check if glycan is high mannose type
-        Criteria: No F, No A, and contains N(2)
+        Criteria: H≥5, N=2, no other modifications (A, F, G)
 
         Args:
             glycan_composition: Glycan composition string
@@ -95,16 +95,19 @@ class GlycanAnnotator:
         if pd.isna(glycan_composition) or glycan_composition == "":
             return False
 
-        # Must not have F or A
+        # Must not have F, A, or G
         has_f = self.is_fucosylated(glycan_composition)
         has_a = self.is_sialylated(glycan_composition)
+        has_g = self.extract_monosaccharide_count(glycan_composition, 'G') > 0
 
-        if has_f or has_a:
+        if has_f or has_a or has_g:
             return False
 
-        # Must have N(2)
+        # Must have H≥5 and N=2
+        h_count = self.extract_monosaccharide_count(glycan_composition, 'H')
         n_count = self.extract_monosaccharide_count(glycan_composition, 'N')
-        return n_count == 2
+
+        return h_count >= 5 and n_count == 2
 
     def is_complex_hybrid(self, glycan_composition: str) -> bool:
         """
@@ -130,6 +133,40 @@ class GlycanAnnotator:
         # Must have N >= 3
         n_count = self.extract_monosaccharide_count(glycan_composition, 'N')
         return n_count >= 3
+
+    def get_glycan_type_category(self, glycan_composition: str) -> str:
+        """
+        Get glycan type category for visualization
+        Categories: HM (High-mannose), F (Fucosylated), S (Sialylated),
+                    SF (Sialofucosylated), C/H (Complex/Hybrid)
+
+        Args:
+            glycan_composition: Glycan composition string
+
+        Returns:
+            Glycan type category string
+        """
+        if pd.isna(glycan_composition) or glycan_composition == "":
+            return 'Unknown'
+
+        # Check for high mannose first (H≥5, N=2, no A/F/G)
+        if self.is_high_mannose(glycan_composition):
+            return 'HM'
+
+        # Check for sialylation and fucosylation
+        has_a = self.is_sialylated(glycan_composition)
+        has_f = self.is_fucosylated(glycan_composition)
+
+        # Determine category based on modifications
+        if has_a and has_f:
+            return 'SF'
+        elif has_a:
+            return 'S'
+        elif has_f:
+            return 'F'
+        else:
+            # Everything else is Complex/Hybrid
+            return 'C/H'
 
     def get_primary_classification(self, glycan_composition: str) -> str:
         """
@@ -242,6 +279,11 @@ class GlycanAnnotator:
         # Secondary classification (final column)
         df_annotated['SecondaryClassification'] = df_annotated['GlycanComposition'].apply(
             self.get_secondary_classification
+        )
+
+        # Add GlycanTypeCategory for new visualization
+        df_annotated['GlycanTypeCategory'] = df_annotated['GlycanComposition'].apply(
+            self.get_glycan_type_category
         )
 
         # Legacy columns for backward compatibility

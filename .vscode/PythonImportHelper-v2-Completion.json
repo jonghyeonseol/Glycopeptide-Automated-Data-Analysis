@@ -18,6 +18,175 @@
         "documentation": {}
     },
     {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "matplotlib.pyplot",
         "kind": 6,
         "isExtraImport": true,
@@ -33,150 +202,6 @@
         "importPath": "seaborn",
         "description": "seaborn",
         "detail": "seaborn",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
         "documentation": {}
     },
     {
@@ -262,6 +287,38 @@
     },
     {
         "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "save_trace_data",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "replace_empty_with_zero",
         "importPath": "utils",
         "description": "utils",
         "isExtraImport": true,
@@ -461,11 +518,35 @@
         "documentation": {}
     },
     {
+        "label": "Rectangle",
+        "importPath": "matplotlib.patches",
+        "description": "matplotlib.patches",
+        "isExtraImport": true,
+        "detail": "matplotlib.patches",
+        "documentation": {}
+    },
+    {
+        "label": "Rectangle",
+        "importPath": "matplotlib.patches",
+        "description": "matplotlib.patches",
+        "isExtraImport": true,
+        "detail": "matplotlib.patches",
+        "documentation": {}
+    },
+    {
         "label": "Ellipse",
         "importPath": "matplotlib.patches",
         "description": "matplotlib.patches",
         "isExtraImport": true,
         "detail": "matplotlib.patches",
+        "documentation": {}
+    },
+    {
+        "label": "LinearSegmentedColormap",
+        "importPath": "matplotlib.colors",
+        "description": "matplotlib.colors",
+        "isExtraImport": true,
+        "detail": "matplotlib.colors",
         "documentation": {}
     },
     {
@@ -695,21 +776,28 @@
         "documentation": {}
     },
     {
+        "label": "GlycopeptideDotHeatmapMixin",
+        "importPath": "src.plots.glycopeptide_dot_heatmap",
+        "description": "src.plots.glycopeptide_dot_heatmap",
+        "isExtraImport": true,
+        "detail": "src.plots.glycopeptide_dot_heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "GlycopeptideComparisonHeatmapMixin",
+        "importPath": "src.plots.glycopeptide_comparison_heatmap",
+        "description": "src.plots.glycopeptide_comparison_heatmap",
+        "isExtraImport": true,
+        "detail": "src.plots.glycopeptide_comparison_heatmap",
+        "documentation": {}
+    },
+    {
         "label": "yaml",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "yaml",
         "description": "yaml",
         "detail": "yaml",
-        "documentation": {}
-    },
-    {
-        "label": "sys",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "sys",
-        "description": "sys",
-        "detail": "sys",
         "documentation": {}
     },
     {
@@ -742,6 +830,15 @@
         "description": "visualizer",
         "isExtraImport": true,
         "detail": "visualizer",
+        "documentation": {}
+    },
+    {
+        "label": "verify_heatmap_data",
+        "kind": 2,
+        "importPath": "scripts.verify_trace_data",
+        "description": "scripts.verify_trace_data",
+        "peekOfCode": "def verify_heatmap_data():\n    \"\"\"Comprehensive verification of trace data\"\"\"\n    print(\"=\"*80)\n    print(\"Verification of Glycopeptide Comparison Heatmap Trace Data\")\n    print(\"=\"*80)\n    # Check if files exist\n    summary_path = Path('Results/Trace/glycopeptide_comparison_heatmap_summary.csv')\n    full_data_path = Path('Results/Trace/glycopeptide_comparison_heatmap_data.csv')\n    if not summary_path.exists():\n        print(f\"\\n❌ ERROR: Summary file not found at {summary_path}\")",
+        "detail": "scripts.verify_trace_data",
         "documentation": {}
     },
     {
@@ -814,6 +911,42 @@
         "description": "src.plots.distribution_plot",
         "peekOfCode": "logger = logging.getLogger(__name__)\nclass DistributionPlotMixin:\n    \"\"\"Mixin class for distribution-related plots\"\"\"\n    def plot_glycan_type_distribution(self, df: pd.DataFrame, figsize: tuple = (10, 6)):\n        \"\"\"\n        Create bar plot showing distribution of glycan types\n        Args:\n            df: Annotated DataFrame\n            figsize: Figure size\n        \"\"\"",
         "detail": "src.plots.distribution_plot",
+        "documentation": {}
+    },
+    {
+        "label": "GlycopeptideComparisonHeatmapMixin",
+        "kind": 6,
+        "importPath": "src.plots.glycopeptide_comparison_heatmap",
+        "description": "src.plots.glycopeptide_comparison_heatmap",
+        "peekOfCode": "class GlycopeptideComparisonHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide comparison heatmap (Cancer vs Normal)\"\"\"\n    def plot_glycopeptide_comparison_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        figsize: tuple = (24, 16),\n        max_peptides: int = 50,\n        max_glycans_per_type: int = 15\n    ):",
+        "detail": "src.plots.glycopeptide_comparison_heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.glycopeptide_comparison_heatmap",
+        "description": "src.plots.glycopeptide_comparison_heatmap",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycopeptideComparisonHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide comparison heatmap (Cancer vs Normal)\"\"\"\n    def plot_glycopeptide_comparison_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        figsize: tuple = (24, 16),\n        max_peptides: int = 50,\n        max_glycans_per_type: int = 15",
+        "detail": "src.plots.glycopeptide_comparison_heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "GlycopeptideDotHeatmapMixin",
+        "kind": 6,
+        "importPath": "src.plots.glycopeptide_dot_heatmap",
+        "description": "src.plots.glycopeptide_dot_heatmap",
+        "peekOfCode": "class GlycopeptideDotHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide dot heatmap visualization\"\"\"\n    def plot_glycopeptide_dot_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        sample_name: str,\n        figsize: tuple = (20, 14),\n        max_peptides: int = 50,\n        max_glycans_per_type: int = 20",
+        "detail": "src.plots.glycopeptide_dot_heatmap",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "src.plots.glycopeptide_dot_heatmap",
+        "description": "src.plots.glycopeptide_dot_heatmap",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycopeptideDotHeatmapMixin:\n    \"\"\"Mixin class for glycopeptide dot heatmap visualization\"\"\"\n    def plot_glycopeptide_dot_heatmap(\n        self,\n        df: pd.DataFrame,\n        vip_scores: pd.DataFrame,\n        sample_name: str,\n        figsize: tuple = (20, 14),\n        max_peptides: int = 50,",
+        "detail": "src.plots.glycopeptide_dot_heatmap",
         "documentation": {}
     },
     {
@@ -1093,15 +1226,6 @@
         "description": "src.visualizer",
         "peekOfCode": "logger = logging.getLogger(__name__)\nclass GlycanVisualizer(\n    PCAPlotMixin,\n    BoxplotMixin,\n    HeatmapMixin,\n    HistogramMixin,\n    VIPScorePlotMixin,\n    VIPScorePlotRMixin,\n    DistributionPlotMixin,\n    VolcanoPlotMixin,",
         "detail": "src.visualizer",
-        "documentation": {}
-    },
-    {
-        "label": "updates",
-        "kind": 5,
-        "importPath": "add_trace_remaining",
-        "description": "add_trace_remaining",
-        "peekOfCode": "updates = [\n    # Boxplot.py - 6 methods\n    {\n        'file': 'src/plots/boxplot.py',\n        'replacements': [\n            {\n                'old': '        output_file = self.output_dir / \\'boxplot_glycan_types.png\\'\\n        plt.savefig(output_file, dpi=self.dpi, bbox_inches=\\'tight\\')\\n        logger.info(f\"Saved boxplot to {output_file}\")\\n\\n        plt.close()',\n                'new': '        # Save plot\\n        output_file = self.output_dir / \\'boxplot_glycan_types.png\\'\\n        plt.savefig(output_file, dpi=self.dpi, bbox_inches=\\'tight\\')\\n        logger.info(f\"Saved boxplot to {output_file}\")\\n\\n        # Save trace data\\n        save_trace_data(boxplot_data, self.output_dir, \\'boxplot_glycan_types_data.csv\\')\\n\\n        plt.close()'\n            },\n            {",
-        "detail": "add_trace_remaining",
         "documentation": {}
     },
     {

@@ -80,10 +80,14 @@ class VolcanoPlotMixin:
             if not vip_match.empty:
                 vip_score = vip_match['VIP_Score'].values[0]
 
+            # Get glycan type category if available
+            glycan_type = row.get('GlycanTypeCategory', 'C/H')
+
             volcano_data.append({
                 'Glycopeptide': glycopeptide,
                 'Peptide': peptide,
                 'GlycanComposition': glycan_comp,
+                'GlycanTypeCategory': glycan_type,
                 'Log2FC': log2_fc,
                 'P_value': p_value,
                 'VIP_Score': vip_score,
@@ -145,24 +149,62 @@ class VolcanoPlotMixin:
         ax.axvline(np.log2(fc_threshold), color='gray', linestyle='--', linewidth=1, alpha=0.5, zorder=1)
         ax.axvline(-np.log2(fc_threshold), color='gray', linestyle='--', linewidth=1, alpha=0.5, zorder=1)
 
-        # Add labels for top 10 VIP glycopeptides
-        top_vip = volcano_df.nlargest(10, 'VIP_Score')
+        # Define glycan type colors
+        glycan_type_colors = {
+            'HM': '#00CC00',   # Green
+            'F': '#FF0000',    # Red
+            'S': '#FF69B4',    # Pink
+            'SF': '#FFA500',   # Orange
+            'C/H': '#0000FF'   # Blue
+        }
+
+        # Find significant increases and decreases (p < 0.05 AND |FC| > 2)
+        # Rank by combined score: |log2FC| * -log10(p-value) for better prioritization
+
+        # Increased group: high log2FC and low p-value
+        increased_candidates = volcano_df[
+            (volcano_df['P_value'] < 0.05) & (volcano_df['Log2FC'] > 1)
+        ].copy()
+        if len(increased_candidates) > 0:
+            increased_candidates['Score'] = increased_candidates['Log2FC'] * increased_candidates['-Log10P']
+            significant_increases = increased_candidates.nlargest(3, 'Score')
+        else:
+            significant_increases = pd.DataFrame()
+
+        # Decreased group: low (negative) log2FC and low p-value
+        decreased_candidates = volcano_df[
+            (volcano_df['P_value'] < 0.05) & (volcano_df['Log2FC'] < -1)
+        ].copy()
+        if len(decreased_candidates) > 0:
+            decreased_candidates['Score'] = abs(decreased_candidates['Log2FC']) * decreased_candidates['-Log10P']
+            significant_decreases = decreased_candidates.nlargest(3, 'Score')
+        else:
+            significant_decreases = pd.DataFrame()
+
+        # Combine for annotation
+        to_annotate = pd.concat([significant_increases, significant_decreases])
 
         texts = []
-        for _, row in top_vip.iterrows():
-            # Create shorter label
-            label = f"{row['Peptide'][:10]}...\n{row['GlycanComposition']}" if len(row['Peptide']) > 10 else f"{row['Peptide']}\n{row['GlycanComposition']}"
+        for _, row in to_annotate.iterrows():
+            # Create label in format "PEPTIDE_H(5)N(4)A(2)"
+            label = f"{row['Peptide']}_{row['GlycanComposition']}"
+
+            # Get color based on glycan type
+            glycan_type = row.get('GlycanTypeCategory', 'C/H')
+            text_color = glycan_type_colors.get(glycan_type, '#000000')
 
             texts.append(ax.text(row['Log2FC'], row['-Log10FDR'], label,
-                               fontsize=8, ha='center', va='bottom',
+                               fontsize=7, ha='center', va='bottom',
+                               color=text_color, fontweight='bold',
                                bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
-                                       edgecolor='gray', alpha=0.7)))
+                                       edgecolor=text_color, alpha=0.8, linewidth=1.5)))
 
         # Adjust text to avoid overlap
-        try:
-            adjust_text(texts, arrowprops=dict(arrowstyle='-', color='gray', lw=0.5))
-        except:
-            pass  # If adjust_text fails, just show overlapping labels
+        if len(texts) > 0:
+            try:
+                adjust_text(texts, arrowprops=dict(arrowstyle='->', color='gray', lw=0.8, alpha=0.7))
+            except:
+                pass  # If adjust_text fails, just show overlapping labels
 
         # Labels and title
         ax.set_xlabel(f'Log2 Fold Change (Cancer / Normal)', fontsize=12, fontweight='bold')

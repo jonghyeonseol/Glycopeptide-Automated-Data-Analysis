@@ -59,3 +59,18 @@ visualization:
     Fucosylated_secondary: "#E74C3C"
     Sialylated_secondary: "#9B59B6"
     Sialofucosylated: "#F39C12"
+
+  # Glycopeptide comparison heatmap settings (NEW)
+  glycopeptide_comparison:
+    enabled: true
+    max_peptides: 50  # Top N peptides by VIP score
+    max_glycans_per_type: 15  # Top N glycans per type
+    figsize: [24, 16]  # Width x Height in inches
+
+    # Glycan type category colors (for dot heatmap)
+    glycan_type_colors:
+      HM: "#00CC00"      # High-mannose (Green)
+      F: "#FF0000"       # Fucosylated (Red)
+      S: "#FF69B4"       # Sialylated (Pink)
+      SF: "#FFA500"      # Sialofucosylated (Orange)
+      "C/H": "#0000FF"   # Complex/Hybrid (Blue)

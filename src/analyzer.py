@@ -49,7 +49,7 @@ class GlycanAnalyzer:
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
                         'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
                         'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
+                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -148,7 +148,7 @@ class GlycanAnalyzer:
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
                         'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
                         'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
+                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -210,7 +210,7 @@ class GlycanAnalyzer:
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
                         'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
                         'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
+                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 
@@ -254,7 +254,7 @@ class GlycanAnalyzer:
                         'IsSialylated', 'IsFucosylated', 'SialylationCount',
                         'FucosylationCount', 'GlycanType', 'HighMannose', 'ComplexHybrid',
                         'IsHighMannose', 'IsComplexHybrid', 'N_count',
-                        'PrimaryClassification', 'SecondaryClassification']
+                        'PrimaryClassification', 'SecondaryClassification', 'GlycanTypeCategory']
 
         sample_cols = [col for col in df.columns if col not in metadata_cols]
 

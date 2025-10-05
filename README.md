@@ -1,36 +1,58 @@
 # pGlyco Auto Combine
 
-Automated glycoproteomics data integration and analysis pipeline
+Automated glycoproteomics data integration and analysis pipeline for cancer vs normal tissue comparison.
 
 ## Features
 
 1. **Data Integration**: Automatically integrates all CSV files from the Dataset folder
-2. **Glycan Annotation**: Automatic annotation of Fucosylation and Sialylation status
-3. **Statistical Analysis**: PCA and statistical comparison between groups
-4. **Visualization**: Automatic generation of PCA plots, Boxplots, Heatmaps, and distribution plots
+2. **Glycan Annotation**: 5-category glycan type classification (HM, F, S, SF, C/H)
+3. **Statistical Analysis**: PLS-DA, PCA, and statistical comparison between groups
+4. **Advanced Visualizations**:
+   - PCA plots with group separation
+   - Glycopeptide comparison heatmaps (Cancer vs Normal)
+   - Volcano plots with significance annotations
+   - Boxplots and distribution analysis
+5. **Complete Traceability**: All visualizations include trace data for manual verification
+
+## 📚 Documentation
+
+- **[Architecture](ARCHITECTURE.md)** - System design and code organization
+- **[User Guides](docs/)** - Comprehensive documentation index
+- **[Visualization Guide](docs/visualization-guide.md)** - All plot types explained
+- **[Verification Guide](docs/verification-guide.md)** - Manual data verification
+- **[Change Log](docs/CHANGELOG.md)** - Recent updates and improvements
 
 ## Project Structure
 
 ```
 pGlyco_auto_combine/
+├── README.md                # This file
+├── CLAUDE.md                # AI assistant instructions
 ├── config.yaml              # Configuration file
 ├── main.py                  # Main pipeline execution script
 ├── requirements.txt         # Python package dependencies
-├── src/
-│   ├── data_loader.py       # CSV integration module
-│   ├── annotator.py         # Glycan annotation module
-│   ├── analyzer.py          # Statistical analysis module
-│   └── visualizer.py        # Visualization module
+├── docs/                    # Documentation
+│   ├── README.md           # Documentation index
+│   ├── visualization-guide.md
+│   ├── verification-guide.md
+│   ├── trace-data-reference.md
+│   └── normalization.md
+├── src/                     # Source code
+│   ├── data_loader.py
+│   ├── annotator.py
+│   ├── analyzer.py
+│   ├── visualizer.py
+│   ├── plots/              # Visualization modules
+│   └── utils.py
 ├── Dataset/                 # Input CSV files (C_01.csv ~ N_24.csv)
 └── Results/                 # Output results
-    ├── integrated_example.csv       # Integrated and annotated data
-    ├── analysis_summary.txt         # Analysis summary report
-    ├── glycan_type_statistics.csv   # Statistics by glycan type
-    ├── pca_plot.png                 # PCA visualization
-    ├── pca_samples.png              # PCA sample distribution
-    ├── boxplot_glycan_types.png     # Boxplot
-    ├── glycan_type_distribution.png # Glycan type distribution
-    └── heatmap_top_glycopeptides.png # Heatmap
+    ├── integrated.csv
+    ├── glycan_type_statistics.csv
+    ├── vip_scores_all.csv
+    ├── *.png               # All visualizations
+    └── Trace/              # Trace data for verification
+        ├── *_data.csv
+        └── *_summary.csv
 ```
 
 ## Installation
@@ -56,6 +78,8 @@ python3 main.py
 
 ### 3. Check Results
 - All output files will be generated in the `Results/` folder
+- Trace data for verification: `Results/Trace/`
+- See [Verification Guide](docs/verification-guide.md) for manual verification steps
 
 ## Annotation Rules
 
