@@ -137,6 +137,7 @@ dmypy.json
 # Project specific
 Results/*.png
 Results/*.csv
+Results/*.txt
 Results/Trace/*.csv
 !Results/.gitkeep
 !Results/Trace/.gitkeep
