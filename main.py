@@ -594,6 +594,19 @@ def main():
 
     logger.info(f"Saved summary report to {summary_file}")
 
+    # ==========================================================================
+    # PHASE 2.3: PUBLICATION-READY REPORTING MATERIALS
+    # ==========================================================================
+    logger.info("\n[PHASE 2.3] Generating publication-ready reporting materials...")
+    logger.info("="*80)
+
+    from src.publication_report import generate_publication_report
+    try:
+        generate_publication_report(Path(results_dir))
+    except Exception as e:
+        logger.warning(f"Publication report generation encountered an issue: {e}")
+        logger.warning("Continuing with pipeline completion...")
+
     # Create output data integrity manifest
     logger.info("\nCreating output data integrity manifest...")
     output_manifest_path = Path(results_dir) / 'output_data_manifest.json'
