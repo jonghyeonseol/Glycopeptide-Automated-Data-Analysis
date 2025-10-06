@@ -88,35 +88,35 @@ COLORBLIND_GROUP_PALETTE = {
     'Normal': '#377EB8'     # Blue (cool, stable)
 }
 
-# Glycan type colors - VERIFIED COLORBLIND-SAFE
-# Based on Paul Tol's qualitative scheme
+# Glycan type colors - SEMANTIC SCHEME
+# Colors reflect biological/functional meaning
 COLORBLIND_GLYCAN_PALETTE = {
-    'HM': '#117733',        # Dark green - High Mannose
-    'F': '#CC6677',         # Rose red - Fucosylated
-    'S': '#882255',         # Purple - Sialylated
-    'SF': '#AA4499',        # Magenta - Sialofucosylated
-    'C/H': '#44AA99',       # Teal - Complex/Hybrid
-    'Non': '#DDCC77'        # Sand - Non-modified
+    'HM': '#27AE60',        # Emerald Green - High Mannose
+    'F': '#E74C3C',         # Alizarin Red - Fucosylated
+    'S': '#E91E63',         # Material Pink - Sialylated
+    'SF': '#E67E22',        # Carrot Orange - Sialofucosylated
+    'C/H': '#3498DB',       # Peter River Blue - Complex/Hybrid
+    'Non': '#95A5A6'        # Concrete Gray - Non-modified
 }
 
-# Extended palette for more categories
+# Extended palette for more categories - SEMANTIC SCHEME
 COLORBLIND_EXTENDED_PALETTE = {
-    'HM': '#117733',
-    'High Mannose': '#117733',
-    'High mannose': '#117733',
-    'F': '#CC6677',
-    'Fucosylated': '#CC6677',
-    'S': '#882255',
-    'Sialylated': '#882255',
-    'SF': '#AA4499',
-    'Sialofucosylated': '#AA4499',
-    'Both': '#AA4499',
-    'C/H': '#44AA99',
-    'Complex/Hybrid': '#44AA99',
-    'ComplexHybrid': '#44AA99',
-    'Non': '#DDCC77',
-    'Other': '#DDCC77',
-    'Truncated': '#DDCC77'
+    'HM': '#27AE60',
+    'High Mannose': '#27AE60',
+    'High mannose': '#27AE60',
+    'F': '#E74C3C',
+    'Fucosylated': '#E74C3C',
+    'S': '#E91E63',
+    'Sialylated': '#E91E63',
+    'SF': '#E67E22',
+    'Sialofucosylated': '#E67E22',
+    'Both': '#E67E22',
+    'C/H': '#3498DB',
+    'Complex/Hybrid': '#3498DB',
+    'ComplexHybrid': '#3498DB',
+    'Non': '#95A5A6',
+    'Other': '#95A5A6',
+    'Truncated': '#95A5A6'
 }
 
 

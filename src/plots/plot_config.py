@@ -61,7 +61,7 @@ LEGEND_TITLE_WEIGHT = 'bold'
 # Based on ColorBrewer "Set1" - Verified accessible
 # ==============================================================================
 
-# Colorblind-safe colors (Paul Tol / ColorBrewer)
+# Group colors - Cancer vs Normal (colorblind-safe)
 COLOR_CANCER = '#E41A1C'  # Red - colorblind-safe, verified
 COLOR_NORMAL = '#377EB8'  # Blue - colorblind-safe, verified
 
@@ -70,56 +70,60 @@ GROUP_PALETTE = {
     'Normal': COLOR_NORMAL
 }
 
-# NOTE: Colors are distinguished by:
-# 1. Hue difference (red vs blue)
-# 2. Shape markers (when applicable)
-# 3. Deuteranopia contrast: 2.56 (good for red-green colorblindness)
-# WCAG contrast: 1.08 normal, 2.56 colorblind (acceptable for graphics)
+# NOTE: Group colors are colorblind-safe:
+# - Deuteranopia contrast: 2.56 (good for red-green colorblindness)
+# - Shape markers used for additional distinction
 
 # ==============================================================================
-# Colors - Glycan Types (COLORBLIND-SAFE Scientific Scheme)
-# Phase 2.2: Verified colorblind accessibility
+# Colors - Glycan Types (SEMANTIC COLOR SCHEME)
+# Colors reflect biological/functional meaning of glycan types
 # ==============================================================================
 
-# COLORBLIND-SAFE Scientific Scheme (Paul Tol's qualitative palette)
-# All colors verified for deuteranopia, protanopia, tritanopia
-# Contrast ratios: 1.55-2.38 (excellent for categorical data)
+# SEMANTIC GLYCAN COLORS - Biologically meaningful color assignments
+# These colors are chosen to match conventional glycan type representations:
+# - Green: High Mannose (early/simple glycosylation)
+# - Blue: Complex/Hybrid (mature/complex structures)
+# - Pink: Sialylated (charged, acidic modifications)
+# - Orange: Sialofucosylated (dual modifications)
+# - Red: Fucosylated (core modifications)
 
 GLYCAN_COLORS = {
-    'HM': '#117733',    # Dark green - High Mannose (colorblind-safe)
-    'F': '#CC6677',     # Rose - Fucosylated (colorblind-safe)
-    'S': '#882255',     # Purple - Sialylated (colorblind-safe)
-    'SF': '#AA4499',    # Magenta - Sialofucosylated (colorblind-safe)
-    'C/H': '#44AA99'    # Teal - Complex/Hybrid (colorblind-safe)
+    'HM': '#27AE60',    # Emerald Green - High Mannose (simple, early-stage)
+    'F': '#E74C3C',     # Alizarin Red - Fucosylated (core fucose)
+    'S': '#E91E63',     # Material Pink - Sialylated (charged, terminal)
+    'SF': '#E67E22',    # Carrot Orange - Sialofucosylated (dual modifications)
+    'C/H': '#3498DB'    # Peter River Blue - Complex/Hybrid (mature structures)
 }
 
-# Accessibility notes:
-# - All adjacent colors maintain >1.5 contrast ratio
-# - Distinguishable in grayscale
-# - Verified for common colorblindness types
+# Color meaning rationale:
+# - HM (Green): Simple, foundational glycan structures
+# - F (Red): Core fucosylation, high visibility for important modification
+# - S (Pink): Sialic acid (negatively charged), distinctive from others
+# - SF (Orange): Combination color (red + yellow tones)
+# - C/H (Blue): Complex structures, stable/mature
 
-# Legacy glycan type colors (UPDATED to colorblind-safe - Phase 2.2)
+# Legacy glycan type colors (SEMANTIC SCHEME)
 LEGACY_GLYCAN_COLORS = {
-    'Non': '#DDCC77',       # Sand - Non-modified (colorblind-safe)
-    'Sialylated': '#882255',   # Purple - Sialylated (colorblind-safe)
-    'Fucosylated': '#CC6677',  # Rose - Fucosylated (colorblind-safe)
-    'Both': '#AA4499'          # Magenta - Sialofucosylated (colorblind-safe)
+    'Non': '#95A5A6',           # Gray - Non-modified (neutral)
+    'Sialylated': '#E91E63',    # Pink - Sialylated (matches main scheme)
+    'Fucosylated': '#E74C3C',   # Red - Fucosylated (matches main scheme)
+    'Both': '#E67E22'           # Orange - Sialofucosylated (matches main scheme)
 }
 
-# Extended category colors (UPDATED to colorblind-safe - Phase 2.2)
+# Extended category colors (SEMANTIC SCHEME)
 EXTENDED_CATEGORY_COLORS = {
-    'HM': '#117733',              # Dark green - High Mannose
-    'High mannose': '#117733',    # Alias for consistency
-    'High Mannose': '#117733',    # Alias (capitalized)
-    'C/H': '#44AA99',             # Teal - Complex/Hybrid
-    'Complex/Hybrid': '#44AA99',  # Alias
-    'ComplexHybrid': '#44AA99',   # Alias (no space/slash)
-    'Fucosylated': '#CC6677',     # Rose - Fucosylated
-    'Sialylated': '#882255',      # Purple - Sialylated
-    'Sialofucosylated': '#AA4499', # Magenta - Sialofucosylated
-    'Both': '#AA4499',            # Alias for Sialofucosylated
-    'Truncated': '#DDCC77',       # Sand - Truncated/Other
-    'Other': '#DDCC77'            # Sand - Other
+    'HM': '#27AE60',              # Green - High Mannose
+    'High mannose': '#27AE60',    # Alias for consistency
+    'High Mannose': '#27AE60',    # Alias (capitalized)
+    'C/H': '#3498DB',             # Blue - Complex/Hybrid
+    'Complex/Hybrid': '#3498DB',  # Alias
+    'ComplexHybrid': '#3498DB',   # Alias (no space/slash)
+    'Fucosylated': '#E74C3C',     # Red - Fucosylated
+    'Sialylated': '#E91E63',      # Pink - Sialylated
+    'Sialofucosylated': '#E67E22', # Orange - Sialofucosylated
+    'Both': '#E67E22',            # Alias for Sialofucosylated
+    'Truncated': '#95A5A6',       # Gray - Truncated/Other
+    'Other': '#95A5A6'            # Gray - Other
 }
 
 # ==============================================================================
