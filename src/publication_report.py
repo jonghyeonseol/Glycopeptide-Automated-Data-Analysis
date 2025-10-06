@@ -380,6 +380,7 @@ class FlowchartGenerator:
                                n_significant: int = 105):
         """
         Create CONSORT-style flowchart using matplotlib
+        ENHANCED for elderly viewers: larger fonts, higher contrast, clearer layout
 
         Args:
             output_file: Path to save flowchart PNG
@@ -389,102 +390,112 @@ class FlowchartGenerator:
         import matplotlib.patches as mpatches
         from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-        fig, ax = plt.subplots(figsize=(12, 14))
+        # ENHANCED: Larger figure for better readability
+        fig, ax = plt.subplots(figsize=(14, 16))
         ax.set_xlim(0, 10)
         ax.set_ylim(0, 20)
         ax.axis('off')
 
-        # Define box style
-        box_style = dict(boxstyle='round,pad=0.3', facecolor='lightblue',
-                        edgecolor='black', linewidth=2)
-        exclude_style = dict(boxstyle='round,pad=0.3', facecolor='lightcoral',
-                            edgecolor='black', linewidth=2)
-        analysis_style = dict(boxstyle='round,pad=0.3', facecolor='lightgreen',
-                             edgecolor='black', linewidth=2)
+        # ENHANCED: Higher contrast colors with thicker borders (4px instead of 2px)
+        # Using darker, more saturated colors for better visibility
+        box_style = dict(boxstyle='round,pad=0.5', facecolor='#87CEEB',  # Sky blue
+                        edgecolor='#000000', linewidth=4)  # Black borders, thicker
+        exclude_style = dict(boxstyle='round,pad=0.5', facecolor='#FF6B6B',  # Coral red
+                            edgecolor='#000000', linewidth=4)
+        analysis_style = dict(boxstyle='round,pad=0.5', facecolor='#90EE90',  # Light green
+                             edgecolor='#000000', linewidth=4)
 
-        # Title
+        # ENHANCED: Larger title font (20pt instead of 16pt)
         ax.text(5, 19.5, 'Glycoproteomics Data Analysis Flow',
-               ha='center', va='top', fontsize=16, fontweight='bold')
+               ha='center', va='top', fontsize=20, fontweight='bold')
 
         # 1. Initial Data Collection
+        # ENHANCED: Larger font (15pt instead of 11pt)
         y_pos = 18
         ax.text(5, y_pos, f'Raw pGlyco Output\n{n_samples_cancer + n_samples_normal} Samples\n'
                f'(Cancer: {n_samples_cancer}, Normal: {n_samples_normal})',
-               ha='center', va='center', fontsize=11, bbox=box_style)
+               ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
 
-        # Arrow down
-        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.3, head_length=0.2,
-                fc='black', ec='black', linewidth=2)
+        # ENHANCED: Thicker arrows (3px instead of 2px), larger arrowheads
+        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.4, head_length=0.3,
+                fc='black', ec='black', linewidth=3)
 
         # 2. Data Integration
+        # ENHANCED: Larger font (15pt instead of 11pt)
         y_pos = 16
         ax.text(5, y_pos, f'Data Integration\n{n_glycopeptides_raw} Unique Glycopeptides\n'
                f'Peptide-Glycan Composition Matching',
-               ha='center', va='center', fontsize=11, bbox=box_style)
+               ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
 
-        # Arrow down
-        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.3, head_length=0.2,
-                fc='black', ec='black', linewidth=2)
+        # ENHANCED: Thicker arrow
+        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.4, head_length=0.3,
+                fc='black', ec='black', linewidth=3)
 
         # 3. Quality Control Filtering
+        # ENHANCED: Larger font (15pt instead of 11pt)
         y_pos = 14
         ax.text(5, y_pos, f'Detection Frequency Filter\n≥30% detection in at least one group',
-               ha='center', va='center', fontsize=11, bbox=box_style)
+               ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
 
         # Exclusion box (right side)
+        # ENHANCED: Larger font (14pt instead of 10pt)
         n_excluded = n_glycopeptides_raw - n_glycopeptides_filtered
         pct_excluded = (n_excluded / n_glycopeptides_raw * 100)
         ax.text(8.5, y_pos, f'Excluded\n{n_excluded} glycopeptides\n({pct_excluded:.1f}%)\n'
                f'Low detection frequency',
-               ha='center', va='center', fontsize=10, bbox=exclude_style)
+               ha='center', va='center', fontsize=14, bbox=exclude_style, fontweight='bold')
 
-        # Arrow to exclusion
-        ax.arrow(6.2, y_pos, 1.5, 0, head_width=0.2, head_length=0.2,
-                fc='red', ec='red', linewidth=1.5, linestyle='--')
+        # ENHANCED: Thicker exclusion arrow (3px instead of 1.5px)
+        ax.arrow(6.2, y_pos, 1.5, 0, head_width=0.3, head_length=0.3,
+                fc='red', ec='red', linewidth=3, linestyle='--')
 
-        # Arrow down (continued flow)
-        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.3, head_length=0.2,
-                fc='black', ec='black', linewidth=2)
+        # ENHANCED: Thicker arrow down
+        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.4, head_length=0.3,
+                fc='black', ec='black', linewidth=3)
 
         # 4. Final Dataset
+        # ENHANCED: Larger font (16pt instead of 11pt) - This is a key milestone
         y_pos = 12
         ax.text(5, y_pos, f'Filtered Dataset\n{n_glycopeptides_filtered} Glycopeptides\n'
                f'{n_samples_cancer + n_samples_normal} Samples\n'
                f'Ready for Statistical Analysis',
-               ha='center', va='center', fontsize=11, bbox=box_style,
+               ha='center', va='center', fontsize=16, bbox=box_style,
                fontweight='bold')
 
-        # Three-way split for analyses
-        ax.arrow(5, y_pos-0.8, -2, -1.2, head_width=0.2, head_length=0.2,
-                fc='black', ec='black', linewidth=1.5)
-        ax.arrow(5, y_pos-0.8, 0, -1.5, head_width=0.2, head_length=0.2,
-                fc='black', ec='black', linewidth=1.5)
-        ax.arrow(5, y_pos-0.8, 2, -1.2, head_width=0.2, head_length=0.2,
-                fc='black', ec='black', linewidth=1.5)
+        # ENHANCED: Thicker three-way split arrows (3px instead of 1.5px)
+        ax.arrow(5, y_pos-0.8, -2, -1.2, head_width=0.3, head_length=0.3,
+                fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos-0.8, 0, -1.5, head_width=0.3, head_length=0.3,
+                fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos-0.8, 2, -1.2, head_width=0.3, head_length=0.3,
+                fc='black', ec='black', linewidth=3)
 
         # 5. Analysis Branches
+        # ENHANCED: Larger font (14pt instead of 10pt)
         y_pos = 9
 
         # Branch 1: PCA/PLS-DA
         ax.text(2.5, y_pos, f'Multivariate Analysis\nPCA + PLS-DA\n'
                f'{n_glycopeptides_filtered} features analyzed',
-               ha='center', va='center', fontsize=10, bbox=analysis_style)
+               ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
 
         # Branch 2: Biomarker Validation
         ax.text(5, y_pos, f'Biomarker Validation\nBootstrap (1000 iter)\n'
                f'{n_stable_biomarkers} stable biomarkers',
-               ha='center', va='center', fontsize=10, bbox=analysis_style)
+               ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
 
         # Branch 3: Differential Expression
         ax.text(7.5, y_pos, f'Differential Expression\nMann-Whitney + FDR\n'
                f'{n_significant} significant (FDR<0.05)',
-               ha='center', va='center', fontsize=10, bbox=analysis_style)
+               ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
 
         # Final outputs
+        # ENHANCED: Larger font (16pt instead of 13pt)
         y_pos = 6.5
         ax.text(5, y_pos, 'Outputs',
-               ha='center', va='center', fontsize=13, fontweight='bold')
+               ha='center', va='center', fontsize=16, fontweight='bold')
 
+        # ENHANCED: Larger font for outputs (13pt instead of 10pt)
         y_pos = 5.5
         outputs = [
             '• 39 Publication-quality visualizations (300 DPI)',
@@ -495,17 +506,18 @@ class FlowchartGenerator:
         ]
         for i, output in enumerate(outputs):
             ax.text(5, y_pos - i*0.6, output,
-                   ha='center', va='center', fontsize=10)
+                   ha='center', va='center', fontsize=13, fontweight='bold')
 
-        # Legend
+        # ENHANCED: Larger legend (14pt instead of 10pt) with thicker borders
         y_pos = 2
         legend_elements = [
-            mpatches.Patch(facecolor='lightblue', edgecolor='black', label='Data Processing'),
-            mpatches.Patch(facecolor='lightcoral', edgecolor='black', label='Exclusion'),
-            mpatches.Patch(facecolor='lightgreen', edgecolor='black', label='Analysis')
+            mpatches.Patch(facecolor='#87CEEB', edgecolor='black', linewidth=3, label='Data Processing'),
+            mpatches.Patch(facecolor='#FF6B6B', edgecolor='black', linewidth=3, label='Exclusion'),
+            mpatches.Patch(facecolor='#90EE90', edgecolor='black', linewidth=3, label='Analysis')
         ]
         ax.legend(handles=legend_elements, loc='lower center', ncol=3,
-                 fontsize=10, frameon=True, bbox_to_anchor=(0.5, -0.05))
+                 fontsize=14, frameon=True, bbox_to_anchor=(0.5, -0.05),
+                 edgecolor='black', fancybox=False, shadow=False, framealpha=1.0)
 
         plt.tight_layout()
         plt.savefig(output_file, dpi=300, bbox_inches='tight')
