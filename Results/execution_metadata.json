@@ -1,0 +1,40 @@
+{
+  "execution": {
+    "execution_id": "20251006_025230_seoljonghyeon_seoljonghyeons-MacBook-Pro.local",
+    "start_timestamp": "2025-10-06T02:52:30.154338+00:00",
+    "start_timestamp_local": "2025-10-06T11:52:30.154338+09:00"
+  },
+  "user": {
+    "system_username": "seoljonghyeon",
+    "researcher_id": "not specified"
+  },
+  "system": {
+    "hostname": "seoljonghyeons-MacBook-Pro.local",
+    "platform": "Darwin",
+    "platform_release": "25.0.0",
+    "platform_version": "Darwin Kernel Version 25.0.0: Wed Sep 17 21:41:39 PDT 2025; root:xnu-12377.1.9~141/RELEASE_ARM64_T8103",
+    "machine": "arm64"
+  },
+  "python": {
+    "version": "3.13.7",
+    "implementation": "CPython",
+    "full_version": "3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]"
+  },
+  "git": {
+    "commit_hash": "39e7a388",
+    "branch": "main",
+    "has_uncommitted_changes": true
+  },
+  "pipeline": {
+    "version": "v3.0.0-4-g39e7a38"
+  },
+  "packages": {
+    "pandas": "2.3.3",
+    "numpy": "2.3.3",
+    "scipy": "1.16.2",
+    "scikit-learn": "1.7.2",
+    "matplotlib": "3.10.6",
+    "seaborn": "0.13.2",
+    "statsmodels": "0.14.5"
+  }
+}

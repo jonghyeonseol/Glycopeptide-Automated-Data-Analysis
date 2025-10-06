@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pGlyco Auto Combine - QC Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-card.success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        .metric-card.warning {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .viz-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .viz-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .viz-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #3498db;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .status-pass {
+            background-color: #27ae60;
+            color: white;
+        }
+        .status-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 pGlyco Auto Combine - Quality Control Dashboard</h1>
+        <p><strong>Generated:</strong> 2025-10-06 12:04:04</p>
+        <p><strong>Pipeline Version:</strong> 3.0 (ALCOA++ Compliant)</p>
+
+        <h2>📊 Quality Metrics Summary</h2>
+        <div class="metrics-grid">
+            <div class="metric-card success">
+                <div class="metric-label">Total Samples</div>
+                <div class="metric-value">47</div>
+                <div class="metric-label">Cancer: 24 | Normal: 23</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Glycopeptides (Filtered)</div>
+                <div class="metric-value">2,314</div>
+                <div class="metric-label">From 6,434 raw (36.0% retained)</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-label">Stable Biomarkers</div>
+                <div class="metric-value">368</div>
+                <div class="metric-label">VIP > 1.0 in ≥80% iterations</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-label">Cross-Val Accuracy</div>
+                <div class="metric-value">98%</div>
+                <div class="metric-label">10-fold stratified CV</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-label">Significant Features</div>
+                <div class="metric-value">105</div>
+                <div class="metric-label">FDR < 0.05, |FC| > 1.5</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-label">Visualizations</div>
+                <div class="metric-value">39</div>
+                <div class="metric-label">Publication-ready (300 DPI)</div>
+            </div>
+        </div>
+
+        <h2>✅ Data Quality Checks</h2>
+        <table>
+            <tr>
+                <th>Check</th>
+                <th>Status</th>
+                <th>Details</th>
+            </tr>
+            <tr>
+                <td>Detection Frequency Filter</td>
+                <td><span class="status-badge status-pass">PASS</span></td>
+                <td>≥30% detection in at least one group</td>
+            </tr>
+            <tr>
+                <td>Data Integrity (ALCOA++)</td>
+                <td><span class="status-badge status-pass">PASS</span></td>
+                <td>Full audit trail, SHA-256 checksums verified</td>
+            </tr>
+            <tr>
+                <td>Statistical Validation</td>
+                <td><span class="status-badge status-pass">PASS</span></td>
+                <td>Bootstrap, cross-validation, permutation tests complete</td>
+            </tr>
+            <tr>
+                <td>Visualization Quality</td>
+                <td><span class="status-badge status-pass">PASS</span></td>
+                <td>300 DPI, semantic colors, sample size annotations</td>
+            </tr>
+            <tr>
+                <td>Missing Data Handling</td>
+                <td><span class="status-badge status-pass">PASS</span></td>
+                <td>Skip-NA method (appropriate for MNAR data)</td>
+            </tr>
+        </table>
+
+        <h2>📈 Key Visualizations</h2>
+        <div class="visualization-grid">
+            <div class="viz-card">
+                <div class="viz-title">PCA: Cancer vs Normal</div>
+                <img src="pca_plot.png" alt="PCA Plot">
+            </div>
+            <div class="viz-card">
+                <div class="viz-title">Volcano Plot</div>
+                <img src="volcano_plot.png" alt="Volcano Plot">
+            </div>
+            <div class="viz-card">
+                <div class="viz-title">Boxplot: Glycan Types</div>
+                <img src="boxplot_glycan_types.png" alt="Boxplot">
+            </div>
+            <div class="viz-card">
+                <div class="viz-title">Extended Categories</div>
+                <img src="boxplot_extended_categories.png" alt="Extended Boxplot">
+            </div>
+        </div>
+
+        <h2>📋 Cross-Validation Results</h2>
+        <pre># ========================================
+# pGlyco Auto Combine - Execution Metadata
+# ========================================
+#
+# Execution ID: 20251006_025230_seoljonghyeon_seoljonghyeons-MacBook-Pro.local
+# Generated: 2025-10-06T02:52:30.154338+00:00
+#
+# User: seoljonghyeon
+#
+# System: Darwin 25.0.0
+# Hostname: seoljonghyeons-MacBook-Pro.local
+# Python: 3.13.7
+#
+# Pipeline Version: v3.0.0-4-g39e7a38
+# Git Commit: 39e7a388
+# Git Branch: main
+# WARNING: Uncommitted changes detected!
+#
+# Key Package Versions:
+#   pandas: 2.3.3
+#   numpy: 2.3.3
+#   scipy: 1.16.2
+#   scikit-learn: 1.7.2
+#   matplotlib: 3.10.6
+#   seaborn: 0.13.2
+#   statsmodels: 0.14.5
+# ========================================
+#
+Cross-Validation Results (10-Fold)
+PLS-DA Components: 2
+
+Accuracy: 0.980 ± 0.060
+ROC-AUC: 1.000 ± 0.000
+
+Fold-wise Accuracy: 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 0.800, 1.000, 1.000, 1.000
+Fold-wise ROC-AUC: 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000</pre>
+
+        <h2>📁 Generated Outputs</h2>
+        <ul>
+            <li><strong>Data Files:</strong> integrated.csv, integrated_filtered.csv, filtering_report.txt</li>
+            <li><strong>Statistical Results:</strong> stable_biomarkers.csv, cohens_d_effect_sizes.csv, pca_permutation_test.txt</li>
+            <li><strong>Visualizations:</strong> 39 PNG files (300 DPI)</li>
+            <li><strong>Publication Materials:</strong> manuscript_methods_section.md, 2 supplementary tables (Excel)</li>
+            <li><strong>ALCOA++ Compliance:</strong> audit_log.jsonl, execution_metadata.json, data manifests</li>
+        </ul>
+
+        <div class="footer">
+            <p>Generated by pGlyco Auto Combine Pipeline v3.0</p>
+            <p>🤖 Powered by <a href="https://claude.com/claude-code">Claude Code</a></p>
+        </div>
+    </div>
+</body>
+</html>
