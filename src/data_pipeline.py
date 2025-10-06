@@ -20,6 +20,7 @@ from .data_preparation import (
     filter_by_detection_frequency,
     get_sample_columns
 )
+from .metadata_collector import get_metadata_collector
 
 logger = logging.getLogger(__name__)
 
@@ -220,7 +221,7 @@ class DataPipeline:
                      raw_filename: str = 'integrated.csv',
                      filtered_filename: str = 'integrated_filtered.csv'):
         """
-        Save both raw and filtered datasets
+        Save both raw and filtered datasets with ALCOA++ metadata headers
 
         Args:
             df_raw: Raw unfiltered dataset
@@ -232,19 +233,43 @@ class DataPipeline:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save raw dataset
+        # Get metadata collector
+        metadata_collector = get_metadata_collector()
+
+        # Save raw dataset with metadata header
         raw_path = output_dir / raw_filename
-        df_raw.to_csv(raw_path, index=False)
+        with open(raw_path, 'w') as f:
+            # Write metadata header
+            f.write(metadata_collector.get_metadata_header_lines())
+            f.write(f"# Dataset: RAW (Unfiltered)\n")
+            f.write(f"# Glycopeptides: {len(df_raw)}\n")
+            f.write(f"# Description: Complete integrated dataset before filtering\n")
+            f.write("#\n")
+            # Write DataFrame
+            df_raw.to_csv(f, index=False)
         logger.info(f"Saved raw dataset: {raw_path} ({len(df_raw)} glycopeptides)")
 
-        # Save filtered dataset
+        # Save filtered dataset with metadata header
         filtered_path = output_dir / filtered_filename
-        df_filtered.to_csv(filtered_path, index=False)
+        with open(filtered_path, 'w') as f:
+            # Write metadata header
+            f.write(metadata_collector.get_metadata_header_lines())
+            f.write(f"# Dataset: FILTERED (Used in all analyses)\n")
+            f.write(f"# Glycopeptides: {len(df_filtered)}\n")
+            f.write(f"# Filter: ≥{self.config.min_detection_pct*100:.0f}% detection in at least one group\n")
+            f.write(f"# Description: Quality-controlled dataset used in ALL downstream analyses\n")
+            f.write("#\n")
+            # Write DataFrame
+            df_filtered.to_csv(f, index=False)
         logger.info(f"Saved filtered dataset: {filtered_path} ({len(df_filtered)} glycopeptides)")
 
-        # Save filtering report
+        # Save filtering report with metadata
         report_path = output_dir / 'filtering_report.txt'
         with open(report_path, 'w') as f:
+            # Write metadata header
+            f.write(metadata_collector.get_metadata_header_lines())
+            f.write("\n")
+            # Write filtering report
             f.write(self.get_filtering_report())
         logger.info(f"Saved filtering report: {report_path}")
 

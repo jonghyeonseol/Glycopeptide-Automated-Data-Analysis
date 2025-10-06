@@ -2,11 +2,16 @@
 """
 pGlyco Auto Combine - Main Pipeline
 Automated glycoproteomics data integration and analysis
+
+ALCOA++ Compliance: This pipeline implements regulatory-grade data integrity
+with full audit trails, metadata collection, and data verification.
 """
 
 import sys
 from pathlib import Path
 from typing import Dict, Any
+import numpy as np
+import pandas as pd
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
@@ -28,22 +33,52 @@ from src.constants import (
 from src.data_preparation import get_standard_config_from_dict
 from src.data_pipeline import DataPipeline
 
+# ALCOA++ Compliance modules
+from src.metadata_collector import get_metadata_collector
+from src.audit_logger import get_audit_logger, EventType
+from src.data_integrity import DataIntegrityManager
+
 # Setup logging (single configuration for entire application)
 setup_logging()
 logger = get_logger(__name__)
 
 
 def main():
-    """Main pipeline execution"""
+    """Main pipeline execution with ALCOA++ compliance"""
     logger.info("="*80)
     logger.info("pGlyco Auto Combine - Glycoproteomics Data Analysis Pipeline")
+    logger.info("ALCOA++ Compliant: Full audit trail and data integrity verification")
     logger.info("="*80)
 
+    # Initialize ALCOA++ compliance systems
+    metadata_collector = get_metadata_collector()
+    audit_logger = get_audit_logger()
+    data_integrity = DataIntegrityManager()
+
+    # Optional: Set researcher ID from environment variable or config
+    import os
+    researcher_id = os.environ.get('PGLYCO_RESEARCHER_ID')
+    if researcher_id:
+        metadata_collector.set_researcher_id(researcher_id)
+        logger.info(f"Researcher ID: {researcher_id}")
+
     # Load and validate configuration
-    logger.info("\n[1/6] Loading and validating configuration...")
+    logger.info("\n[1/7] Loading and validating configuration...")
     try:
         config = load_and_validate_config('config.yaml')
         logger.info("Configuration validated successfully")
+
+        # Initialize audit log in results directory
+        results_dir_path = Path(config['paths']['results_dir'])
+        results_dir_path.mkdir(parents=True, exist_ok=True)
+        audit_logger.initialize(results_dir_path)
+
+        # Log configuration loaded event
+        audit_logger.log_event(
+            EventType.CONFIG_LOADED,
+            "Configuration loaded and validated",
+            data={'config_file': 'config.yaml'}
+        )
 
         # Create standardized data preparation config
         data_prep_config = get_standard_config_from_dict(config)
@@ -61,7 +96,12 @@ def main():
     output_file = Path(results_dir) / config['paths']['output_file']
 
     # Step 1: Load and integrate data
-    logger.info("\n[2/6] Loading and integrating CSV files...")
+    logger.info("\n[2/7] Loading and integrating CSV files...")
+    audit_logger.log_event(
+        EventType.DATA_LOAD_START,
+        f"Starting data loading from {dataset_dir}"
+    )
+
     loader = DataLoader(
         dataset_dir=dataset_dir,
         required_columns=config['processing']['required_columns']
@@ -74,8 +114,24 @@ def main():
     logger.info(f"Integrated data shape: {integrated_data.shape}")
     logger.info(f"Columns: {list(integrated_data.columns)}")
 
+    # Log data integration
+    n_samples = len([col for col in integrated_data.columns if col.startswith(('C', 'N'))])
+    audit_logger.log_data_integration(
+        n_files=len(list(Path(dataset_dir).glob('*.csv'))),
+        n_glycopeptides=len(integrated_data),
+        n_samples=n_samples
+    )
+
+    # Create input data integrity manifest
+    logger.info("\nCreating input data integrity manifest...")
+    input_manifest_path = Path(results_dir) / 'input_data_manifest.json'
+    data_integrity.create_input_manifest(
+        dataset_dir=Path(dataset_dir),
+        output_path=input_manifest_path
+    )
+
     # Step 2: Annotate data
-    logger.info("\n[3/6] Annotating glycan compositions...")
+    logger.info("\n[3/7] Annotating glycan compositions...")
     annotator = GlycanAnnotator(
         sialylation_marker=config['annotation']['sialylation_marker'],
         fucosylation_marker=config['annotation']['fucosylation_marker']
@@ -83,8 +139,19 @@ def main():
 
     annotated_data_raw = annotator.annotate_dataframe(integrated_data)
 
+    # Log annotation statistics
+    annotation_stats = {
+        'sialylated': int(annotated_data_raw['IsSialylated'].sum()),
+        'fucosylated': int(annotated_data_raw['IsFucosylated'].sum()),
+        'glycan_types': annotated_data_raw['GlycanType'].value_counts().to_dict()
+    }
+    audit_logger.log_annotation(
+        n_glycopeptides=len(annotated_data_raw),
+        annotation_stats=annotation_stats
+    )
+
     # Step 3: Apply detection filter (SINGLE SOURCE OF TRUTH)
-    logger.info("\n[3.5/6] Applying detection filter via DataPipeline...")
+    logger.info("\n[4/7] Applying detection filter via DataPipeline...")
     logger.info("CRITICAL: This ensures ALL visualizations use the same filtered dataset")
 
     pipeline = DataPipeline(data_prep_config)
@@ -92,6 +159,21 @@ def main():
 
     # Validate filtering
     pipeline.validate_filtering(annotated_data_raw, annotated_data)
+
+    # Log filtering to audit trail (CRITICAL for ALCOA++)
+    n_removed = len(annotated_data_raw) - len(annotated_data)
+    pct_removed = n_removed / len(annotated_data_raw) * 100 if len(annotated_data_raw) > 0 else 0
+    audit_logger.log_filtering(
+        n_before=len(annotated_data_raw),
+        n_after=len(annotated_data),
+        n_removed=n_removed,
+        pct_removed=pct_removed,
+        filter_criteria={
+            'min_detection_pct': data_prep_config.min_detection_pct,
+            'min_samples': data_prep_config.min_samples,
+            'method': 'detection_frequency_30pct_OR_5samples'
+        }
+    )
 
     # Prepare clean datasets for output
     sample_columns = [col for col in annotated_data.columns
@@ -123,8 +205,8 @@ def main():
     normal_samples = [col for col in annotated_data.columns if col.startswith('N') and col[1:].isdigit()]
     validate_statistical_power(cancer_samples, normal_samples, min_n=5)
 
-    # Step 3: Perform statistical analysis
-    logger.info("\n[4/6] Performing statistical analysis...")
+    # Step 4: Perform statistical analysis
+    logger.info("\n[5/7] Performing statistical analysis...")
     analyzer = GlycanAnalyzer(
         n_components=config['analysis']['pca']['n_components'],
         log_transform=config['analysis']['pca']['log_transform']
@@ -133,6 +215,12 @@ def main():
     # PCA analysis
     logger.info("Running PCA...")
     pca_results = analyzer.perform_pca(annotated_data)
+
+    # Log PCA to audit trail
+    audit_logger.log_pca(
+        n_components=config['analysis']['pca']['n_components'],
+        variance_explained=pca_results['explained_variance'].tolist()
+    )
 
     # Calculate statistics by glycan type
     logger.info("Calculating statistics by glycan type...")
@@ -154,17 +242,166 @@ def main():
     logger.info("Performing PLS-DA analysis...")
     plsda_results = analyzer.perform_plsda(annotated_data, n_components=2)
 
+    # Log PLS-DA to audit trail
+    audit_logger.log_plsda(
+        n_components=2,
+        n_features=len(annotated_data)
+    )
+
     # Get VIP scores for summary report (TOP 10 only)
     logger.info("Calculating VIP scores...")
     vip_glycopeptide = analyzer.get_top_vip_by_glycopeptide(annotated_data, plsda_results, top_n=10)
+
+    # Log VIP scores to audit trail
+    audit_logger.log_vip_scores(
+        n_glycopeptides=len(plsda_results['vip_scores']),
+        vip_threshold=1.0
+    )
 
     # Save all VIP scores
     vip_file = Path(results_dir) / 'vip_scores_all.csv'
     plsda_results['vip_scores'].to_csv(vip_file, index=False)
     logger.info(f"Saved all VIP scores to {vip_file}")
 
-    # Step 4: Create visualizations
-    logger.info("\n[5/6] Creating visualizations...")
+    # ==========================================================================
+    # PHASE 2: PUBLICATION-QUALITY STATISTICAL VALIDATION
+    # ==========================================================================
+    logger.info("\n[PHASE 2] Running publication-quality statistical validation...")
+    logger.info("="*80)
+
+    from src.statistical_validation import StatisticalValidator
+    validator = StatisticalValidator(random_state=42)
+
+    # Get intensity matrix and labels for validation
+    intensity_matrix, sample_names, feature_info = analyzer.prepare_intensity_matrix(annotated_data)
+    from src.utils import get_sample_group
+    from src.constants import GROUP_CANCER
+    y_labels = np.array([1 if get_sample_group(name) == GROUP_CANCER else 0 for name in sample_names])
+    feature_names = [f"{feat[0]}_{feat[1]}" for feat in feature_info]
+
+    # 1. Bootstrap VIP Validation (1000 iterations)
+    logger.info("\n1. Bootstrap VIP Validation (1000 iterations)...")
+    bootstrap_results = validator.bootstrap_vip_validation(
+        X=intensity_matrix.values,
+        y=y_labels,
+        feature_names=feature_names,
+        n_iterations=1000,
+        n_components=2,
+        confidence_level=0.95
+    )
+
+    # Save bootstrap results
+    bootstrap_file = Path(results_dir) / 'vip_bootstrap_validation.csv'
+    bootstrap_df = pd.DataFrame({
+        'Peptide': [name.split('_')[0] for name in feature_names],
+        'GlycanComposition': [name.split('_')[1] for name in feature_names],
+        'VIP_Mean': bootstrap_results.vip_mean,
+        'VIP_Std': bootstrap_results.vip_std,
+        'VIP_CI_Lower': bootstrap_results.vip_ci_lower,
+        'VIP_CI_Upper': bootstrap_results.vip_ci_upper,
+        'Stability_Score': bootstrap_results.stability_score
+    })
+    bootstrap_df.to_csv(bootstrap_file, index=False)
+    logger.info(f"✓ Bootstrap validation saved to {bootstrap_file}")
+
+    # Get stable biomarkers (80% stability threshold)
+    stable_biomarkers = bootstrap_results.get_stable_biomarkers(
+        stability_threshold=0.8,
+        vip_threshold=1.0
+    )
+    stable_file = Path(results_dir) / 'stable_biomarkers.csv'
+    stable_biomarkers.to_csv(stable_file, index=False)
+    logger.info(f"✓ Found {len(stable_biomarkers)} stable biomarkers (saved to {stable_file})")
+
+    # 2. PLS-DA Cross-Validation (10-fold)
+    logger.info("\n2. PLS-DA Cross-Validation (10-fold)...")
+    cv_results = validator.cross_validate_plsda(
+        X=intensity_matrix.values,
+        y=y_labels,
+        n_components=2,
+        n_folds=10
+    )
+
+    # Save CV results
+    cv_file = Path(results_dir) / 'plsda_cross_validation.txt'
+    with open(cv_file, 'w') as f:
+        f.write(metadata_collector.get_metadata_header_lines())
+        f.write("\n")
+        f.write(cv_results.summary())
+    logger.info(f"✓ Cross-validation saved to {cv_file}")
+
+    # 3. Cohen's d Effect Size Calculations
+    logger.info("\n3. Cohen's d Effect Size Calculations...")
+    cancer_samples = [col for col in annotated_data.columns if col.startswith('C') and col[1:].isdigit()]
+    normal_samples = [col for col in annotated_data.columns if col.startswith('N') and col[1:].isdigit()]
+
+    cancer_matrix = intensity_matrix.loc[cancer_samples].values
+    normal_matrix = intensity_matrix.loc[normal_samples].values
+
+    effect_size_results = validator.calculate_cohens_d(
+        group1=cancer_matrix,
+        group2=normal_matrix,
+        feature_names=feature_names
+    )
+
+    # Save effect sizes
+    effect_size_file = Path(results_dir) / 'cohens_d_effect_sizes.csv'
+    effect_size_df = pd.DataFrame({
+        'Peptide': [name.split('_')[0] for name in feature_names],
+        'GlycanComposition': [name.split('_')[1] for name in feature_names],
+        'Cohens_d': effect_size_results.cohens_d,
+        'Effect_Magnitude': effect_size_results.effect_magnitude,
+        'Cancer_Mean': effect_size_results.group1_mean,
+        'Normal_Mean': effect_size_results.group2_mean,
+        'Pooled_Std': effect_size_results.pooled_std
+    })
+    effect_size_df.to_csv(effect_size_file, index=False)
+    logger.info(f"✓ Effect sizes saved to {effect_size_file}")
+
+    # Get large effect sizes (|d| >= 0.8)
+    large_effects = effect_size_results.get_large_effects(threshold=0.8)
+    large_effects_file = Path(results_dir) / 'large_effect_sizes.csv'
+    large_effects.to_csv(large_effects_file, index=False)
+    logger.info(f"✓ Found {len(large_effects)} features with large effect sizes")
+
+    # 4. PCA Permutation Test (1000 permutations)
+    logger.info("\n4. PCA Permutation Test (1000 permutations)...")
+    pca_perm_results = validator.permutation_test_pca(
+        X=intensity_matrix.values,
+        y=y_labels,
+        n_permutations=1000
+    )
+
+    # Save permutation test results
+    perm_file = Path(results_dir) / 'pca_permutation_test.txt'
+    with open(perm_file, 'w') as f:
+        f.write(metadata_collector.get_metadata_header_lines())
+        f.write("\n")
+        f.write("PCA Permutation Test Results\n")
+        f.write("="*80 + "\n\n")
+        f.write(f"Observed Separation: {pca_perm_results.observed_statistic:.4f}\n")
+        f.write(f"P-value: {pca_perm_results.p_value:.4f}\n")
+        f.write(f"Number of Permutations: {pca_perm_results.n_permutations}\n\n")
+        if pca_perm_results.is_significant(alpha=0.05):
+            f.write("✓ Result: SIGNIFICANT (p < 0.05)\n")
+            f.write("The observed group separation in PCA space is significantly\n")
+            f.write("greater than expected by chance.\n")
+        else:
+            f.write("✗ Result: NOT SIGNIFICANT (p >= 0.05)\n")
+            f.write("The observed group separation could be due to chance.\n")
+    logger.info(f"✓ Permutation test saved to {perm_file}")
+
+    logger.info("\n" + "="*80)
+    logger.info("PHASE 2 Statistical Validation Complete!")
+    logger.info("="*80)
+
+    # Step 5: Create visualizations
+    logger.info("\n[6/7] Creating visualizations...")
+    audit_logger.log_event(
+        EventType.VISUALIZATION_START,
+        "Starting visualization generation"
+    )
+
     visualizer = GlycanVisualizer(
         output_dir=results_dir,
         dpi=config['visualization']['dpi'],
@@ -241,11 +478,20 @@ def main():
             max_glycans_per_type=config['visualization']['glycopeptide_comparison']['max_glycans_per_type']
         )
 
-    # Step 5: Summary report
-    logger.info("\n[6/6] Generating summary report...")
+    # Mark visualizations complete
+    audit_logger.log_event(
+        EventType.VISUALIZATION_COMPLETE,
+        "All visualizations generated successfully"
+    )
+
+    # Step 6: Summary report
+    logger.info("\n[7/7] Generating summary report...")
 
     summary_file = Path(results_dir) / 'analysis_summary.txt'
     with open(summary_file, 'w') as f:
+        # Add metadata header
+        f.write(metadata_collector.get_metadata_header_lines())
+        f.write("\n")
         f.write("="*80 + "\n")
         f.write("pGlyco Auto Combine - Analysis Summary\n")
         f.write("="*80 + "\n\n")
@@ -348,8 +594,37 @@ def main():
 
     logger.info(f"Saved summary report to {summary_file}")
 
+    # Create output data integrity manifest
+    logger.info("\nCreating output data integrity manifest...")
+    output_manifest_path = Path(results_dir) / 'output_data_manifest.json'
+    data_integrity.create_output_manifest(
+        results_dir=Path(results_dir),
+        output_path=output_manifest_path
+    )
+
+    # Save execution metadata
+    logger.info("Saving execution metadata...")
+    metadata_file = Path(results_dir) / 'execution_metadata.json'
+    metadata_collector.save_metadata_json(metadata_file)
+
+    # Finalize audit log
+    logger.info("Finalizing audit trail...")
+    audit_logger.finalize()
+
+    # Print audit summary
+    audit_summary = audit_logger.get_audit_summary()
+    logger.info(f"\nAudit Trail Summary:")
+    logger.info(f"  Total events recorded: {audit_summary['total_events']}")
+    logger.info(f"  Audit log: {audit_summary['audit_file']}")
+
     logger.info("\n" + "="*80)
-    logger.info("Pipeline completed successfully!")
+    logger.info("Pipeline completed successfully with ALCOA++ compliance!")
+    logger.info("="*80)
+    logger.info("\nALCOA++ Compliance Outputs:")
+    logger.info(f"  - Audit log: {audit_summary['audit_file']}")
+    logger.info(f"  - Execution metadata: {metadata_file}")
+    logger.info(f"  - Input manifest: {input_manifest_path}")
+    logger.info(f"  - Output manifest: {output_manifest_path}")
     logger.info("="*80 + "\n")
 
     print("\n" + "="*80)
