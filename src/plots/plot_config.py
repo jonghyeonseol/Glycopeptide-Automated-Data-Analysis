@@ -150,18 +150,33 @@ HISTOGRAM_X_HA = 'right'
 HISTOGRAM_BAR_EDGEWIDTH = 1.0  # Thicker bar edges
 
 # ==============================================================================
-# VIP Score Plots (R/ggplot2) - MAXIMUM VISIBILITY
+# VIP Score Plots (R/ggplot2) - METABOANALYST STYLE
+# Clean, publication-ready design inspired by MetaboAnalyst
 # ==============================================================================
-VIP_FEATURE_NAME_SIZE = 5.0  # R ggplot2 units - Balanced size for full-length labels
-VIP_POINT_SIZE_MIN = 8       # Minimum point size (scaled by VIP)
-VIP_POINT_SIZE_MAX = 14      # Maximum point size (very prominent)
-VIP_POINT_STROKE = 3.5       # Very thick stroke for definition
-VIP_HEATMAP_WIDTH = 0.30     # Extra wide tiles - easy to distinguish
-VIP_HEATMAP_HEIGHT = 0.95    # Full height
-VIP_GROUP_LABEL_SIZE = 6.5   # Large bold group labels (Cancer/Normal)
-VIP_FIGURE_WIDTH = 20  # Reduced for API 2000px limit
-VIP_FIGURE_HEIGHT = 8        # Taller for better proportions
-VIP_LEFT_MARGIN_EXPAND = 0.3  # Extra space on left for labels outside box
+
+# Typography
+VIP_FEATURE_NAME_SIZE = 4.5  # R ggplot2 units - Clean, readable labels
+VIP_GROUP_LABEL_SIZE = 5.0   # Group labels (Cancer/Normal)
+
+# Dot styling - UNIFORM SIZE (MetaboAnalyst style)
+VIP_DOT_SIZE = 3.0           # Small, consistent size for all dots
+VIP_DOT_COLOR = '#0000FF'    # Blue dots (MetaboAnalyst reference)
+VIP_DOT_ALPHA = 1.0          # Fully opaque
+
+# Heatmap - TRUE SQUARES (Relative comparison with gradient scale)
+VIP_USE_GRADIENT = True                  # Use gradient (ready for multi-group expansion)
+VIP_HEATMAP_LOW_COLOR = '#0000FF'        # Blue (lower group)
+VIP_HEATMAP_MID_COLOR = '#FFFFFF'        # White (mid)
+VIP_HEATMAP_HIGH_COLOR = '#DC3912'       # Red (higher group)
+VIP_HEATMAP_SQUARE_SIZE = 0.4            # True square width (Option A: visible squares)
+VIP_HEATMAP_HEIGHT = 0.4                 # True square height (equal to width)
+VIP_HEATMAP_SPACING = 0.08               # Gap between Bottom/Top squares (more compact)
+VIP_HEATMAP_OFFSET = 0.08                # Distance from VIP max to first square (more compact)
+
+# Layout
+VIP_FIGURE_WIDTH = 12        # Wider for better label visibility
+VIP_FIGURE_HEIGHT = 8        # Standard height
+VIP_LEFT_MARGIN_EXPAND = 0.4 # Extra space for feature names
 
 # ==============================================================================
 # PCA Plot - PUBLICATION QUALITY

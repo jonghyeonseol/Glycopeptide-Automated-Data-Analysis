@@ -326,18 +326,27 @@ class BoxplotMixin:
 
             for idx, row in df.iterrows():
                 if row['PrimaryClassification'] in primary_categories:
-                    data_for_plot.append({
-                        'Sample': sample,
-                        'Group': group,
-                        'Classification': row['PrimaryClassification'],
-                        'Intensity': intensity_col.loc[idx]
-                    })
+                    intensity = intensity_col.loc[idx]
+                    # CRITICAL FIX: Filter out zeros to avoid detection bias
+                    # Only include detected values in the plot
+                    if intensity > 0:
+                        data_for_plot.append({
+                            'Sample': sample,
+                            'Group': group,
+                            'Classification': row['PrimaryClassification'],
+                            'Intensity': intensity
+                        })
 
         plot_df = pd.DataFrame(data_for_plot)
 
         # Apply aggregated normalization if needed
         if normalization == 'aggregated':
             plot_df['Intensity'] = np.log2(plot_df['Intensity'] + 1)
+
+        # CRITICAL FIX: Aggregate by Sample and Classification
+        # Without this, we plot ~108,000 individual glycopeptide measurements
+        # With this, we plot ~94 aggregated values (47 samples × 2 categories)
+        plot_df = plot_df.groupby(['Sample', 'Group', 'Classification'], as_index=False)['Intensity'].mean()
 
         fig, ax = plt.subplots(figsize=figsize)
 
@@ -411,18 +420,27 @@ class BoxplotMixin:
 
             for idx, row in df.iterrows():
                 if row['SecondaryClassification'] in secondary_categories:
-                    data_for_plot.append({
-                        'Sample': sample,
-                        'Group': group,
-                        'Classification': row['SecondaryClassification'],
-                        'Intensity': intensity_col.loc[idx]
-                    })
+                    intensity = intensity_col.loc[idx]
+                    # CRITICAL FIX: Filter out zeros to avoid detection bias
+                    # Only include detected values in the plot
+                    if intensity > 0:
+                        data_for_plot.append({
+                            'Sample': sample,
+                            'Group': group,
+                            'Classification': row['SecondaryClassification'],
+                            'Intensity': intensity
+                        })
 
         plot_df = pd.DataFrame(data_for_plot)
 
         # Apply aggregated normalization if needed
         if normalization == 'aggregated':
             plot_df['Intensity'] = np.log2(plot_df['Intensity'] + 1)
+
+        # CRITICAL FIX: Aggregate by Sample and Classification
+        # Without this, we plot ~108,000 individual glycopeptide measurements
+        # With this, we plot ~235 aggregated values (47 samples × 5 categories)
+        plot_df = plot_df.groupby(['Sample', 'Group', 'Classification'], as_index=False)['Intensity'].mean()
 
         fig, ax = plt.subplots(figsize=figsize)
 
@@ -506,21 +524,22 @@ class BoxplotMixin:
                 for sample in sample_cols:
                     group = 'Cancer' if sample.startswith('C') else 'Normal'
 
-                    # Use standardized statistics calculation
+                    # Calculate mean directly (for single sample column)
                     if len(subset_df) > 0:
-                        stats_result = calculate_group_statistics_standardized(
-                            subset_df, [sample], method=config.missing_data_method
-                        )
+                        values = pd.to_numeric(subset_df[sample], errors='coerce')
 
-                        mean_intensity = stats_result['mean'].iloc[0] if len(stats_result['mean']) > 0 else np.nan
-                        detection_rate = stats_result['detection_pct'].iloc[0] if len(stats_result['detection_pct']) > 0 else 0
+                        # Use skipna method: mean of non-zero values only
+                        valid_values = values[values > 0]
 
-                        # Apply QC filter if needed
-                        if apply_qc and detection_rate < 0.1:
-                            continue  # Skip this sample
+                        if len(valid_values) > 0:
+                            mean_intensity = valid_values.mean()
+                            detection_rate = len(valid_values) / len(values)
 
-                        # Only add if we have valid mean
-                        if not np.isnan(mean_intensity) and mean_intensity > 0:
+                            # Apply QC filter if needed
+                            if apply_qc and detection_rate < 0.1:
+                                continue  # Skip this sample
+
+                            # Add data point
                             data_for_plot.append({
                                 'Group': group,
                                 'Classification': classification,
@@ -583,6 +602,9 @@ class BoxplotMixin:
             plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
             logger.info(f"Saved primary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
 
+            # Save trace data
+            save_trace_data(plot_df, self.output_dir, f'boxplot_primary_cancer_vs_normal{suffix}_data.csv')
+
             plt.close()
 
     def plot_boxplot_cancer_vs_normal_secondary(self, df: pd.DataFrame, figsize: tuple = (12, 6)):
@@ -629,21 +651,22 @@ class BoxplotMixin:
                 for sample in sample_cols:
                     group = 'Cancer' if sample.startswith('C') else 'Normal'
 
-                    # Use standardized statistics calculation
+                    # Calculate mean directly (for single sample column)
                     if len(subset_df) > 0:
-                        stats_result = calculate_group_statistics_standardized(
-                            subset_df, [sample], method=config.missing_data_method
-                        )
+                        values = pd.to_numeric(subset_df[sample], errors='coerce')
 
-                        mean_intensity = stats_result['mean'].iloc[0] if len(stats_result['mean']) > 0 else np.nan
-                        detection_rate = stats_result['detection_pct'].iloc[0] if len(stats_result['detection_pct']) > 0 else 0
+                        # Use skipna method: mean of non-zero values only
+                        valid_values = values[values > 0]
 
-                        # Apply QC filter if needed
-                        if apply_qc and detection_rate < 0.1:
-                            continue  # Skip this sample
+                        if len(valid_values) > 0:
+                            mean_intensity = valid_values.mean()
+                            detection_rate = len(valid_values) / len(values)
 
-                        # Only add if we have valid mean
-                        if not np.isnan(mean_intensity) and mean_intensity > 0:
+                            # Apply QC filter if needed
+                            if apply_qc and detection_rate < 0.1:
+                                continue  # Skip this sample
+
+                            # Add data point
                             data_for_plot.append({
                                 'Group': group,
                                 'Classification': classification,
@@ -657,6 +680,17 @@ class BoxplotMixin:
                 continue
 
             plot_df = pd.DataFrame(data_for_plot)
+
+            # DEBUG: Log categories by group
+            logger.info(f"Secondary boxplot (QC={apply_qc}) - Categories by group:")
+            for group in ['Cancer', 'Normal']:
+                group_data = plot_df[plot_df['Group'] == group]
+                categories = group_data['Classification'].unique()
+                logger.info(f"  {group}: {sorted(categories)} ({len(group_data)} datapoints)")
+                for cat in secondary_categories:
+                    count = len(group_data[group_data['Classification'] == cat])
+                    if count == 0:
+                        logger.warning(f"    MISSING: {cat} has 0 samples in {group}!")
 
             fig, ax = plt.subplots(figsize=figsize)
 
@@ -705,5 +739,8 @@ class BoxplotMixin:
             output_file = self.output_dir / f'boxplot_secondary_cancer_vs_normal{suffix}.png'
             plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
             logger.info(f"Saved secondary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
+
+            # Save trace data
+            save_trace_data(plot_df, self.output_dir, f'boxplot_secondary_cancer_vs_normal{suffix}_data.csv')
 
             plt.close()

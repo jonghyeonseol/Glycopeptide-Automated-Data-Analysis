@@ -248,7 +248,10 @@ class GlycanAnalyzer:
         # Remove zero intensities for better visualization
         df_long = df_long[df_long['Intensity'] > 0]
 
-        logger.info(f"Boxplot data prepared: {len(df_long)} observations")
+        # Aggregate by Sample and GlycanType (mean of all glycopeptides within each category)
+        df_long = df_long.groupby(['Sample', 'GlycanType', 'Group'], as_index=False)['Intensity'].mean()
+
+        logger.info(f"Boxplot data prepared: {len(df_long)} aggregated observations")
 
         return df_long
 
@@ -304,7 +307,10 @@ class GlycanAnalyzer:
         # Remove zero intensities for better visualization
         df_long = df_long[df_long['Intensity'] > 0]
 
-        logger.info(f"Extended boxplot data prepared: {len(df_long)} observations")
+        # Aggregate by Sample and ExtendedCategory (mean of all glycopeptides within each category)
+        df_long = df_long.groupby(['Sample', 'ExtendedCategory', 'Group'], as_index=False)['Intensity'].mean()
+
+        logger.info(f"Extended boxplot data prepared: {len(df_long)} aggregated observations")
 
         return df_long
 

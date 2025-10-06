@@ -19,8 +19,9 @@ from ..data_preparation import (
     calculate_group_statistics_standardized
 )
 from .plot_config import (
-    VIP_FEATURE_NAME_SIZE, VIP_POINT_SIZE_MIN, VIP_POINT_SIZE_MAX,
-    VIP_POINT_STROKE, VIP_HEATMAP_WIDTH, VIP_HEATMAP_HEIGHT,
+    VIP_FEATURE_NAME_SIZE, VIP_DOT_SIZE, VIP_DOT_COLOR, VIP_DOT_ALPHA,
+    VIP_USE_GRADIENT, VIP_HEATMAP_LOW_COLOR, VIP_HEATMAP_MID_COLOR, VIP_HEATMAP_HIGH_COLOR,
+    VIP_HEATMAP_SQUARE_SIZE, VIP_HEATMAP_HEIGHT, VIP_HEATMAP_SPACING, VIP_HEATMAP_OFFSET,
     VIP_GROUP_LABEL_SIZE, VIP_FIGURE_WIDTH, VIP_FIGURE_HEIGHT,
     VIP_LEFT_MARGIN_EXPAND
 )
@@ -43,41 +44,52 @@ class VIPScorePlotRMixin:
             ylabel: Y-axis label
             output_file: Output file path
         """
-        # Prepare combined data
+        # Prepare combined data with BINARY COMPARISON (higher=1/RED, lower=0/BLUE)
         plot_data = vip_data.copy()
-        plot_data['Cancer_High'] = (heatmap_data['Cancer'] > heatmap_data['Normal']).astype(int)
-        plot_data['Normal_High'] = (heatmap_data['Normal'] > heatmap_data['Cancer']).astype(int)
+
+        # Binary comparison: which group has higher intensity for each feature?
+        # Extensible design: future can use continuous fold change values (0.0-1.0)
+        cancer_intensity = []
+        normal_intensity = []
+
+        for idx in range(len(heatmap_data)):
+            cancer_val = heatmap_data.iloc[idx]['Cancer']
+            normal_val = heatmap_data.iloc[idx]['Normal']
+
+            if cancer_val > normal_val:
+                cancer_intensity.append(1.0)  # Higher group = RED
+                normal_intensity.append(0.0)  # Lower group = BLUE
+            elif normal_val > cancer_val:
+                cancer_intensity.append(0.0)  # Lower group = BLUE
+                normal_intensity.append(1.0)  # Higher group = RED
+            else:  # Equal values
+                cancer_intensity.append(0.5)  # Neutral (white/mid color)
+                normal_intensity.append(0.5)
+
+        plot_data['Cancer_Intensity'] = cancer_intensity
+        plot_data['Normal_Intensity'] = normal_intensity
 
         # Reverse order for plotting (top to bottom)
         plot_data = plot_data.iloc[::-1].reset_index(drop=True)
-        plot_data['y_pos'] = range(len(plot_data))
+        # Option B: Compact spacing - 0.5 units between rows (true squares with minimal gaps)
+        plot_data['y_pos'] = [i * 0.5 for i in range(len(plot_data))]
 
-        # Create R script for plotting
+        # Create R script for plotting - MetaboAnalyst style
         r_script = f"""
         library(ggplot2)
         library(grid)
 
-        # Prepare data
+        # Prepare data with gradient intensities
         df <- data.frame(
             Feature = c({', '.join([f'"{x}"' for x in plot_data['Feature']])}),
             VIP_Score = c({', '.join(map(str, plot_data['VIP_Score']))}),
-            Cancer_High = c({', '.join(map(str, plot_data['Cancer_High']))}),
-            Normal_High = c({', '.join(map(str, plot_data['Normal_High']))}),
+            Cancer_Intensity = c({', '.join(map(str, plot_data['Cancer_Intensity']))}),
+            Normal_Intensity = c({', '.join(map(str, plot_data['Normal_Intensity']))}),
             y_pos = c({', '.join(map(str, plot_data['y_pos']))})
         )
 
-        # Create heatmap data in long format
-        heatmap_long <- data.frame(
-            y_pos = rep(df$y_pos, 2),
-            Group = rep(c("Cancer", "Normal"), each = nrow(df)),
-            Value = c(df$Cancer_High, df$Normal_High),
-            x_pos = rep(c(0, 1), each = nrow(df))
-        )
-
         # ===========================================================================
-        # REDESIGNED VIP SCORE PLOT - MAXIMUM VISIBILITY
-        # STRATEGY: Extend x-axis to accommodate labels, then draw manual box
-        # around VIP+heatmap area only, excluding labels
+        # METABOANALYST EXACT REPLICATION - Two tiny squares per row
         # ===========================================================================
 
         # Calculate boundaries
@@ -85,106 +97,108 @@ class VIPScorePlotRMixin:
         vip_max <- max(df$VIP_Score)
         vip_range <- vip_max - vip_min
 
-        # Label positioning - positioned for right-justification (hjust=1)
-        # Labels extend LEFT from this point, so coordinate limits must extend even further
-        label_x <- vip_min - vip_range * 0.8  # Adjusted for smaller figure
+        # Heatmap square positions - FIXED x-coordinates for two tiny squares
+        cancer_square_x <- vip_max + {VIP_HEATMAP_OFFSET}
+        normal_square_x <- vip_max + {VIP_HEATMAP_OFFSET} + {VIP_HEATMAP_SPACING}
 
-        # Box boundaries - will be drawn manually to exclude label area
-        box_left <- vip_min - vip_range * 0.03    # Small left padding inside box
-        box_right <- vip_max + vip_range * 0.25   # Extended for heatmap
-
-        # Heatmap positioning - small tiles on the right
-        heatmap_start_x <- vip_max + vip_range * 0.15  # Start position for heatmap
-        heatmap_tile_width <- vip_range * 0.08          # Small, fixed tile width
-        heatmap_tile_spacing <- vip_range * 0.10        # Spacing between Cancer and Normal
-
+        # Create plot
         p <- ggplot() +
-            # ===== DATA LAYER (inside box) =====
-            # VIP scores - EXTRA LARGE points with clear size hierarchy
-            geom_point(data = df, aes(x = VIP_Score, y = y_pos, size = VIP_Score),
-                      color = "#2C3E50", stroke = {VIP_POINT_STROKE}, shape = 21, fill = "#34495E") +
-            scale_size_continuous(range = c({VIP_POINT_SIZE_MIN}, {VIP_POINT_SIZE_MAX}), guide = "none") +
+            # Custom border box - FULL X-AXIS RANGE (includes squares)
+            annotate("rect",
+                    xmin = vip_min, xmax = normal_square_x + 0.05,
+                    ymin = -0.5, ymax = max(df$y_pos) + 0.5,
+                    fill = NA, color = "gray60", linewidth = 0.6) +
 
-            # Heatmap tiles (right side of box) - SMALL SQUARE TILES
-            geom_tile(data = heatmap_long,
-                     aes(x = heatmap_start_x + x_pos * heatmap_tile_spacing, y = y_pos, fill = factor(Value)),
-                     width = heatmap_tile_width, height = 0.7,
-                     color = "white", linewidth = 1.2) +
+            # VIP scores - UNIFORM SIZE blue dots
+            geom_point(data = df, aes(x = VIP_Score, y = y_pos),
+                      size = {VIP_DOT_SIZE}, color = "{VIP_DOT_COLOR}",
+                      alpha = {VIP_DOT_ALPHA}, shape = 16) +
 
-            # ===== MANUAL BOX FRAME (covers VIP scores + heatmap ONLY, includes x-axis) =====
-            # This box excludes the label area on the left
-            annotate("rect", xmin = box_left, xmax = box_right,
-                    ymin = -0.5, ymax = max(df$y_pos) + 1.5,
-                    fill = NA, color = "black", linewidth = 2.5) +
+            # Cancer squares - COMPACT SIZE (Option B: smaller true squares)
+            geom_point(data = df, aes(x = cancer_square_x, y = y_pos, fill = Cancer_Intensity),
+                      shape = 22, size = 6, stroke = 0.3, color = "white") +
 
-            # ===== ANNOTATIONS LAYER (outside box) =====
-            # Feature names - positioned LEFT of the box frame
-            geom_text(data = df, aes(x = label_x, y = y_pos, label = Feature),
-                     hjust = 1, size = {VIP_FEATURE_NAME_SIZE}, fontface = "bold",
-                     color = "#000000", family = "sans") +
+            # Normal squares - COMPACT SIZE (Option B: smaller true squares)
+            geom_point(data = df, aes(x = normal_square_x, y = y_pos, fill = Normal_Intensity),
+                      shape = 22, size = 6, stroke = 0.3, color = "white") +
 
-            # Group labels above heatmap - inside the box
-            annotate("text", x = heatmap_start_x + 0 * heatmap_tile_spacing, y = max(df$y_pos) + 1.0,
-                    label = "Cancer", size = {VIP_GROUP_LABEL_SIZE}, fontface = "bold") +
-            annotate("text", x = heatmap_start_x + 1 * heatmap_tile_spacing, y = max(df$y_pos) + 1.0,
-                    label = "Normal", size = {VIP_GROUP_LABEL_SIZE}, fontface = "bold") +
+            # RED-BLUE GRADIENT scale (MetaboAnalyst exact colors)
+            scale_fill_gradient2(
+                low = "{VIP_HEATMAP_LOW_COLOR}",      # Blue (low)
+                mid = "{VIP_HEATMAP_MID_COLOR}",      # White (mid)
+                high = "{VIP_HEATMAP_HIGH_COLOR}",    # Red (high)
+                midpoint = 0.5,
+                limits = c(0, 1),
+                name = NULL,  # No legend title
+                breaks = c(0, 1),
+                labels = c("Low", "High")
+            ) +
 
-            # ===== SCALES =====
-            # Color scale - BOLD, high contrast
-            scale_fill_manual(values = c("0" = "#3498DB", "1" = "#E74C3C"),
-                            labels = c("Lower", "Higher"),
-                            name = "Mean\\nIntensity") +
-
-            # X-axis scale - MASSIVELY EXTENDED left to accommodate right-justified long labels
-            # Labels at label_x extend LEFT, so we need huge space on the left
+            # Axes - compact layout with full coverage
             scale_x_continuous(
-                limits = c(label_x - vip_range * 0.3, box_right + vip_range * 0.02),
+                limits = c(vip_min - vip_range * 0.1, normal_square_x + 0.1),
                 breaks = pretty(c(vip_min, vip_max), n = 5),
                 expand = c(0, 0)
             ) +
-            scale_y_continuous(limits = c(-0.5, max(df$y_pos) + 1.5), expand = c(0, 0)) +
+            scale_y_continuous(
+                limits = c(-0.5, max(df$y_pos) + 1.2),  # Tighter upper limit for compact labels
+                expand = c(0, 0)
+            ) +
 
-            # ===== LABELS =====
-            labs(title = "{title}",
-                 x = "VIP Score",
+            # Allow clipping off (no coordinate restriction)
+            coord_cartesian(clip = "off") +
+
+            # Feature names (left side, OUTSIDE border)
+            geom_text(data = df, aes(x = vip_min - vip_range * 0.08, y = y_pos, label = Feature),
+                     hjust = 1, size = {VIP_FEATURE_NAME_SIZE},
+                     color = "#000000", family = "sans") +
+
+            # Vertical group labels above squares (compact, 90° rotated)
+            annotate("text", x = cancer_square_x, y = max(df$y_pos) + 0.8,
+                    label = "Bottom", size = 3.0, angle = 90, hjust = 0, vjust = 0.5) +
+            annotate("text", x = normal_square_x, y = max(df$y_pos) + 0.8,
+                    label = "Top", size = 3.0, angle = 90, hjust = 0, vjust = 0.5) +
+
+            # Labels (no title - MetaboAnalyst reference)
+            labs(title = NULL,
+                 x = "VIP scores",
                  y = "") +
 
-            # ===== THEME =====
-            # Use theme_void() to remove all default elements, then build up exactly what we need
-            theme_void() +
+            # CLEAN THEME (MetaboAnalyst exact style)
+            theme_minimal() +
             theme(
-                # Title and axis labels
-                plot.title = element_text(size = 18, face = "bold", hjust = 0.5, margin = margin(b = 15)),
-                axis.title.x = element_text(size = 16, face = "bold", margin = margin(t = 10)),
-                axis.text.x = element_text(size = 14, color = "#000000", margin = margin(t = 5)),
+                # Title
+                plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 10)),
+
+                # Axes
+                axis.title.x = element_text(size = 14, margin = margin(t = 8)),
+                axis.text.x = element_text(size = 12, color = "#000000"),
                 axis.text.y = element_blank(),
-                axis.ticks.x = element_line(color = "black", linewidth = 0.8),
-                axis.ticks.length.x = unit(0.2, "cm"),
+                axis.ticks.y = element_blank(),
 
-                # NO panel.border - we draw the box manually
-                panel.border = element_blank(),
-                axis.line = element_blank(),
-
-                # Grid inside plot area
-                panel.grid.major.x = element_line(color = "grey92", linewidth = 0.4),
-                panel.grid.major.y = element_blank(),
+                # Grid - both horizontal and vertical for visibility
+                panel.grid.major.x = element_line(color = "gray90", linetype = "dotted", linewidth = 0.3),
+                panel.grid.major.y = element_line(color = "gray90", linetype = "dotted", linewidth = 0.3),
                 panel.grid.minor = element_blank(),
 
-                # Legend
+                # Legend - COMPACT gradient bar
                 legend.position = "right",
-                legend.justification = "center",
-                legend.title = element_text(size = 14, face = "bold"),
-                legend.text = element_text(size = 13),
-                legend.key.height = unit(1.2, "cm"),
-                legend.key.width = unit(0.8, "cm"),
+                legend.title = element_blank(),
+                legend.text = element_text(size = 10, margin = margin(l = 3)),
+                legend.key.height = unit(2.0, "cm"),    # More compact vertical bar
+                legend.key.width = unit(0.4, "cm"),     # Narrower bar
+                legend.margin = margin(l = 10),         # Tighter spacing
 
-                # Margins - ABSOLUTE MAXIMUM left margin to prevent label clipping by ggsave
-                plot.margin = margin(t = 15, r = 25, b = 15, l = 250),  # Adjusted for smaller figure
+                # Background - NO panel border (using custom annotated border)
                 panel.background = element_rect(fill = "white", color = NA),
-                plot.background = element_rect(fill = "white", color = NA)
+                plot.background = element_rect(fill = "white", color = NA),
+                panel.border = element_blank(),
+
+                # Margins - Balanced composition (more space for external elements)
+                plot.margin = margin(t = 25, r = 80, b = 15, l = 200)
             )
 
-        # Save plot with PUBLICATION QUALITY dimensions
+        # Save plot
         ggsave("{output_file}", plot = p, width = {VIP_FIGURE_WIDTH}, height = {VIP_FIGURE_HEIGHT}, dpi = 300, bg = "white")
         """
 
@@ -491,10 +505,9 @@ class VIPScorePlotRMixin:
         }}
 
         p <- p +
-            # VIP scores (dots) - size scaled by VIP score for visual hierarchy
-            geom_point(data = df, aes(x = VIP_Score, y = y_pos, size = VIP_Score),
-                      color = "#333333", stroke = {VIP_POINT_STROKE}, shape = 21, fill = "#555555") +
-            scale_size_continuous(range = c({VIP_POINT_SIZE_MIN}, {VIP_POINT_SIZE_MAX}), guide = "none") +
+            # VIP scores (dots) - UNIFORM SIZE (MetaboAnalyst style)
+            geom_point(data = df, aes(x = VIP_Score, y = y_pos),
+                      size = {VIP_DOT_SIZE}, color = "{VIP_DOT_COLOR}", alpha = {VIP_DOT_ALPHA}, shape = 16) +
 
             # Peptide names (only for groups with multiple glycoforms or centered for single) - using standardized font size
             geom_text(data = df[df$group_size > 1 & df$is_first, ],
@@ -514,7 +527,7 @@ class VIPScorePlotRMixin:
             # Heatmap tiles (right panel) - using standardized width
             geom_tile(data = heatmap_long,
                      aes(x = max(df$VIP_Score) + 0.3 + x_pos * 0.15, y = y_pos, fill = factor(Value)),
-                     width = {VIP_HEATMAP_WIDTH}, height = {VIP_HEATMAP_HEIGHT}, color = "white", linewidth = 0.5) +
+                     width = {VIP_HEATMAP_SQUARE_SIZE}, height = {VIP_HEATMAP_HEIGHT}, color = "white", linewidth = 0.5) +
 
             # Color scale for heatmap
             scale_fill_manual(values = c("0" = "#3498DB", "1" = "#E74C3C"),
