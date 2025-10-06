@@ -23,7 +23,8 @@ from .plot_config import (
     GROUP_PALETTE, LEGACY_GLYCAN_COLORS, EXTENDED_CATEGORY_COLORS,
     apply_standard_axis_style, apply_standard_legend,
     ANNOTATION_SIZE, AXIS_LABEL_SIZE, AXIS_LABEL_WEIGHT,
-    TITLE_SIZE, TITLE_WEIGHT
+    TITLE_SIZE, TITLE_WEIGHT,
+    add_sample_size_annotation  # Phase 2.2 enhancement
 )
 
 logger = logging.getLogger(__name__)
@@ -150,6 +151,12 @@ class BoxplotMixin:
         # Apply standardized legend (now showing glycan types with their colors)
         # Legend positioned outside plot area (non-interruptive)
         apply_standard_legend(ax, title='Glycan Type')
+
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = (boxplot_data['Group'] == 'Cancer').sum() // len(existing_types)
+        n_normal = (boxplot_data['Group'] == 'Normal').sum() // len(existing_types)
+        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                   location='upper left', fontsize=10)
 
         plt.tight_layout()
 
@@ -280,6 +287,12 @@ class BoxplotMixin:
         # Legend positioned outside plot area (non-interruptive)
         apply_standard_legend(ax, title='Glycan Category')
 
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = (boxplot_data['Group'] == 'Cancer').sum() // len(existing_categories)
+        n_normal = (boxplot_data['Group'] == 'Normal').sum() // len(existing_categories)
+        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                   location='upper left', fontsize=10)
+
         plt.tight_layout()
 
         # Save plot
@@ -378,6 +391,12 @@ class BoxplotMixin:
         apply_standard_axis_style(ax, grid=True)
         apply_standard_legend(ax, title='Primary Classification')
 
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+        n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                   location='upper left', fontsize=10)
+
         plt.tight_layout()
 
         output_file = self.output_dir / f'boxplot_primary_{normalization}_normalized.png'
@@ -471,6 +490,12 @@ class BoxplotMixin:
         # Apply Prism styling (grid and spine settings)
         apply_standard_axis_style(ax, grid=True)
         apply_standard_legend(ax, title='Secondary Classification')
+
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+        n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                   location='upper left', fontsize=10)
 
         plt.tight_layout()
 
@@ -582,18 +607,18 @@ class BoxplotMixin:
             title = 'Primary Classification: Cancer vs Normal'
             if apply_qc:
                 title += '\n(QC: Detection rate ≥10%)'
-                # Add sample count info
-                n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
-                n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
-                ax.text(0.02, 0.98, f'Samples: Cancer={n_cancer}, Normal={n_normal}',
-                       transform=ax.transAxes, fontsize=ANNOTATION_SIZE, verticalalignment='top',
-                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
             ax.set_title(title, fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
 
             # Apply Prism styling (grid and spine settings)
             apply_standard_axis_style(ax, grid=True)
             apply_standard_legend(ax, title='Primary Classification')
+
+            # Add sample size annotation (Phase 2.2 enhancement)
+            n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+            n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+            add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                       location='upper left', fontsize=10)
 
             plt.tight_layout()
 
@@ -720,18 +745,18 @@ class BoxplotMixin:
             title = 'Secondary Classification: Cancer vs Normal'
             if apply_qc:
                 title += '\n(QC: Detection rate ≥10%)'
-                # Add sample count info
-                n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
-                n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
-                ax.text(0.02, 0.98, f'Samples: Cancer={n_cancer}, Normal={n_normal}',
-                       transform=ax.transAxes, fontsize=ANNOTATION_SIZE, verticalalignment='top',
-                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
             ax.set_title(title, fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
 
             # Apply Prism styling (grid and spine settings)
             apply_standard_axis_style(ax, grid=True)
             apply_standard_legend(ax, title='Secondary Classification')
+
+            # Add sample size annotation (Phase 2.2 enhancement)
+            n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+            n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+            add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                       location='upper left', fontsize=10)
 
             plt.tight_layout()
 

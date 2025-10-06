@@ -15,7 +15,8 @@ from ..utils import save_trace_data
 from .plot_config import (
     PCA_FIGSIZE, PCA_LABEL_FONTSIZE, PCA_POINT_SIZE,
     PCA_POINT_LINEWIDTH, PCA_POINT_ALPHA, GROUP_PALETTE,
-    apply_standard_axis_style, apply_standard_legend
+    apply_standard_axis_style, apply_standard_legend,
+    add_sample_size_annotation  # Phase 2.2 enhancement
 )
 
 logger = logging.getLogger(__name__)
@@ -145,6 +146,12 @@ class PCAPlotMixin:
         # Apply standardized legend (positioned outside plot area)
         apply_standard_legend(ax)
 
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = cancer_mask.sum()
+        n_normal = normal_mask.sum()
+        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                   location='lower right', fontsize=10)
+
         plt.tight_layout()
 
         # Save plot
@@ -200,6 +207,12 @@ class PCAPlotMixin:
             Patch(facecolor='#3498DB', edgecolor='black', label='Normal')
         ]
         ax.legend(handles=legend_elements, loc='best', frameon=True)
+
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = (pca_df['Group'] == 'Cancer').sum()
+        n_normal = (pca_df['Group'] == 'Normal').sum()
+        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                   location='lower right', fontsize=10)
 
         ax.grid(True, alpha=0.3)
         plt.tight_layout()

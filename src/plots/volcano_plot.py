@@ -26,7 +26,8 @@ from .plot_config import (
     VOLCANO_LABEL_WEIGHT, VOLCANO_LABEL_PADDING, VOLCANO_LABEL_LINEWIDTH,
     VOLCANO_MAX_LABELS,
     GROUP_PALETTE, GLYCAN_COLORS,
-    apply_standard_axis_style, apply_standard_legend
+    apply_standard_axis_style, apply_standard_legend,
+    add_sample_size_annotation  # Phase 2.2 enhancement
 )
 
 logger = logging.getLogger(__name__)
@@ -257,6 +258,12 @@ class VolcanoPlotMixin:
         ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
                fontsize=9, verticalalignment='top',
                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = len(cancer_samples)
+        n_normal = len(normal_samples)
+        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
+                                   location='lower right', fontsize=10)
 
         plt.tight_layout()
 
