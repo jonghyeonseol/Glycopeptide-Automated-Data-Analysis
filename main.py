@@ -444,7 +444,7 @@ def main():
     # Advanced visualizations (evidence-based from literature)
     logger.info("Creating advanced visualizations...")
     logger.info("  - Volcano plot (differential expression)...")
-    visualizer.plot_volcano(annotated_data, plsda_results['vip_scores'], config=data_prep_config)
+    volcano_data = visualizer.plot_volcano(annotated_data, plsda_results['vip_scores'], config=data_prep_config)
 
     logger.info("  - Site-specific glycosylation heatmap...")
     visualizer.plot_site_specific_heatmap(annotated_data, plsda_results['vip_scores'])
@@ -478,11 +478,53 @@ def main():
             max_glycans_per_type=config['visualization']['glycopeptide_comparison']['max_glycans_per_type']
         )
 
+    # Phase 4.1: Missing data visualization (data integrity)
+    logger.info("  - Missing data matrix (data integrity validation)...")
+    visualizer.plot_missing_data_matrix(annotated_data_raw)  # Use RAW data to show full picture
+
+    # Phase 4.2: PLS-DA diagnostic plots (model validation)
+    logger.info("  - PLS-DA diagnostic plots (model validation)...")
+    visualizer.plot_plsda_diagnostics(plsda_results, annotated_data)
+
+    # Phase 4.3: Per-sample QC dashboard
+    logger.info("  - Per-sample QC dashboard...")
+    visualizer.plot_sample_qc_dashboard(annotated_data)
+
     # Mark visualizations complete
     audit_logger.log_event(
         EventType.VISUALIZATION_COMPLETE,
         "All visualizations generated successfully"
     )
+
+    # ==========================================================================
+    # PHASE 2.1: INTERACTIVE PLOTLY DASHBOARD
+    # ==========================================================================
+    logger.info("\n[PHASE 2.1] Generating interactive Plotly visualizations...")
+    logger.info("="*80)
+
+    from src.interactive_dashboard import InteractiveDashboard
+    try:
+        dashboard = InteractiveDashboard(
+            output_dir=results_dir,
+            colors=config['visualization']['colors']
+        )
+
+        # Generate all interactive plots with embedded static PNGs (Phase 2.3)
+        dashboard.generate_all_interactive_plots(
+            pca_results=pca_results,
+            df=annotated_data,
+            vip_df=plsda_results['vip_scores'],
+            volcano_df=volcano_data,
+            results_dir=Path(results_dir)  # For base64 embedding
+        )
+
+        logger.info("✓ Interactive dashboard generated successfully")
+        logger.info(f"✓ Open {Path(results_dir) / 'interactive' / 'index.html'} to view dashboard")
+    except Exception as e:
+        logger.warning(f"Interactive dashboard generation encountered an issue: {e}")
+        logger.warning("Continuing with pipeline completion...")
+
+    logger.info("="*80)
 
     # Step 6: Summary report
     logger.info("\n[7/7] Generating summary report...")
@@ -585,6 +627,10 @@ def main():
         f.write(f"  - Pie chart (primary classification): pie_chart_primary_classification.png\n")
         f.write(f"  - Pie chart (secondary classification): pie_chart_secondary_classification.png\n")
         f.write(f"  - Glycopeptide comparison heatmap (Cancer vs Normal): glycopeptide_comparison_heatmap.png\n")
+        f.write("\nPhase 4: Data Integrity & Model Validation:\n")
+        f.write(f"  - Missing data matrix: missing_data_matrix.png\n")
+        f.write(f"  - PLS-DA diagnostics: plsda_diagnostics.png\n")
+        f.write(f"  - Sample QC dashboard: sample_qc_dashboard.png\n")
         f.write("\n")
         f.write("Data Traceability:\n")
         f.write("  All visualization source data is exported to Results/Trace/ folder as CSV files.\n")

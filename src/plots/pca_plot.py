@@ -16,7 +16,8 @@ from .plot_config import (
     PCA_FIGSIZE, PCA_LABEL_FONTSIZE, PCA_POINT_SIZE,
     PCA_POINT_LINEWIDTH, PCA_POINT_ALPHA, GROUP_PALETTE,
     apply_standard_axis_style, apply_standard_legend,
-    add_sample_size_annotation  # Phase 2.2 enhancement
+    add_sample_size_annotation,  # Phase 2.2 enhancement
+    GROUP_MARKERS, get_group_style  # Phase 3 enhancement
 )
 
 logger = logging.getLogger(__name__)
@@ -87,23 +88,25 @@ class PCAPlotMixin:
         cancer_mask = pca_df['Group'] == 'Cancer'
         normal_mask = pca_df['Group'] == 'Normal'
 
-        # Use standardized colors from plot_config
-        cancer_color = GROUP_PALETTE['Cancer']
-        normal_color = GROUP_PALETTE['Normal']
+        # Phase 3: Use color + shape encoding for colorblind accessibility
+        cancer_color, cancer_marker = get_group_style('Cancer')
+        normal_color, normal_marker = get_group_style('Normal')
 
-        # Plot Cancer samples (Prism style: larger, bolder points)
+        # Plot Cancer samples (Circle markers - colorblind-safe)
         cancer_scores = pca_df[cancer_mask]
         ax.scatter(cancer_scores['PC1'], cancer_scores['PC2'],
                   c=cancer_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
                   edgecolors='black', linewidth=PCA_POINT_LINEWIDTH,
-                  label='Cancer', zorder=3)
+                  marker=cancer_marker,  # Phase 3: Circle for Cancer
+                  label='Cancer (○)', zorder=3)
 
-        # Plot Normal samples (Prism style: larger, bolder points)
+        # Plot Normal samples (Square markers - colorblind-safe)
         normal_scores = pca_df[normal_mask]
         ax.scatter(normal_scores['PC1'], normal_scores['PC2'],
                   c=normal_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
                   edgecolors='black', linewidth=PCA_POINT_LINEWIDTH,
-                  label='Normal', zorder=3)
+                  marker=normal_marker,  # Phase 3: Square for Normal
+                  label='Normal (□)', zorder=3)
 
         # Draw 95% confidence ellipses
         self._draw_confidence_ellipse(ax, cancer_scores['PC1'].values, cancer_scores['PC2'].values,
@@ -182,14 +185,13 @@ class PCAPlotMixin:
         pca_df = pca_results['pca_df']
         explained_var = pca_results['explained_variance']
 
-        # Plot with sample labels
+        # Phase 3: Plot with color + shape encoding
         for idx, row in pca_df.iterrows():
-            color = '#E74C3C' if row['Group'] == 'Cancer' else '#3498DB'
-            marker = 'o' if row['Group'] == 'Cancer' else 's'
+            color, marker = get_group_style(row['Group'])
 
             ax.scatter(row['PC1'], row['PC2'], c=color, s=100,
                       alpha=0.6, edgecolors='black', linewidth=1,
-                      marker=marker, zorder=3)
+                      marker=marker, zorder=3)  # Phase 3: Colorblind-safe markers
 
             # Add sample label
             ax.annotate(idx, (row['PC1'], row['PC2']),
@@ -200,11 +202,18 @@ class PCAPlotMixin:
         ax.set_ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=12)
         ax.set_title('PCA with Sample Labels', fontsize=14, fontweight='bold')
 
-        # Custom legend
-        from matplotlib.patches import Patch
+        # Phase 3: Custom legend with shape markers
+        from matplotlib.lines import Line2D
+        cancer_color, cancer_marker = get_group_style('Cancer')
+        normal_color, normal_marker = get_group_style('Normal')
+
         legend_elements = [
-            Patch(facecolor='#E74C3C', edgecolor='black', label='Cancer'),
-            Patch(facecolor='#3498DB', edgecolor='black', label='Normal')
+            Line2D([0], [0], marker=cancer_marker, color='w',
+                   markerfacecolor=cancer_color, markeredgecolor='black',
+                   markersize=10, label='Cancer (○)'),
+            Line2D([0], [0], marker=normal_marker, color='w',
+                   markerfacecolor=normal_color, markeredgecolor='black',
+                   markersize=10, label='Normal (□)')
         ]
         ax.legend(handles=legend_elements, loc='best', frameon=True)
 

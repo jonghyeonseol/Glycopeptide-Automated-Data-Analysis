@@ -30,6 +30,48 @@ from .plot_config import (
 logger = logging.getLogger(__name__)
 
 
+def calculate_cohens_d(group1: np.ndarray, group2: np.ndarray) -> float:
+    """
+    Calculate Cohen's d effect size for two independent groups
+
+    Formula: d = (mean1 - mean2) / pooled_std
+    where pooled_std = sqrt(((n1-1)*std1² + (n2-1)*std2²) / (n1+n2-2))
+
+    Args:
+        group1: Data from first group (e.g., Cancer)
+        group2: Data from second group (e.g., Normal)
+
+    Returns:
+        Cohen's d effect size (positive = group1 > group2)
+
+    Interpretation:
+        |d| < 0.2: negligible effect
+        0.2 ≤ |d| < 0.5: small effect
+        0.5 ≤ |d| < 0.8: medium effect
+        |d| ≥ 0.8: large effect (biologically meaningful)
+
+    Reference: Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences.
+    """
+    n1, n2 = len(group1), len(group2)
+
+    # Handle edge cases
+    if n1 < 2 or n2 < 2:
+        return np.nan
+
+    mean1, mean2 = np.mean(group1), np.mean(group2)
+    std1, std2 = np.std(group1, ddof=1), np.std(group2, ddof=1)
+
+    # Pooled standard deviation
+    pooled_std = np.sqrt(((n1 - 1) * std1**2 + (n2 - 1) * std2**2) / (n1 + n2 - 2))
+
+    # Avoid division by zero
+    if pooled_std == 0:
+        return 0.0 if mean1 == mean2 else np.inf
+
+    cohens_d = (mean1 - mean2) / pooled_std
+    return cohens_d
+
+
 class BoxplotMixin:
     """Mixin class for boxplot-related visualizations"""
 
@@ -94,6 +136,9 @@ class BoxplotMixin:
             try:
                 statistic, p_value = stats.mannwhitneyu(cancer_data, normal_data, alternative='two-sided')
 
+                # Calculate Cohen's d effect size (Phase 1.1 enhancement)
+                cohens_d = calculate_cohens_d(cancer_data, normal_data)
+
                 # Determine significance level
                 if p_value < 0.001:
                     sig_marker = '***'
@@ -121,20 +166,26 @@ class BoxplotMixin:
                     ax.plot([x1, x2], [y_position, y_position],
                            color='black', linewidth=1.5, zorder=10)
 
-                    # Add significance marker in the middle
+                    # Add significance marker WITH effect size (Phase 1.1)
+                    # Format: *** (d=2.3) - shows both p-value significance and magnitude
+                    if not np.isnan(cohens_d):
+                        annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
+                    else:
+                        annotation_text = sig_marker
+
                     ax.text(
                         (x1 + x2) / 2,
                         y_position,
-                        sig_marker,
+                        annotation_text,
                         ha='center',
                         va='bottom',
-                        fontsize=12,
+                        fontsize=11,  # Slightly smaller for two-line text
                         fontweight='bold',
                         color='black',
                         zorder=11
                     )
 
-                    logger.info(f"{glycan_type}: Cancer vs Normal p={p_value:.4f} ({sig_marker})")
+                    logger.info(f"{glycan_type}: Cancer vs Normal p={p_value:.4f} ({sig_marker}), Cohen's d={cohens_d:.3f}")
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {glycan_type}: {str(e)}")
@@ -231,6 +282,9 @@ class BoxplotMixin:
             try:
                 statistic, p_value = stats.mannwhitneyu(cancer_data, normal_data, alternative='two-sided')
 
+                # Calculate Cohen's d effect size (Phase 1.1 enhancement)
+                cohens_d = calculate_cohens_d(cancer_data, normal_data)
+
                 # Determine significance level
                 if p_value < 0.001:
                     sig_marker = '***'
@@ -256,20 +310,25 @@ class BoxplotMixin:
                     ax.plot([x1, x2], [y_position, y_position],
                            color='black', linewidth=1.5, zorder=10)
 
-                    # Add significance marker in the middle
+                    # Add significance marker WITH effect size (Phase 1.1)
+                    if not np.isnan(cohens_d):
+                        annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
+                    else:
+                        annotation_text = sig_marker
+
                     ax.text(
                         (x1 + x2) / 2,
                         y_position,
-                        sig_marker,
+                        annotation_text,
                         ha='center',
                         va='bottom',
-                        fontsize=12,
+                        fontsize=11,  # Slightly smaller for two-line text
                         fontweight='bold',
                         color='black',
                         zorder=11
                     )
 
-                    logger.info(f"{category}: Cancer vs Normal p={p_value:.4f} ({sig_marker})")
+                    logger.info(f"{category}: Cancer vs Normal p={p_value:.4f} ({sig_marker}), Cohen's d={cohens_d:.3f}")
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {category}: {str(e)}")

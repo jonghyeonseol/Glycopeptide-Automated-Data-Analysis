@@ -27,6 +27,9 @@ from src.plots.radar_chart_plot import RadarChartPlotMixin
 from src.plots.glycopeptide_dot_heatmap import GlycopeptideDotHeatmapMixin
 from src.plots.glycopeptide_comparison_heatmap import GlycopeptideComparisonHeatmapMixin
 from src.plots.enhanced_pie_chart_plot import PieChartPlotMixin  # ENHANCED: Pie charts with fold change
+from src.plots.missing_data_plot import MissingDataPlotMixin  # Phase 4.1: Data integrity
+from src.plots.plsda_diagnostic_plot import PLSDADiagnosticPlotMixin  # Phase 4.2: Model validation
+from src.plots.sample_qc_dashboard import SampleQCDashboardMixin  # Phase 4.3: Sample QC
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,7 +51,10 @@ class GlycanVisualizer(
     RadarChartPlotMixin,
     GlycopeptideDotHeatmapMixin,
     GlycopeptideComparisonHeatmapMixin,
-    PieChartPlotMixin  # NEW: Pie chart visualizations
+    PieChartPlotMixin,  # NEW: Pie chart visualizations
+    MissingDataPlotMixin,  # Phase 4.1: Data integrity visualization
+    PLSDADiagnosticPlotMixin,  # Phase 4.2: Model validation
+    SampleQCDashboardMixin  # Phase 4.3: Sample QC
 ):
     """Create visualizations for glycoproteomics data"""
 
@@ -100,7 +106,13 @@ class GlycanVisualizer(
             self.plot_boxplot_extended(boxplot_data_extended)
 
         self.plot_glycan_type_distribution(df)
-        self.plot_heatmap(df)
+        # Phase 1.2: Generate both main (top 20) and supplementary (top 50) heatmaps
+        logger.info("Generating main heatmap (top 20 glycopeptides)...")
+        self.plot_heatmap(df, top_n=20, output_suffix='main')
+
+        logger.info("Generating supplementary heatmap (top 50 glycopeptides)...")
+        self.plot_heatmap(df, top_n=50, output_suffix='supplementary')
+
         self.plot_heatmap_full_profile(df)
         self.plot_histogram_normalized(df)
 

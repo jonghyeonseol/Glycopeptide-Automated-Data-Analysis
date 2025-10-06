@@ -27,7 +27,8 @@ from .plot_config import (
     VOLCANO_MAX_LABELS,
     GROUP_PALETTE, GLYCAN_COLORS,
     apply_standard_axis_style, apply_standard_legend,
-    add_sample_size_annotation  # Phase 2.2 enhancement
+    add_sample_size_annotation,  # Phase 2.2 enhancement
+    REGULATION_MARKERS, get_regulation_style  # Phase 3 enhancement
 )
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,56 @@ logger = logging.getLogger(__name__)
 
 class VolcanoPlotMixin:
     """Mixin class for Volcano plot visualization"""
+
+    def _calculate_bootstrap_fold_change_ci(self, cancer_values: np.ndarray,
+                                           normal_values: np.ndarray,
+                                           n_bootstrap: int = 1000,
+                                           confidence_level: float = 0.95) -> tuple:
+        """
+        Calculate bootstrap confidence interval for fold change
+
+        Args:
+            cancer_values: Cancer group intensities (filtered for non-zero)
+            normal_values: Normal group intensities (filtered for non-zero)
+            n_bootstrap: Number of bootstrap iterations
+            confidence_level: Confidence level (default 0.95 for 95% CI)
+
+        Returns:
+            Tuple of (log2fc, log2fc_ci_lower, log2fc_ci_upper)
+        """
+        # Handle edge cases
+        if len(cancer_values) < 2 or len(normal_values) < 2:
+            return (np.nan, np.nan, np.nan)
+
+        # Calculate observed fold change
+        cancer_mean = np.mean(cancer_values)
+        normal_mean = np.mean(normal_values)
+        observed_log2fc = np.log2((cancer_mean + 1) / (normal_mean + 1))
+
+        # Bootstrap resampling
+        bootstrap_log2fcs = []
+        np.random.seed(42)  # For reproducibility
+
+        for _ in range(n_bootstrap):
+            # Resample with replacement
+            cancer_resample = np.random.choice(cancer_values, size=len(cancer_values), replace=True)
+            normal_resample = np.random.choice(normal_values, size=len(normal_values), replace=True)
+
+            # Calculate log2FC for this bootstrap sample
+            cancer_mean_boot = np.mean(cancer_resample)
+            normal_mean_boot = np.mean(normal_resample)
+            log2fc_boot = np.log2((cancer_mean_boot + 1) / (normal_mean_boot + 1))
+
+            bootstrap_log2fcs.append(log2fc_boot)
+
+        bootstrap_log2fcs = np.array(bootstrap_log2fcs)
+
+        # Calculate confidence interval (percentile method)
+        alpha = 1 - confidence_level
+        ci_lower = np.percentile(bootstrap_log2fcs, alpha/2 * 100)
+        ci_upper = np.percentile(bootstrap_log2fcs, (1 - alpha/2) * 100)
+
+        return (observed_log2fc, ci_lower, ci_upper)
 
     def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,
                      config: DataPreparationConfig = None,
@@ -96,6 +147,45 @@ class VolcanoPlotMixin:
 
         logger.info(f"Volcano plot data prepared: {len(volcano_df)} glycopeptides")
 
+        # Phase 2.2: Calculate bootstrap confidence intervals for top significant features
+        logger.info("Calculating bootstrap CIs for fold changes (top 20 significant features)...")
+
+        # Select top 20 most significant glycopeptides for CI calculation
+        top_significant = volcano_df[volcano_df['FDR'] < 0.05].nlargest(20, '-Log10FDR') if len(volcano_df[volcano_df['FDR'] < 0.05]) > 0 else pd.DataFrame()
+
+        if len(top_significant) > 0:
+            ci_results = []
+            for idx in top_significant.index:
+                # Get raw intensities for this glycopeptide
+                cancer_vals = df.loc[idx, cancer_samples].replace('', 0).astype(float).values
+                normal_vals = df.loc[idx, normal_samples].replace('', 0).astype(float).values
+
+                # Filter non-zero values for CI calculation
+                cancer_vals = cancer_vals[cancer_vals > 0]
+                normal_vals = normal_vals[normal_vals > 0]
+
+                # Calculate bootstrap CI
+                log2fc, ci_lower, ci_upper = self._calculate_bootstrap_fold_change_ci(
+                    cancer_vals, normal_vals, n_bootstrap=1000
+                )
+
+                ci_results.append({
+                    'Index': idx,
+                    'Log2FC_CI_Lower': ci_lower,
+                    'Log2FC_CI_Upper': ci_upper
+                })
+
+            # Merge CI results back into volcano_df
+            ci_df = pd.DataFrame(ci_results).set_index('Index')
+            volcano_df = volcano_df.join(ci_df, how='left')
+
+            logger.info(f"✓ Bootstrap CIs calculated for {len(ci_results)} glycopeptides")
+        else:
+            # Add empty CI columns if no significant features
+            volcano_df['Log2FC_CI_Lower'] = np.nan
+            volcano_df['Log2FC_CI_Upper'] = np.nan
+            logger.info("No significant features found for CI calculation")
+
         # Classification
         volcano_df['Regulation'] = 'Non-significant'
 
@@ -110,17 +200,17 @@ class VolcanoPlotMixin:
         # Create plot
         fig, ax = plt.subplots(figsize=figsize)
 
-        # Define colors using standardized palette
-        colors = {
-            'Up in Cancer': GROUP_PALETTE['Cancer'],
-            'Down in Cancer': GROUP_PALETTE['Normal'],
-            'Non-significant': '#95A5A6'  # Gray for non-significant
-        }
-
+        # Phase 3: Use color + shape encoding for colorblind accessibility
         # Plot points by regulation status
-        for regulation, color in colors.items():
+        for regulation in ['Up in Cancer', 'Down in Cancer', 'Non-significant']:
             mask = volcano_df['Regulation'] == regulation
             subset = volcano_df[mask]
+
+            if len(subset) == 0:
+                continue
+
+            # Get color and marker (Phase 3: colorblind-safe)
+            color, marker = get_regulation_style(regulation)
 
             # Size by VIP score (scale between 50 and 150 for better visibility)
             if len(subset) > 0 and subset['VIP_Score'].max() > 0:
@@ -128,10 +218,45 @@ class VolcanoPlotMixin:
             else:
                 sizes = VOLCANO_POINT_SIZE
 
+            # Shape symbols for legend clarity
+            shape_symbol = {'Up in Cancer': '▲', 'Down in Cancer': '▼', 'Non-significant': '●'}[regulation]
+
             ax.scatter(subset['Log2FC'], subset['-Log10FDR'],
                       c=color, s=sizes, alpha=VOLCANO_POINT_ALPHA,
-                      edgecolors='black', linewidths=VOLCANO_POINT_EDGEWIDTH,  # Prism style: visible edges
-                      label=f"{regulation} (n={len(subset)})", zorder=3)
+                      edgecolors='black', linewidths=VOLCANO_POINT_EDGEWIDTH,
+                      marker=marker,  # Phase 3: Shape encoding
+                      label=f"{regulation} ({shape_symbol}) n={len(subset)}", zorder=3)
+
+        # Phase 2.2: Add confidence interval error bars for top significant features
+        features_with_ci = volcano_df[~volcano_df['Log2FC_CI_Lower'].isna()]
+        if len(features_with_ci) > 0:
+            for idx, row in features_with_ci.iterrows():
+                # Calculate error bar lengths (asymmetric)
+                x_err_lower = row['Log2FC'] - row['Log2FC_CI_Lower']
+                x_err_upper = row['Log2FC_CI_Upper'] - row['Log2FC']
+
+                # Determine color based on regulation status
+                if row['Regulation'] == 'Up in Cancer':
+                    err_color = GROUP_PALETTE['Cancer']
+                elif row['Regulation'] == 'Down in Cancer':
+                    err_color = GROUP_PALETTE['Normal']
+                else:
+                    err_color = '#95A5A6'
+
+                # Plot horizontal error bar (95% CI for Log2FC)
+                ax.errorbar(
+                    row['Log2FC'], row['-Log10FDR'],
+                    xerr=[[x_err_lower], [x_err_upper]],
+                    fmt='none',  # No marker
+                    ecolor=err_color,
+                    elinewidth=2,
+                    capsize=4,
+                    capthick=2,
+                    alpha=0.7,
+                    zorder=4
+                )
+
+            logger.info(f"Added 95% CI error bars for {len(features_with_ci)} significant features")
 
         # Add threshold lines using standardized styling
         ax.axhline(-np.log10(fdr_threshold), color='gray', linestyle='--',
@@ -251,13 +376,16 @@ class VolcanoPlotMixin:
         n_up = len(volcano_df[volcano_df['Regulation'] == 'Up in Cancer'])
         n_down = len(volcano_df[volcano_df['Regulation'] == 'Down in Cancer'])
         n_ns = len(volcano_df[volcano_df['Regulation'] == 'Non-significant'])
+        n_with_ci = len(features_with_ci) if len(features_with_ci) > 0 else 0
 
         stats_text = f"FC threshold: {fc_threshold}x | FDR < {fdr_threshold}\n"
-        stats_text += f"Up: {n_up} | Down: {n_down} | NS: {n_ns}"
+        stats_text += f"Up: {n_up} | Down: {n_down} | NS: {n_ns}\n"
+        if n_with_ci > 0:
+            stats_text += f"95% CI shown for top {n_with_ci} features"
 
         ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
                fontsize=9, verticalalignment='top',
-               bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+               bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), zorder=10)
 
         # Add sample size annotation (Phase 2.2 enhancement)
         n_cancer = len(cancer_samples)

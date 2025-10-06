@@ -123,15 +123,16 @@ class VIPScorePlotRMixin:
                       shape = 22, size = 6, stroke = 0.3, color = "white") +
 
             # RED-BLUE GRADIENT scale (MetaboAnalyst exact colors)
+            # Phase 1.4: Clarified legend to show this represents relative intensity
             scale_fill_gradient2(
-                low = "{VIP_HEATMAP_LOW_COLOR}",      # Blue (low)
-                mid = "{VIP_HEATMAP_MID_COLOR}",      # White (mid)
-                high = "{VIP_HEATMAP_HIGH_COLOR}",    # Red (high)
+                low = "{VIP_HEATMAP_LOW_COLOR}",      # Blue (lower intensity group)
+                mid = "{VIP_HEATMAP_MID_COLOR}",      # White (equal)
+                high = "{VIP_HEATMAP_HIGH_COLOR}",    # Red (higher intensity group)
                 midpoint = 0.5,
                 limits = c(0, 1),
-                name = NULL,  # No legend title
+                name = "Relative\\nIntensity",  # Phase 1.4: Added title for clarity
                 breaks = c(0, 1),
-                labels = c("Low", "High")
+                labels = c("Lower", "Higher")  # Phase 1.4: More descriptive labels
             ) +
 
             # Axes - compact layout with full coverage
@@ -159,8 +160,9 @@ class VIPScorePlotRMixin:
             annotate("text", x = normal_square_x, y = max(df$y_pos) + 0.8,
                     label = "Top", size = 3.0, angle = 90, hjust = 0, vjust = 0.5) +
 
-            # Labels (no title - MetaboAnalyst reference)
-            labs(title = NULL,
+            # Labels (Phase 1.4: Added subtitle for clarity)
+            labs(title = "Top {top_n} Features by VIP Score (PLS-DA)",
+                 subtitle = "Heatmap: Relative intensity per group (Bottom squares: Normal, Top squares: Cancer)",
                  x = "VIP scores",
                  y = "") +
 

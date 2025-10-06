@@ -127,6 +127,54 @@ EXTENDED_CATEGORY_COLORS = {
 }
 
 # ==============================================================================
+# Shape Markers - COLORBLIND ACCESSIBILITY (Phase 3)
+# Matplotlib marker styles for distinguishing categories without color
+# ==============================================================================
+
+# Group markers - Cancer vs Normal (colorblind-safe distinction)
+GROUP_MARKERS = {
+    'Cancer': 'o',      # Circle - standard marker
+    'Normal': 's'       # Square - easily distinguished from circle
+}
+
+# Glycan type markers - Distinct shapes for each category
+# Chosen for maximum visual distinction and clarity
+GLYCAN_TYPE_MARKERS = {
+    'HM': 'o',          # Circle - High Mannose (simple structure → simple shape)
+    'F': '^',           # Triangle up - Fucosylated (pointing up → core modification)
+    'S': 'v',           # Triangle down - Sialylated (pointing down → terminal modification)
+    'SF': 'D',          # Diamond - Sialofucosylated (combination → combined shape)
+    'C/H': 's'          # Square - Complex/Hybrid (structured → geometric)
+}
+
+# Legacy glycan type markers
+LEGACY_GLYCAN_MARKERS = {
+    'Non': 'o',         # Circle - Non-modified
+    'Sialylated': 'v',  # Triangle down - Sialylated
+    'Fucosylated': '^', # Triangle up - Fucosylated
+    'Both': 'D'         # Diamond - Both
+}
+
+# Regulation markers (for volcano plots)
+REGULATION_MARKERS = {
+    'Up in Cancer': '^',        # Triangle up - increased
+    'Down in Cancer': 'v',      # Triangle down - decreased
+    'Non-significant': 'o'      # Circle - no change
+}
+
+# All available matplotlib markers (for reference)
+# Filled: 'o', 's', '^', 'v', 'D', 'p', 'h', '*', 'X', 'P', '<', '>'
+# Unfilled: shapes + 'f' suffix (e.g., 'of', 'sf')
+# Note: We use filled markers for better visibility at 300 DPI
+
+# Marker size scaling (relative to base size)
+MARKER_SIZE_SCALE = {
+    'small': 0.7,
+    'normal': 1.0,
+    'large': 1.3
+}
+
+# ==============================================================================
 # Plot Settings (Prism-inspired)
 # ==============================================================================
 
@@ -343,3 +391,76 @@ def add_sample_size_annotation(ax, n_cancer: int, n_normal: int,
            bbox=bbox_props,
            family='monospace',
            zorder=1000)  # Ensure it's on top
+
+
+# ==============================================================================
+# Colorblind Accessibility Helpers (Phase 3)
+# ==============================================================================
+
+def get_group_style(group: str) -> tuple:
+    """
+    Get color and marker for a group (Cancer/Normal)
+
+    Phase 3 Enhancement: Returns both color and marker for dual encoding
+
+    Args:
+        group: Group name ('Cancer' or 'Normal')
+
+    Returns:
+        Tuple of (color, marker)
+
+    Example:
+        >>> color, marker = get_group_style('Cancer')
+        >>> # color = '#E41A1C', marker = 'o'
+    """
+    color = GROUP_PALETTE.get(group, '#333333')
+    marker = GROUP_MARKERS.get(group, 'o')
+    return color, marker
+
+
+def get_glycan_type_style(glycan_type: str) -> tuple:
+    """
+    Get color and marker for a glycan type
+
+    Phase 3 Enhancement: Returns both color and marker for dual encoding
+
+    Args:
+        glycan_type: Glycan type ('HM', 'F', 'S', 'SF', 'C/H')
+
+    Returns:
+        Tuple of (color, marker)
+
+    Example:
+        >>> color, marker = get_glycan_type_style('HM')
+        >>> # color = '#27AE60', marker = 'o'
+    """
+    color = GLYCAN_COLORS.get(glycan_type, '#333333')
+    marker = GLYCAN_TYPE_MARKERS.get(glycan_type, 'o')
+    return color, marker
+
+
+def get_regulation_style(regulation: str) -> tuple:
+    """
+    Get color and marker for regulation status (volcano plots)
+
+    Phase 3 Enhancement: Returns both color and marker for dual encoding
+
+    Args:
+        regulation: Regulation status ('Up in Cancer', 'Down in Cancer', 'Non-significant')
+
+    Returns:
+        Tuple of (color, marker)
+
+    Example:
+        >>> color, marker = get_regulation_style('Up in Cancer')
+        >>> # color = '#E41A1C', marker = '^'
+    """
+    color_map = {
+        'Up in Cancer': GROUP_PALETTE['Cancer'],
+        'Down in Cancer': GROUP_PALETTE['Normal'],
+        'Non-significant': '#95A5A6'
+    }
+
+    color = color_map.get(regulation, '#333333')
+    marker = REGULATION_MARKERS.get(regulation, 'o')
+    return color, marker

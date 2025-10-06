@@ -17,16 +17,22 @@ logger = logging.getLogger(__name__)
 class HeatmapMixin:
     """Mixin class for heatmap-related plots"""
 
-    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 50):
+    def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 20,
+                    output_suffix: str = 'main'):
         """
         Create clustered heatmap of top glycopeptides with hierarchical clustering
 
         Pipeline: TIC Normalization → Log2 Transform → Hierarchical Clustering
 
+        Phase 1.2 Enhancement: Default changed to top 20 for main figures
+        - Top 20: Excellent readability (0.45"/label at 9" height)
+        - Top 50: Use for supplementary materials
+
         Args:
             df: Annotated DataFrame
-            figsize: Figure size
-            top_n: Number of top glycopeptides to show
+            figsize: Figure size (adjust based on top_n for optimal readability)
+            top_n: Number of top glycopeptides to show (default: 20)
+            output_suffix: Filename suffix ('main' or 'supplementary')
         """
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
@@ -92,17 +98,21 @@ class HeatmapMixin:
             metric='euclidean'  # Distance metric
         )
 
-        # Adjust labels
-        g.ax_heatmap.set_xlabel('Sample', fontsize=12)
-        g.ax_heatmap.set_ylabel('Glycopeptide', fontsize=12)
+        # Adjust labels (Phase 1.2: larger fonts for top 20)
+        label_fontsize = 13 if top_n <= 20 else 12
+        g.ax_heatmap.set_xlabel('Sample', fontsize=label_fontsize)
+        g.ax_heatmap.set_ylabel('Glycopeptide', fontsize=label_fontsize)
 
         # Position title at the top with more space to avoid overlap
-        g.fig.suptitle(f'Top {top_n} Glycopeptides Heatmap with Hierarchical Clustering',
-                       fontsize=14, y=1.00, fontweight='bold')
+        title_text = f'Top {top_n} Glycopeptides Heatmap with Hierarchical Clustering'
+        if output_suffix == 'supplementary':
+            title_text += ' (Supplementary)'
+        g.fig.suptitle(title_text, fontsize=14, y=1.00, fontweight='bold')
 
-        # Rotate sample labels
-        plt.setp(g.ax_heatmap.xaxis.get_majorticklabels(), rotation=90)
-        plt.setp(g.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
+        # Rotate sample labels (Phase 1.2: larger ticks for top 20)
+        tick_fontsize = 11 if top_n <= 20 else 9
+        plt.setp(g.ax_heatmap.xaxis.get_majorticklabels(), rotation=90, fontsize=tick_fontsize)
+        plt.setp(g.ax_heatmap.yaxis.get_majorticklabels(), rotation=0, fontsize=tick_fontsize)
 
         # Add legend for sample colors - position to avoid clustering line
         from matplotlib.patches import Patch
@@ -118,15 +128,21 @@ class HeatmapMixin:
             fontsize=10
         )
 
-        # Save plot
-        output_file = self.output_dir / 'heatmap_top_glycopeptides.png'
+        # Save plot (Phase 1.2: filename based on suffix)
+        if output_suffix == 'main':
+            output_file = self.output_dir / f'heatmap_top{top_n}_main.png'
+            trace_file = f'heatmap_top{top_n}_main_data.csv'
+        else:
+            output_file = self.output_dir / f'heatmap_top{top_n}_supplementary.png'
+            trace_file = f'heatmap_top{top_n}_supplementary_data.csv'
+
         plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
         logger.info(f"Saved clustered heatmap to {output_file}")
 
         # Save trace data
         trace_data = heatmap_data.copy()
         trace_data.insert(0, 'Glycopeptide', row_labels)
-        save_trace_data(trace_data, self.output_dir, 'heatmap_top_glycopeptides_data.csv')
+        save_trace_data(trace_data, self.output_dir, trace_file)
 
         plt.close()
 

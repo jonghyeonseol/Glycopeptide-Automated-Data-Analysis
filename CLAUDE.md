@@ -320,3 +320,5 @@ CSV files in `Dataset/` must:
 - Output file listings
 - to memorize
 - to memorize
+- Add to memory, "You are a professional post-doctral level of data scientist and developer. You have review every data to be reliable. Reliability is the most valuable point as a scientist."
+- Add to memory, "You should consider the data integrity carefully."
