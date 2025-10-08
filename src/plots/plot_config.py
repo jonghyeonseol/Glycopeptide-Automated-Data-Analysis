@@ -120,7 +120,7 @@ EXTENDED_CATEGORY_COLORS = {
     'ComplexHybrid': '#3498DB',   # Alias (no space/slash)
     'Fucosylated': '#E74C3C',     # Red - Fucosylated
     'Sialylated': '#E91E63',      # Pink - Sialylated
-    'Sialofucosylated': '#E67E22', # Orange - Sialofucosylated
+    'Sialofucosylated': '#E67E22',  # Orange - Sialofucosylated
     'Both': '#E67E22',            # Alias for Sialofucosylated
     'Truncated': '#95A5A6',       # Gray - Truncated/Other
     'Other': '#95A5A6'            # Gray - Other
@@ -151,7 +151,7 @@ GLYCAN_TYPE_MARKERS = {
 LEGACY_GLYCAN_MARKERS = {
     'Non': 'o',         # Circle - Non-modified
     'Sialylated': 'v',  # Triangle down - Sialylated
-    'Fucosylated': '^', # Triangle up - Fucosylated
+    'Fucosylated': '^',  # Triangle up - Fucosylated
     'Both': 'D'         # Diamond - Both
 }
 
@@ -164,7 +164,7 @@ REGULATION_MARKERS = {
 
 # All available matplotlib markers (for reference)
 # Filled: 'o', 's', '^', 'v', 'D', 'p', 'h', '*', 'X', 'P', '<', '>'
-# Unfilled: shapes + 'f' suffix (e.g., 'of', 'sf')
+# Unfilled: shapes + '' suffix (e.g., 'o', 'sf')
 # Note: We use filled markers for better visibility at 300 DPI
 
 # Marker size scaling (relative to base size)
@@ -238,7 +238,7 @@ VIP_HEATMAP_OFFSET = 0.08                # Distance from VIP max to first square
 # Layout
 VIP_FIGURE_WIDTH = 12        # Wider for better label visibility
 VIP_FIGURE_HEIGHT = 8        # Standard height
-VIP_LEFT_MARGIN_EXPAND = 0.4 # Extra space for feature names
+VIP_LEFT_MARGIN_EXPAND = 0.4  # Extra space for feature names
 
 # ==============================================================================
 # PCA Plot - PUBLICATION QUALITY
@@ -281,6 +281,7 @@ SIGNIFICANCE_MARKER_SIZE = 14  # Size of *, **, *** markers
 # Utility Functions
 # ==============================================================================
 
+
 def apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=True):
     """
     Apply Prism-inspired standardized styling to matplotlib axes
@@ -303,7 +304,7 @@ def apply_standard_axis_style(ax, xlabel=None, ylabel=None, title=None, grid=Tru
 
     # Tick label sizes and style (Prism: larger ticks pointing outward)
     ax.tick_params(axis='both', which='major', labelsize=TICK_LABEL_SIZE,
-                  width=1.2, length=6, direction='out')
+                   width=1.2, length=6, direction='out')
 
     # Axis line width (Prism style: bolder axis lines)
     for spine in ['top', 'right', 'bottom', 'left']:
@@ -381,16 +382,16 @@ def add_sample_size_annotation(ax, n_cancer: int, n_normal: int,
     va = 'top' if 'upper' in location else 'bottom'
 
     bbox_props = dict(boxstyle='round,pad=0.5', facecolor='wheat',
-                     alpha=0.3, edgecolor='black', linewidth=1.2)
+                      alpha=0.3, edgecolor='black', linewidth=1.2)
 
     ax.text(x, y, text,
-           transform=ax.transAxes,
-           fontsize=fontsize,
-           verticalalignment=va,
-           horizontalalignment=ha,
-           bbox=bbox_props,
-           family='monospace',
-           zorder=1000)  # Ensure it's on top
+            transform=ax.transAxes,
+            fontsize=fontsize,
+            verticalalignment=va,
+            horizontalalignment=ha,
+            bbox=bbox_props,
+            family='monospace',
+            zorder=1000)  # Ensure it's on top
 
 
 # ==============================================================================

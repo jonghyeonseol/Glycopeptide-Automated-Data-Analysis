@@ -8,10 +8,7 @@ UPDATED: Now uses centralized data preparation for consistency
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
 import logging
-from scipy import stats
 from adjustText import adjust_text
 from ..utils import save_trace_data
 from ..data_preparation import (
@@ -20,15 +17,14 @@ from ..data_preparation import (
     calculate_statistical_significance
 )
 from .plot_config import (
-    VOLCANO_FIGSIZE, VOLCANO_POINT_SIZE, VOLCANO_POINT_ALPHA,
+    VOLCANO_POINT_SIZE, VOLCANO_POINT_ALPHA,
     VOLCANO_THRESHOLD_LINEWIDTH, VOLCANO_THRESHOLD_ALPHA,
     VOLCANO_POINT_EDGEWIDTH, VOLCANO_LABEL_FONTSIZE,
     VOLCANO_LABEL_WEIGHT, VOLCANO_LABEL_PADDING, VOLCANO_LABEL_LINEWIDTH,
-    VOLCANO_MAX_LABELS,
-    GROUP_PALETTE, GLYCAN_COLORS,
+    GLYCAN_COLORS,
     apply_standard_axis_style, apply_standard_legend,
     add_sample_size_annotation,  # Phase 2.2 enhancement
-    REGULATION_MARKERS, get_regulation_style  # Phase 3 enhancement
+    get_regulation_style  # Phase 3 enhancement
 )
 
 logger = logging.getLogger(__name__)
@@ -38,9 +34,9 @@ class VolcanoPlotMixin:
     """Mixin class for Volcano plot visualization"""
 
     def _calculate_bootstrap_fold_change_ci(self, cancer_values: np.ndarray,
-                                           normal_values: np.ndarray,
-                                           n_bootstrap: int = 1000,
-                                           confidence_level: float = 0.95) -> tuple:
+                                            normal_values: np.ndarray,
+                                            n_bootstrap: int = 1000,
+                                            confidence_level: float = 0.95) -> tuple:
         """
         Calculate bootstrap confidence interval for fold change
 
@@ -82,8 +78,8 @@ class VolcanoPlotMixin:
 
         # Calculate confidence interval (percentile method)
         alpha = 1 - confidence_level
-        ci_lower = np.percentile(bootstrap_log2fcs, alpha/2 * 100)
-        ci_upper = np.percentile(bootstrap_log2fcs, (1 - alpha/2) * 100)
+        ci_lower = np.percentile(bootstrap_log2fcs, alpha / 2 * 100)
+        ci_upper = np.percentile(bootstrap_log2fcs, (1 - alpha / 2) * 100)
 
         return (observed_log2fc, ci_lower, ci_upper)
 
@@ -151,7 +147,8 @@ class VolcanoPlotMixin:
         logger.info("Calculating bootstrap CIs for fold changes (top 20 significant features)...")
 
         # Select top 20 most significant glycopeptides for CI calculation
-        top_significant = volcano_df[volcano_df['FDR'] < 0.05].nlargest(20, '-Log10FDR') if len(volcano_df[volcano_df['FDR'] < 0.05]) > 0 else pd.DataFrame()
+        top_significant = volcano_df[volcano_df['FDR'] < 0.05].nlargest(
+            20, '-Log10FDR') if len(volcano_df[volcano_df['FDR'] < 0.05]) > 0 else pd.DataFrame()
 
         if len(top_significant) > 0:
             ci_results = []
@@ -222,10 +219,10 @@ class VolcanoPlotMixin:
             shape_symbol = {'Up in Cancer': '▲', 'Down in Cancer': '▼', 'Non-significant': '●'}[regulation]
 
             ax.scatter(subset['Log2FC'], subset['-Log10FDR'],
-                      c=color, s=sizes, alpha=VOLCANO_POINT_ALPHA,
-                      edgecolors='black', linewidths=VOLCANO_POINT_EDGEWIDTH,
-                      marker=marker,  # Phase 3: Shape encoding
-                      label=f"{regulation} ({shape_symbol}) n={len(subset)}", zorder=3)
+                       c=color, s=sizes, alpha=VOLCANO_POINT_ALPHA,
+                       edgecolors='black', linewidths=VOLCANO_POINT_EDGEWIDTH,
+                       marker=marker,  # Phase 3: Shape encoding
+                       label=f"{regulation} ({shape_symbol}) n={len(subset)}", zorder=3)
 
         # Phase 2.2: Add confidence interval error bars for top significant features
         features_with_ci = volcano_df[~volcano_df['Log2FC_CI_Lower'].isna()]
@@ -260,11 +257,11 @@ class VolcanoPlotMixin:
 
         # Add threshold lines using standardized styling
         ax.axhline(-np.log10(fdr_threshold), color='gray', linestyle='--',
-                  linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
+                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
         ax.axvline(np.log2(fc_threshold), color='gray', linestyle='--',
-                  linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
+                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
         ax.axvline(-np.log2(fc_threshold), color='gray', linestyle='--',
-                  linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
+                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
 
         # Use standardized glycan type colors from plot_config
         glycan_type_colors = GLYCAN_COLORS
@@ -384,8 +381,8 @@ class VolcanoPlotMixin:
             stats_text += f"95% CI shown for top {n_with_ci} features"
 
         ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
-               fontsize=9, verticalalignment='top',
-               bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), zorder=10)
+                fontsize=9, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), zorder=10)
 
         # Add sample size annotation (Phase 2.2 enhancement)
         n_cancer = len(cancer_samples)

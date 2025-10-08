@@ -8,7 +8,7 @@ to catch any inconsistencies before they affect scientific conclusions.
 
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict
 from .logger_config import get_logger
 from .exceptions import ValidationError
 
@@ -29,11 +29,11 @@ class DataConsistencyValidator:
         self.validation_results = []
 
     def validate_glycopeptide_overlap(self,
-                                     df1: pd.DataFrame,
-                                     df2: pd.DataFrame,
-                                     name1: str = "Dataset1",
-                                     name2: str = "Dataset2",
-                                     min_overlap_pct: float = 0.80) -> bool:
+                                      df1: pd.DataFrame,
+                                      df2: pd.DataFrame,
+                                      name1: str = "Dataset1",
+                                      name2: str = "Dataset2",
+                                      min_overlap_pct: float = 0.80) -> bool:
         """
         Validate that two datasets have sufficient glycopeptide overlap
 
@@ -80,27 +80,27 @@ class DataConsistencyValidator:
         logger.info(f"Glycopeptide overlap check: {name1} vs {name2}")
         logger.info(f"  {name1}: {len(gp1)} glycopeptides")
         logger.info(f"  {name2}: {len(gp2)} glycopeptides")
-        logger.info(f"  Overlap: {len(overlap)} ({overlap_pct_1*100:.1f}% of {name1}, "
-                   f"{overlap_pct_2*100:.1f}% of {name2})")
+        logger.info(f"  Overlap: {len(overlap)} ({overlap_pct_1 * 100:.1f}% of {name1}, "
+                    f"{overlap_pct_2 * 100:.1f}% of {name2})")
         logger.info(f"  Only in {name1}: {len(only_in_1)}")
         logger.info(f"  Only in {name2}: {len(only_in_2)}")
 
         if not result['passed']:
-            error_msg = (f"Glycopeptide overlap too low: {overlap_pct_1*100:.1f}% ({name1}) and "
-                        f"{overlap_pct_2*100:.1f}% ({name2}), required: {min_overlap_pct*100:.1f}%")
+            error_msg = (f"Glycopeptide overlap too low: {overlap_pct_1 * 100:.1f}% ({name1}) and "
+                         f"{overlap_pct_2 * 100:.1f}% ({name2}), required: {min_overlap_pct * 100:.1f}%")
             logger.error(error_msg)
             raise ValidationError(error_msg)
 
-        logger.info(f"  ✓ PASS: Overlap sufficient (≥{min_overlap_pct*100:.0f}%)")
+        logger.info(f"  ✓ PASS: Overlap sufficient (≥{min_overlap_pct * 100:.0f}%)")
         return True
 
     def validate_intensity_consistency(self,
-                                      df1: pd.DataFrame,
-                                      df2: pd.DataFrame,
-                                      intensity_col: str,
-                                      name1: str = "Dataset1",
-                                      name2: str = "Dataset2",
-                                      max_diff_pct: float = 0.01) -> bool:
+                                       df1: pd.DataFrame,
+                                       df2: pd.DataFrame,
+                                       intensity_col: str,
+                                       name1: str = "Dataset1",
+                                       name2: str = "Dataset2",
+                                       max_diff_pct: float = 0.01) -> bool:
         """
         Validate that intensity values are consistent between datasets
 
@@ -138,8 +138,8 @@ class DataConsistencyValidator:
         abs_diff = np.abs(val1 - val2)
         avg_val = (np.abs(val1) + np.abs(val2)) / 2
         rel_diff = np.where(avg_val > self.tolerance,
-                           abs_diff / avg_val,
-                           abs_diff)
+                            abs_diff / avg_val,
+                            abs_diff)
 
         max_rel_diff = np.nanmax(rel_diff)
         mean_rel_diff = np.nanmean(rel_diff)
@@ -161,8 +161,8 @@ class DataConsistencyValidator:
 
         logger.info(f"Intensity consistency check: {intensity_col}")
         logger.info(f"  Compared: {len(merged)} glycopeptides")
-        logger.info(f"  Max relative difference: {max_rel_diff*100:.3f}%")
-        logger.info(f"  Mean relative difference: {mean_rel_diff*100:.3f}%")
+        logger.info(f"  Max relative difference: {max_rel_diff * 100:.3f}%")
+        logger.info(f"  Mean relative difference: {mean_rel_diff * 100:.3f}%")
         logger.info(f"  Exceeding threshold: {n_exceed}")
 
         if not result['passed']:
@@ -171,21 +171,21 @@ class DataConsistencyValidator:
             worst_row = merged.iloc[worst_idx]
 
             error_msg = (f"Intensity values inconsistent for {intensity_col}: "
-                        f"max difference {max_rel_diff*100:.3f}%, threshold {max_diff_pct*100:.3f}%. "
-                        f"Worst case: {worst_row['Peptide']}|{worst_row['GlycanComposition']} "
-                        f"({val1.iloc[worst_idx]:.2e} vs {val2.iloc[worst_idx]:.2e})")
+                         f"max difference {max_rel_diff * 100:.3f}%, threshold {max_diff_pct * 100:.3f}%. "
+                         f"Worst case: {worst_row['Peptide']}|{worst_row['GlycanComposition']} "
+                         f"({val1.iloc[worst_idx]:.2e} vs {val2.iloc[worst_idx]:.2e})")
             logger.error(error_msg)
             raise ValidationError(error_msg)
 
-        logger.info(f"  ✓ PASS: Intensities consistent")
+        logger.info("  ✓ PASS: Intensities consistent")
         return True
 
     def validate_detection_statistics(self,
-                                     df1: pd.DataFrame,
-                                     df2: pd.DataFrame,
-                                     detection_col: str,
-                                     name1: str = "Dataset1",
-                                     name2: str = "Dataset2") -> bool:
+                                      df1: pd.DataFrame,
+                                      df2: pd.DataFrame,
+                                      detection_col: str,
+                                      name1: str = "Dataset1",
+                                      name2: str = "Dataset2") -> bool:
         """
         Validate that detection statistics are identical
 
@@ -242,11 +242,11 @@ class DataConsistencyValidator:
 
         if not result['passed']:
             error_msg = (f"Detection statistics differ for {detection_col}: "
-                        f"max difference {max_diff:.6f}, expected 0")
+                         f"max difference {max_diff:.6f}, expected 0")
             logger.error(error_msg)
             raise ValidationError(error_msg)
 
-        logger.info(f"  ✓ PASS: Detection statistics identical")
+        logger.info("  ✓ PASS: Detection statistics identical")
         return True
 
     def validate_all_visualizations(self,
@@ -267,11 +267,11 @@ class DataConsistencyValidator:
         """
         if required_columns is None:
             required_columns = ['Cancer_Mean', 'Normal_Mean',
-                               'Cancer_Detection_Pct', 'Normal_Detection_Pct']
+                                'Cancer_Detection_Pct', 'Normal_Detection_Pct']
 
-        logger.info("="*80)
+        logger.info("=" * 80)
         logger.info("COMPREHENSIVE DATA CONSISTENCY VALIDATION")
-        logger.info("="*80)
+        logger.info("=" * 80)
 
         # Get list of dataset names
         names = list(datasets.keys())
@@ -284,7 +284,7 @@ class DataConsistencyValidator:
         all_passed = True
 
         for i in range(len(names)):
-            for j in range(i+1, len(names)):
+            for j in range(i + 1, len(names)):
                 name1 = names[i]
                 name2 = names[j]
                 df1 = datasets[name1]
@@ -316,12 +316,12 @@ class DataConsistencyValidator:
                     logger.error(f"  {str(e)}")
                     all_passed = False
 
-        logger.info("="*80)
+        logger.info("=" * 80)
         if all_passed:
             logger.info("✓ ALL VALIDATIONS PASSED")
         else:
             logger.error("✗ VALIDATION FAILURES DETECTED")
-        logger.info("="*80)
+        logger.info("=" * 80)
 
         return all_passed
 
@@ -356,9 +356,9 @@ class DataConsistencyValidator:
         # Also create human-readable text report
         txt_path = output_path.replace('.csv', '.txt')
         with open(txt_path, 'w') as f:
-            f.write("="*80 + "\n")
+            f.write("=" * 80 + "\n")
             f.write("DATA CONSISTENCY VALIDATION REPORT\n")
-            f.write("="*80 + "\n\n")
+            f.write("=" * 80 + "\n\n")
 
             for result in self.validation_results:
                 f.write(f"Check: {result['check']}\n")
@@ -371,17 +371,17 @@ class DataConsistencyValidator:
             total_checks = len(self.validation_results)
             passed_checks = sum(1 for r in self.validation_results if r.get('passed', False))
 
-            f.write("="*80 + "\n")
+            f.write("=" * 80 + "\n")
             f.write(f"SUMMARY: {passed_checks}/{total_checks} checks passed\n")
-            f.write("="*80 + "\n")
+            f.write("=" * 80 + "\n")
 
         logger.info(f"Text report saved to {txt_path}")
 
 
 def quick_consistency_check(df1: pd.DataFrame,
-                           df2: pd.DataFrame,
-                           name1: str = "Dataset1",
-                           name2: str = "Dataset2") -> bool:
+                            df2: pd.DataFrame,
+                            name1: str = "Dataset1",
+                            name2: str = "Dataset2") -> bool:
     """
     Quick consistency check between two datasets
 

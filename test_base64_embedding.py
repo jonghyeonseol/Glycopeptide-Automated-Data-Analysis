@@ -19,13 +19,13 @@ if test_png.exists():
 
     if base64_str and base64_str.startswith('data:image/png;base64,'):
         encoded_length = len(base64_str)
-        print(f"✓ Successfully encoded PNG to base64")
+        print("✓ Successfully encoded PNG to base64")
         print(f"  Original file size: {test_png.stat().st_size:,} bytes")
         print(f"  Base64 string length: {encoded_length:,} characters")
         print(f"  Sample (first 100 chars): {base64_str[:100]}...")
         print("\n✓ Base64 embedding functionality working correctly!")
     else:
-        print(f"✗ Failed to encode PNG")
+        print("✗ Failed to encode PNG")
         sys.exit(1)
 else:
     print(f"✗ Test PNG not found at {test_png}")

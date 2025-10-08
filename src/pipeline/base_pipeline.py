@@ -67,7 +67,6 @@ class BasePipeline(ABC):
         Returns:
             PipelineState with results
         """
-        pass
 
     def add_workflow(self, workflow) -> 'BasePipeline':
         """
@@ -84,15 +83,15 @@ class BasePipeline(ABC):
 
     def on_start(self) -> None:
         """Hook called before pipeline starts"""
-        logger.info("="*80)
+        logger.info("=" * 80)
         logger.info("Pipeline Starting")
-        logger.info("="*80)
+        logger.info("=" * 80)
 
     def on_complete(self) -> None:
         """Hook called after pipeline completes"""
-        logger.info("="*80)
+        logger.info("=" * 80)
         logger.info("Pipeline Completed Successfully")
-        logger.info("="*80)
+        logger.info("=" * 80)
 
     def on_error(self, error: Exception) -> None:
         """Hook called when pipeline encounters an error"""

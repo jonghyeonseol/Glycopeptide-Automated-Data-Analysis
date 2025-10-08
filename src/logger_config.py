@@ -16,8 +16,8 @@ _logging_configured = False
 
 
 def setup_logging(level: str = LOG_LEVEL_INFO,
-                 log_file: Optional[Path] = None,
-                 console: bool = True) -> None:
+                  log_file: Optional[Path] = None,
+                  console: bool = True) -> None:
     """
     Configure logging for the entire application
 

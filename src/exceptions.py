@@ -6,7 +6,6 @@ Provides specific error types for better error handling and debugging
 
 class PGlycoAutoError(Exception):
     """Base exception for all pGlyco Auto Combine errors"""
-    pass
 
 
 # ==============================================================================
@@ -15,7 +14,6 @@ class PGlycoAutoError(Exception):
 
 class ConfigurationError(PGlycoAutoError):
     """Raised when configuration is invalid or missing"""
-    pass
 
 
 class MissingConfigKeyError(ConfigurationError):
@@ -43,7 +41,6 @@ class InvalidConfigValueError(ConfigurationError):
 
 class DataLoadError(PGlycoAutoError):
     """Raised when data loading fails"""
-    pass
 
 
 class NoDataFilesError(DataLoadError):
@@ -86,7 +83,6 @@ class EmptyDataError(DataLoadError):
 
 class AnnotationError(PGlycoAutoError):
     """Raised when annotation fails"""
-    pass
 
 
 class InvalidGlycanCompositionError(AnnotationError):
@@ -106,7 +102,6 @@ class InvalidGlycanCompositionError(AnnotationError):
 
 class AnalysisError(PGlycoAutoError):
     """Raised when statistical analysis fails"""
-    pass
 
 
 class InsufficientDataError(AnalysisError):
@@ -144,7 +139,6 @@ class NormalizationError(AnalysisError):
 
 class VisualizationError(PGlycoAutoError):
     """Raised when visualization generation fails"""
-    pass
 
 
 class PlotGenerationError(VisualizationError):
@@ -171,7 +165,6 @@ class MissingVisualizationDataError(VisualizationError):
 
 class FileOperationError(PGlycoAutoError):
     """Raised when file operations fail"""
-    pass
 
 
 class OutputDirectoryError(FileOperationError):
@@ -198,7 +191,6 @@ class TraceDataSaveError(FileOperationError):
 
 class ValidationError(PGlycoAutoError):
     """Raised when data validation fails"""
-    pass
 
 
 class SampleCountMismatchError(ValidationError):
@@ -223,3 +215,40 @@ class ValueRangeError(ValidationError):
         if field_name:
             message = f"{field_name}: {message}"
         super().__init__(message)
+
+
+# Export all exception classes
+__all__ = [
+    # Base exception
+    'PGlycoAutoError',
+    # Configuration errors
+    'ConfigurationError',
+    'MissingConfigKeyError',
+    'InvalidConfigValueError',
+    # Data loading errors
+    'DataLoadError',
+    'NoDataFilesError',
+    'MissingColumnError',
+    'InvalidDataFormatError',
+    'EmptyDataError',
+    # Annotation errors
+    'AnnotationError',
+    'InvalidGlycanCompositionError',
+    # Analysis errors
+    'AnalysisError',
+    'InsufficientDataError',
+    'MatrixShapeError',
+    'NormalizationError',
+    # Visualization errors
+    'VisualizationError',
+    'PlotGenerationError',
+    'MissingVisualizationDataError',
+    # File I/O errors
+    'FileOperationError',
+    'OutputDirectoryError',
+    'TraceDataSaveError',
+    # Validation errors
+    'ValidationError',
+    'SampleCountMismatchError',
+    'ValueRangeError',
+]

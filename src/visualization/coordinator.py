@@ -74,7 +74,7 @@ class VisualizationCoordinator:
             self._generate_plot(plot, data, **kwargs)
 
         logger.info(
-            f"\nVisualization Summary:\n"
+            "\nVisualization Summary:\n"
             f"  Generated: {len(self.generated_plots)}\n"
             f"  Failed: {len(self.failed_plots)}"
         )

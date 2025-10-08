@@ -4,10 +4,8 @@ Visualizes overlap between glycan type categories
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3, venn3_circles
-from pathlib import Path
 import logging
 from ..utils import save_trace_data
 
@@ -52,7 +50,7 @@ class VennDiagramPlotMixin:
         )
 
         # Add circles for better visualization
-        venn_circles = venn3_circles(
+        _ = venn3_circles(
             subsets=[sialylated_set, fucosylated_set, high_mannose_set],
             ax=ax, linewidth=2, linestyle='--', color='gray'
         )
@@ -69,7 +67,7 @@ class VennDiagramPlotMixin:
 
         # Title
         ax.set_title('Glycan Type Overlap Analysis\n(Venn Diagram)',
-                    fontsize=16, fontweight='bold', pad=20)
+                     fontsize=16, fontweight='bold', pad=20)
 
         # Add statistics text
         total_glycopeptides = len(df)
@@ -87,8 +85,8 @@ class VennDiagramPlotMixin:
         stats_text += f"All three: {all_three}"
 
         ax.text(1.3, 0.5, stats_text, transform=ax.transData,
-               fontsize=10, verticalalignment='center',
-               bbox=dict(boxstyle='round', facecolor='white', alpha=0.8, edgecolor='gray'))
+                fontsize=10, verticalalignment='center',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8, edgecolor='gray'))
 
         plt.tight_layout()
 

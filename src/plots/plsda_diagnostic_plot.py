@@ -10,7 +10,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
 import logging
 from sklearn.model_selection import cross_val_score, LeaveOneOut
 from sklearn.cross_decomposition import PLSRegression
@@ -43,9 +42,9 @@ class PLSDADiagnosticPlotMixin:
 
         # Extract results
         plsda_model = plsda_results['plsda_model']
-        X_scores = plsda_results['X_scores']
+        plsda_results['X_scores']
         y_labels = plsda_results['y_labels']
-        sample_names = plsda_results['sample_names']
+        plsda_results['sample_names']
         vip_df = plsda_results['vip_scores']
 
         # Reconstruct scaled X matrix
@@ -60,7 +59,7 @@ class PLSDADiagnosticPlotMixin:
         # Create 2x2 subplot layout
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=figsize)
         fig.suptitle('PLS-DA Model Diagnostics: Validation of VIP Score Reliability',
-                    fontsize=16, fontweight='bold', y=0.995)
+                     fontsize=16, fontweight='bold', y=0.995)
 
         # =====================================================================
         # PANEL 1: R² and Q² across components
@@ -83,23 +82,23 @@ class PLSDADiagnosticPlotMixin:
             # Q² score (cross-validated)
             loo = LeaveOneOut()
             q2_cv = cross_val_score(pls_temp, X_scaled, y_labels,
-                                   cv=loo, scoring='r2')
+                                    cv=loo, scoring='r2')
             q2_scores.append(q2_cv.mean())
 
         # Plot R² and Q²
         ax1.plot(n_components_range, r2_scores, 'o-', color='#E74C3C',
-                linewidth=2, markersize=8, label='R² (Explained Variance)')
+                 linewidth=2, markersize=8, label='R² (Explained Variance)')
         ax1.plot(n_components_range, q2_scores, 's-', color='#3498DB',
-                linewidth=2, markersize=8, label='Q² (Predictive Ability)')
+                 linewidth=2, markersize=8, label='Q² (Predictive Ability)')
 
         # Add threshold line at 0.5
         ax1.axhline(0.5, color='gray', linestyle='--', linewidth=1.5,
-                   label='Good model threshold (>0.5)', alpha=0.7)
+                    label='Good model threshold (>0.5)', alpha=0.7)
 
         ax1.set_xlabel('Number of Components', fontsize=12, fontweight='bold')
         ax1.set_ylabel('Score', fontsize=12, fontweight='bold')
         ax1.set_title('Model Quality: R² vs Q²\nHigher Q² = Better Predictive Power',
-                     fontsize=12, fontweight='bold')
+                      fontsize=12, fontweight='bold')
         ax1.legend(loc='best', frameon=True, fontsize=10)
         ax1.grid(True, alpha=0.3)
         ax1.set_ylim(-0.1, 1.1)
@@ -109,11 +108,11 @@ class PLSDADiagnosticPlotMixin:
         selected_r2 = r2_scores[selected_comp - 1]
         selected_q2 = q2_scores[selected_comp - 1]
         ax1.scatter([selected_comp], [selected_r2], s=200, c='red',
-                   marker='*', edgecolors='black', linewidths=2, zorder=10)
+                    marker='*', edgecolors='black', linewidths=2, zorder=10)
         ax1.annotate(f'Selected: {selected_comp} comp\nR²={selected_r2:.3f}, Q²={selected_q2:.3f}',
-                    xy=(selected_comp, selected_r2), xytext=(selected_comp+1, selected_r2-0.15),
-                    fontsize=9, bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.7),
-                    arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
+                     xy =(selected_comp, selected_r2), xytext =(selected_comp + 1, selected_r2 - 0.15),
+                     fontsize=9, bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.7),
+                     arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
 
         # =====================================================================
         # PANEL 2: ROC Curve
@@ -129,13 +128,13 @@ class PLSDADiagnosticPlotMixin:
 
         # Plot ROC curve
         ax2.plot(fpr, tpr, color='#E74C3C', linewidth=3,
-                label=f'PLS-DA (AUC = {roc_auc:.3f})')
+                 label=f'PLS-DA (AUC = {roc_auc:.3f})')
         ax2.plot([0, 1], [0, 1], 'k--', linewidth=2, label='Random Classifier', alpha=0.5)
 
         ax2.set_xlabel('False Positive Rate', fontsize=12, fontweight='bold')
         ax2.set_ylabel('True Positive Rate', fontsize=12, fontweight='bold')
         ax2.set_title(f'ROC Curve: Discrimination Ability\nAUC = {roc_auc:.3f} (1.0 = Perfect)',
-                     fontsize=12, fontweight='bold')
+                      fontsize=12, fontweight='bold')
         ax2.legend(loc='lower right', frameon=True, fontsize=10)
         ax2.grid(True, alpha=0.3)
         ax2.set_xlim([-0.05, 1.05])
@@ -153,7 +152,7 @@ class PLSDADiagnosticPlotMixin:
             interp = "Poor discrimination"
 
         ax2.text(0.6, 0.2, interp, fontsize=11, fontweight='bold',
-                bbox=dict(boxstyle='round', facecolor='lightgreen' if roc_auc > 0.8 else 'yellow', alpha=0.7))
+                 bbox=dict(boxstyle='round', facecolor='lightgreen' if roc_auc > 0.8 else 'yellow', alpha=0.7))
 
         # =====================================================================
         # PANEL 3: Confusion Matrix
@@ -168,13 +167,13 @@ class PLSDADiagnosticPlotMixin:
 
         # Plot confusion matrix
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False,
-                   ax=ax3, square=True, linewidths=2, linecolor='black',
-                   annot_kws={'size': 16, 'weight': 'bold'})
+                    ax=ax3, square=True, linewidths=2, linecolor='black',
+                    annot_kws={'size': 16, 'weight': 'bold'})
 
         ax3.set_xlabel('Predicted Class', fontsize=12, fontweight='bold')
         ax3.set_ylabel('True Class', fontsize=12, fontweight='bold')
         ax3.set_title('Confusion Matrix\n(Leave-One-Out Cross-Validation)',
-                     fontsize=12, fontweight='bold')
+                      fontsize=12, fontweight='bold')
         ax3.set_xticklabels(['Normal (0)', 'Cancer (1)'], fontsize=10)
         ax3.set_yticklabels(['Normal (0)', 'Cancer (1)'], fontsize=10, rotation=0)
 
@@ -189,9 +188,9 @@ class PLSDADiagnosticPlotMixin:
         metrics_text += f"Specificity: {specificity:.1%}"
 
         ax3.text(1.05, 0.5, metrics_text, transform=ax3.transAxes,
-                fontsize=10, verticalalignment='center',
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.7),
-                family='monospace')
+                 fontsize=10, verticalalignment='center',
+                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.7),
+                 family='monospace')
 
         # =====================================================================
         # PANEL 4: VIP Score Distribution
@@ -203,24 +202,24 @@ class PLSDADiagnosticPlotMixin:
 
         # Plot histogram
         ax4.hist(vip_scores, bins=50, color='#27AE60', alpha=0.7,
-                edgecolor='black', linewidth=0.5)
+                 edgecolor='black', linewidth=0.5)
 
         # Add threshold line at VIP=1.0
         ax4.axvline(1.0, color='red', linestyle='--', linewidth=3,
-                   label='VIP = 1.0 (Important Features)', zorder=10)
+                    label='VIP = 1.0 (Important Features)', zorder=10)
 
         # Add mean and median lines
         mean_vip = vip_scores.mean()
         median_vip = np.median(vip_scores)
         ax4.axvline(mean_vip, color='blue', linestyle=':', linewidth=2,
-                   label=f'Mean = {mean_vip:.2f}', alpha=0.7)
+                    label=f'Mean = {mean_vip:.2f}', alpha=0.7)
         ax4.axvline(median_vip, color='orange', linestyle='-.', linewidth=2,
-                   label=f'Median = {median_vip:.2f}', alpha=0.7)
+                    label=f'Median = {median_vip:.2f}', alpha=0.7)
 
         ax4.set_xlabel('VIP Score', fontsize=12, fontweight='bold')
         ax4.set_ylabel('Frequency', fontsize=12, fontweight='bold')
         ax4.set_title('VIP Score Distribution\nVIP > 1.0 = Important Features',
-                     fontsize=12, fontweight='bold')
+                      fontsize=12, fontweight='bold')
         ax4.legend(loc='upper right', frameon=True, fontsize=10)
         ax4.grid(True, alpha=0.3, axis='y')
 
@@ -233,9 +232,9 @@ class PLSDADiagnosticPlotMixin:
         stats_text += f"Max VIP: {vip_scores.max():.2f}"
 
         ax4.text(0.98, 0.98, stats_text, transform=ax4.transAxes,
-                fontsize=10, verticalalignment='top', horizontalalignment='right',
-                bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.7),
-                family='monospace')
+                 fontsize=10, verticalalignment='top', horizontalalignment='right',
+                 bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.7),
+                 family='monospace')
 
         plt.tight_layout()
 
@@ -247,9 +246,9 @@ class PLSDADiagnosticPlotMixin:
         # Save diagnostic metrics as trace data
         diagnostic_metrics = pd.DataFrame({
             'Metric': ['R²', 'Q²', 'ROC_AUC', 'Accuracy', 'Sensitivity', 'Specificity',
-                      'VIP_Mean', 'VIP_Median', 'N_Important_Features'],
+                       'VIP_Mean', 'VIP_Median', 'N_Important_Features'],
             'Value': [selected_r2, selected_q2, roc_auc, accuracy, sensitivity, specificity,
-                     mean_vip, median_vip, n_important]
+                      mean_vip, median_vip, n_important]
         })
         save_trace_data(diagnostic_metrics, self.output_dir, 'plsda_diagnostic_metrics.csv')
 

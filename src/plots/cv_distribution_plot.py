@@ -8,8 +8,6 @@ UPDATED: Now uses centralized data preparation for consistency
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
 import logging
 from ..utils import save_trace_data
 from ..data_preparation import (
@@ -95,12 +93,12 @@ class CVDistributionPlotMixin:
         # Plot Cancer CV distribution
         ax1 = axes[0]
         ax1.hist(cv_df_clean['Cancer_CV'], bins=50, color=cancer_color,
-                alpha=0.7, edgecolor='black', linewidth=0.5)
+                 alpha=0.7, edgecolor='black', linewidth=0.5)
 
         # Add median line
         cancer_median = cv_df_clean['Cancer_CV'].median()
         ax1.axvline(cancer_median, color='darkred', linestyle='--',
-                   linewidth=2, label=f'Median: {cancer_median:.1f}%')
+                    linewidth=2, label=f'Median: {cancer_median:.1f}%')
 
         ax1.set_xlabel('CV (%)', fontsize=12, fontweight='bold')
         ax1.set_ylabel('Count', fontsize=12, fontweight='bold')
@@ -112,21 +110,23 @@ class CVDistributionPlotMixin:
         stats_text = f"n = {len(cv_df_clean)}\n"
         stats_text += f"Mean: {cv_df_clean['Cancer_CV'].mean():.1f}%\n"
         stats_text += f"Median: {cancer_median:.1f}%\n"
-        stats_text += f"Q1-Q3: {cv_df_clean['Cancer_CV'].quantile(0.25):.1f}%-{cv_df_clean['Cancer_CV'].quantile(0.75):.1f}%"
+        q1 = cv_df_clean['Cancer_CV'].quantile(0.25)
+        q3 = cv_df_clean['Cancer_CV'].quantile(0.75)
+        stats_text += f"Q1-Q3: {q1:.1f}%-{q3:.1f}%"
 
         ax1.text(0.98, 0.98, stats_text, transform=ax1.transAxes,
-                fontsize=9, verticalalignment='top', horizontalalignment='right',
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+                 fontsize=9, verticalalignment='top', horizontalalignment='right',
+                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
         # Plot Normal CV distribution
         ax2 = axes[1]
         ax2.hist(cv_df_clean['Normal_CV'], bins=50, color=normal_color,
-                alpha=0.7, edgecolor='black', linewidth=0.5)
+                 alpha=0.7, edgecolor='black', linewidth=0.5)
 
         # Add median line
         normal_median = cv_df_clean['Normal_CV'].median()
         ax2.axvline(normal_median, color='darkblue', linestyle='--',
-                   linewidth=2, label=f'Median: {normal_median:.1f}%')
+                    linewidth=2, label=f'Median: {normal_median:.1f}%')
 
         ax2.set_xlabel('CV (%)', fontsize=12, fontweight='bold')
         ax2.set_ylabel('Count', fontsize=12, fontweight='bold')
@@ -138,15 +138,17 @@ class CVDistributionPlotMixin:
         stats_text = f"n = {len(cv_df_clean)}\n"
         stats_text += f"Mean: {cv_df_clean['Normal_CV'].mean():.1f}%\n"
         stats_text += f"Median: {normal_median:.1f}%\n"
-        stats_text += f"Q1-Q3: {cv_df_clean['Normal_CV'].quantile(0.25):.1f}%-{cv_df_clean['Normal_CV'].quantile(0.75):.1f}%"
+        q1 = cv_df_clean['Normal_CV'].quantile(0.25)
+        q3 = cv_df_clean['Normal_CV'].quantile(0.75)
+        stats_text += f"Q1-Q3: {q1:.1f}%-{q3:.1f}%"
 
         ax2.text(0.98, 0.98, stats_text, transform=ax2.transAxes,
-                fontsize=9, verticalalignment='top', horizontalalignment='right',
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+                 fontsize=9, verticalalignment='top', horizontalalignment='right',
+                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
         # Main title
         fig.suptitle('Coefficient of Variation (CV) Distribution Analysis',
-                    fontsize=15, fontweight='bold', y=1.02)
+                     fontsize=15, fontweight='bold', y=1.02)
 
         plt.tight_layout()
 

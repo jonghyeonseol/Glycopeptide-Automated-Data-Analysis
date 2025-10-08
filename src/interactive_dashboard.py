@@ -7,13 +7,10 @@ Phase 2.1: Post-doctoral level enhancement for publication-quality interactive f
 
 import pandas as pd
 import numpy as np
-import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from pathlib import Path
 import logging
-from typing import Dict, List, Tuple
-import json
+from typing import Tuple
 import base64
 
 logger = logging.getLogger(__name__)
@@ -113,10 +110,10 @@ class InteractiveDashboard:
                 cancer_data['Glycan_Count']
             )),
             hovertemplate='<b>%{customdata[0]}</b><br>' +
-                         'PC1: %{customdata[1]}<br>' +
-                         'PC2: %{customdata[2]}<br>' +
-                         'Glycans: %{customdata[3]}<br>' +
-                         '<extra></extra>'
+            'PC1: %{customdata[1]}<br>' +
+            'PC2: %{customdata[2]}<br>' +
+            'Glycans: %{customdata[3]}<br>' +
+            '<extra></extra>'
         ))
 
         # Plot Normal samples
@@ -145,10 +142,10 @@ class InteractiveDashboard:
                 normal_data['Glycan_Count']
             )),
             hovertemplate='<b>%{customdata[0]}</b><br>' +
-                         'PC1: %{customdata[1]}<br>' +
-                         'PC2: %{customdata[2]}<br>' +
-                         'Glycans: %{customdata[3]}<br>' +
-                         '<extra></extra>'
+            'PC1: %{customdata[1]}<br>' +
+            'PC2: %{customdata[2]}<br>' +
+            'Glycans: %{customdata[3]}<br>' +
+            '<extra></extra>'
         ))
 
         # Add 95% confidence ellipses
@@ -177,14 +174,14 @@ class InteractiveDashboard:
         # Update layout
         fig.update_layout(
             title=dict(
-                text=f'<b>Interactive PCA: Cancer vs Normal</b><br>' +
-                     f'<sub>PC1: {explained_var[0]*100:.2f}% | PC2: {explained_var[1]*100:.2f}%</sub>',
+                text='<b>Interactive PCA: Cancer vs Normal</b><br>' +
+                     f'<sub>PC1: {explained_var[0] * 100:.2f}% | PC2: {explained_var[1] * 100:.2f}%</sub>',
                 x=0.5,
                 xanchor='center',
                 font=dict(size=18)
             ),
-            xaxis_title=f'PC1 ({explained_var[0]*100:.2f}%)',
-            yaxis_title=f'PC2 ({explained_var[1]*100:.2f}%)',
+            xaxis_title =f'PC1 ({explained_var[0] * 100:.2f}%)',
+            yaxis_title =f'PC2 ({explained_var[1] * 100:.2f}%)',
             hovermode='closest',
             plot_bgcolor='white',
             width=1000,
@@ -327,7 +324,7 @@ class InteractiveDashboard:
         # Update layout
         fig.update_layout(
             title=dict(
-                text=f'<b>Interactive Volcano Plot: Differential Expression</b><br>' +
+                text='<b>Interactive Volcano Plot: Differential Expression</b><br>' +
                      f'<sub>Up: {n_up} | Down: {n_down} | NS: {n_ns} | ' +
                      f'Thresholds: FC>{fc_threshold}x, FDR<{fdr_threshold}</sub>',
                 x=0.5,
@@ -364,8 +361,8 @@ class InteractiveDashboard:
         return fig
 
     def create_interactive_vip_scores(self, vip_df: pd.DataFrame,
-                                     df: pd.DataFrame,
-                                     top_n: int = 30) -> go.Figure:
+                                      df: pd.DataFrame,
+                                      top_n: int = 30) -> go.Figure:
         """
         Create interactive VIP score plot with filtering
 
@@ -459,7 +456,7 @@ class InteractiveDashboard:
         fig.update_layout(
             title=dict(
                 text=f'<b>Top {top_n} Features by VIP Score (PLS-DA)</b><br>' +
-                     '<sub>Variable Importance in Projection - Higher = More discriminative</sub>',
+                '<sub>Variable Importance in Projection - Higher = More discriminative</sub>',
                 x=0.5,
                 xanchor='center',
                 font=dict(size=18)
@@ -605,7 +602,7 @@ class InteractiveDashboard:
         return fig
 
     def _calculate_confidence_ellipse(self, x: np.ndarray, y: np.ndarray,
-                                     n_std: float = 1.96, n_points: int = 100) -> Tuple[np.ndarray, np.ndarray]:
+                                      n_std: float = 1.96, n_points: int = 100) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate 95% confidence ellipse coordinates
 
@@ -658,9 +655,9 @@ class InteractiveDashboard:
         return ellipse_x, ellipse_y
 
     def generate_all_interactive_plots(self, pca_results: dict, df: pd.DataFrame,
-                                      vip_df: pd.DataFrame = None,
-                                      volcano_df: pd.DataFrame = None,
-                                      results_dir: Path = None):
+                                       vip_df: pd.DataFrame = None,
+                                       volcano_df: pd.DataFrame = None,
+                                       results_dir: Path = None):
         """
         Generate all interactive plots
 
@@ -746,7 +743,7 @@ class InteractiveDashboard:
                     # Embed as base64 for portability
                     base64_img = self._png_to_base64(png_path)
                     if base64_img:
-                        card_html = f"""
+                        card_html = """
         <div class="plot-card">
             <h3>{title}</h3>
             <p>{description}</p>
@@ -756,7 +753,7 @@ class InteractiveDashboard:
                         static_cards.append(card_html)
 
             if static_cards:
-                static_gallery_html = f"""
+                static_gallery_html = """
     <h2>📸 Key Static Visualizations (Embedded)</h2>
     <p class="info-text">High-resolution static plots embedded as base64 for full portability.
     All original PNG files available in parent Results/ directory.</p>
@@ -765,7 +762,7 @@ class InteractiveDashboard:
     </div>
 """
 
-        html_content = f"""
+        html_content = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -921,7 +918,7 @@ class InteractiveDashboard:
 
         index_file = self.output_dir / 'index.html'
         with open(index_file, 'w') as f:
-            f.write(html_content)
+            f.write(html_content.format(static_gallery_html=static_gallery_html))
 
         logger.info(f"Created dashboard index at {index_file}")
 

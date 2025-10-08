@@ -200,7 +200,7 @@ class DataIntegrityManager:
         if not manifest_path.exists():
             raise FileNotFoundError(f"Manifest not found: {manifest_path}")
 
-        with open(manifest_path, 'r') as f:
+        with open(manifest_path) as f:
             manifest = json.load(f)
 
         checksums = manifest.get('checksums', {})

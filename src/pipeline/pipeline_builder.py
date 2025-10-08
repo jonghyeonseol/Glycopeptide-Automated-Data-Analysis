@@ -3,8 +3,7 @@ Pipeline Builder
 Provides fluent API for building pipelines
 """
 
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+from typing import Dict, Any, Optional
 
 from .glyco_pipeline import GlycoPipeline
 from ..config_validator import load_and_validate_config

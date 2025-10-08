@@ -12,7 +12,7 @@ Created: 2025-10-06 (Phase 2.3)
 import pandas as pd
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 import logging
 from datetime import datetime
 
@@ -39,12 +39,12 @@ class MethodsTextGenerator:
         """
         self.metadata = None
         if metadata_file and metadata_file.exists():
-            with open(metadata_file, 'r') as f:
+            with open(metadata_file) as f:
                 self.metadata = json.load(f)
 
     def generate_data_processing_section(self, n_samples_cancer: int, n_samples_normal: int,
-                                        n_glycopeptides_raw: int, n_glycopeptides_filtered: int,
-                                        detection_threshold: float = 0.30) -> str:
+                                         n_glycopeptides_raw: int, n_glycopeptides_filtered: int,
+                                         detection_threshold: float = 0.30) -> str:
         """
         Generate data processing methods text
 
@@ -58,7 +58,7 @@ class MethodsTextGenerator:
         Returns:
             Formatted methods text
         """
-        text = f"""## Data Processing and Quality Control
+        text = """## Data Processing and Quality Control
 
 Glycoproteomics data from {n_samples_cancer} cancer and {n_samples_normal} normal tissue samples were integrated using a custom Python pipeline (pGlyco Auto Combine). Raw pGlyco output files were merged based on peptide-glycan composition combinations, creating a wide-format data matrix with {n_glycopeptides_raw} unique glycopeptides across {n_samples_cancer + n_samples_normal} samples.
 
@@ -71,10 +71,10 @@ Glycoproteomics data from {n_samples_cancer} cancer and {n_samples_normal} norma
         return text
 
     def generate_statistical_analysis_section(self, n_glycopeptides: int,
-                                             n_stable_biomarkers: int,
-                                             cv_accuracy: float, cv_roc_auc: float,
-                                             pca_pc1_var: float, pca_pc2_var: float,
-                                             pca_pvalue: float) -> str:
+                                              n_stable_biomarkers: int,
+                                              cv_accuracy: float, cv_roc_auc: float,
+                                              pca_pc1_var: float, pca_pc2_var: float,
+                                              pca_pvalue: float) -> str:
         """
         Generate statistical analysis methods text
 
@@ -90,7 +90,7 @@ Glycoproteomics data from {n_samples_cancer} cancer and {n_samples_normal} norma
         Returns:
             Formatted methods text
         """
-        text = f"""## Statistical Analysis and Biomarker Validation
+        text = """## Statistical Analysis and Biomarker Validation
 
 **Multivariate Analysis**: Principal Component Analysis (PCA) was performed on log2-transformed, TIC-normalized intensity data ({n_glycopeptides} glycopeptides) using scikit-learn (v1.3.0). Data were scaled using RobustScaler (median and IQR-based scaling) prior to PCA to reduce the influence of outliers. The first two principal components explained {pca_pc1_var:.1f}% and {pca_pc2_var:.1f}% of variance, respectively. Statistical significance of cancer vs. normal separation was assessed using permutation testing (1,000 permutations), yielding p < {pca_pvalue:.4f}.
 
@@ -150,16 +150,16 @@ These classifications follow standard glycobiology nomenclature and enable funct
         return text
 
     def generate_complete_methods(self,
-                                 n_samples_cancer: int = 24,
-                                 n_samples_normal: int = 23,
-                                 n_glycopeptides_raw: int = 6434,
-                                 n_glycopeptides_filtered: int = 2314,
-                                 n_stable_biomarkers: int = 368,
-                                 cv_accuracy: float = 0.98,
-                                 cv_roc_auc: float = 1.00,
-                                 pca_pc1_var: float = 11.17,
-                                 pca_pc2_var: float = 4.46,
-                                 pca_pvalue: float = 0.0001) -> str:
+                                  n_samples_cancer: int = 24,
+                                  n_samples_normal: int = 23,
+                                  n_glycopeptides_raw: int = 6434,
+                                  n_glycopeptides_filtered: int = 2314,
+                                  n_stable_biomarkers: int = 368,
+                                  cv_accuracy: float = 0.98,
+                                  cv_roc_auc: float = 1.00,
+                                  pca_pc1_var: float = 11.17,
+                                  pca_pc2_var: float = 4.46,
+                                  pca_pvalue: float = 0.0001) -> str:
         """
         Generate complete methods section text
 
@@ -238,7 +238,7 @@ class SupplementaryTableGenerator:
             df[['Peptide', 'GlycanComposition']] = df['Feature'].str.split('_', n=1, expand=True)
 
             supp_table = df[['Peptide', 'GlycanComposition', 'VIP_Mean',
-                           'VIP_CI_Lower', 'VIP_CI_Upper', 'Stability_Score']].copy()
+                             'VIP_CI_Lower', 'VIP_CI_Upper', 'Stability_Score']].copy()
 
             supp_table.columns = [
                 'Peptide Sequence',
@@ -317,8 +317,8 @@ class SupplementaryTableGenerator:
 
         # Select columns
         supp_table = sig_df[['Peptide', 'GlycanComposition', 'GlycanTypeCategory',
-                           'Cancer_Mean', 'Normal_Mean', 'Fold_Change', 'Log2_Fold_Change',
-                           'P_Value', 'FDR', 'VIP_Score']].copy()
+                             'Cancer_Mean', 'Normal_Mean', 'Fold_Change', 'Log2_Fold_Change',
+                             'P_Value', 'FDR', 'VIP_Score']].copy()
 
         # Rename for publication
         supp_table.columns = [
@@ -346,7 +346,7 @@ class SupplementaryTableGenerator:
 
         # Sort by FDR then fold change
         supp_table = supp_table.sort_values(['FDR-adjusted P-value', 'Fold Change'],
-                                           ascending=[True, False])
+                                            ascending=[True, False])
 
         # Save to Excel with description
         with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
@@ -372,12 +372,12 @@ class FlowchartGenerator:
 
     @staticmethod
     def create_sample_flowchart(output_file: Path,
-                               n_samples_cancer: int = 24,
-                               n_samples_normal: int = 23,
-                               n_glycopeptides_raw: int = 6434,
-                               n_glycopeptides_filtered: int = 2314,
-                               n_stable_biomarkers: int = 368,
-                               n_significant: int = 105):
+                                n_samples_cancer: int = 24,
+                                n_samples_normal: int = 23,
+                                n_glycopeptides_raw: int = 6434,
+                                n_glycopeptides_filtered: int = 2314,
+                                n_stable_biomarkers: int = 368,
+                                n_significant: int = 105):
         """
         Create CONSORT-style flowchart using matplotlib
         ENHANCED for elderly viewers: larger fonts, higher contrast, clearer layout
@@ -388,7 +388,6 @@ class FlowchartGenerator:
         """
         import matplotlib.pyplot as plt
         import matplotlib.patches as mpatches
-        from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
         # ENHANCED: Larger figure for better readability
         fig, ax = plt.subplots(figsize=(14, 16))
@@ -399,101 +398,101 @@ class FlowchartGenerator:
         # ENHANCED: Higher contrast colors with thicker borders (4px instead of 2px)
         # Using darker, more saturated colors for better visibility
         box_style = dict(boxstyle='round,pad=0.5', facecolor='#87CEEB',  # Sky blue
-                        edgecolor='#000000', linewidth=4)  # Black borders, thicker
+                         edgecolor='#000000', linewidth=4)  # Black borders, thicker
         exclude_style = dict(boxstyle='round,pad=0.5', facecolor='#FF6B6B',  # Coral red
-                            edgecolor='#000000', linewidth=4)
-        analysis_style = dict(boxstyle='round,pad=0.5', facecolor='#90EE90',  # Light green
                              edgecolor='#000000', linewidth=4)
+        analysis_style = dict(boxstyle='round,pad=0.5', facecolor='#90EE90',  # Light green
+                              edgecolor='#000000', linewidth=4)
 
         # ENHANCED: Larger title font (20pt instead of 16pt)
         ax.text(5, 19.5, 'Glycoproteomics Data Analysis Flow',
-               ha='center', va='top', fontsize=20, fontweight='bold')
+                ha='center', va='top', fontsize=20, fontweight='bold')
 
         # 1. Initial Data Collection
         # ENHANCED: Larger font (15pt instead of 11pt)
         y_pos = 18
         ax.text(5, y_pos, f'Raw pGlyco Output\n{n_samples_cancer + n_samples_normal} Samples\n'
-               f'(Cancer: {n_samples_cancer}, Normal: {n_samples_normal})',
-               ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
+                f'(Cancer: {n_samples_cancer}, Normal: {n_samples_normal})',
+                ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
 
         # ENHANCED: Thicker arrows (3px instead of 2px), larger arrowheads
-        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.4, head_length=0.3,
-                fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos - 0.8, 0, -0.8, head_width=0.4, head_length=0.3,
+                 fc='black', ec='black', linewidth=3)
 
         # 2. Data Integration
         # ENHANCED: Larger font (15pt instead of 11pt)
         y_pos = 16
         ax.text(5, y_pos, f'Data Integration\n{n_glycopeptides_raw} Unique Glycopeptides\n'
-               f'Peptide-Glycan Composition Matching',
-               ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
+                'Peptide-Glycan Composition Matching',
+                ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
 
         # ENHANCED: Thicker arrow
-        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.4, head_length=0.3,
-                fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos - 0.8, 0, -0.8, head_width=0.4, head_length=0.3,
+                 fc='black', ec='black', linewidth=3)
 
         # 3. Quality Control Filtering
         # ENHANCED: Larger font (15pt instead of 11pt)
         y_pos = 14
-        ax.text(5, y_pos, f'Detection Frequency Filter\n≥30% detection in at least one group',
-               ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
+        ax.text(5, y_pos, 'Detection Frequency Filter\n≥30% detection in at least one group',
+                ha='center', va='center', fontsize=15, bbox=box_style, fontweight='bold')
 
         # Exclusion box (right side)
         # ENHANCED: Larger font (14pt instead of 10pt)
         n_excluded = n_glycopeptides_raw - n_glycopeptides_filtered
         pct_excluded = (n_excluded / n_glycopeptides_raw * 100)
         ax.text(8.5, y_pos, f'Excluded\n{n_excluded} glycopeptides\n({pct_excluded:.1f}%)\n'
-               f'Low detection frequency',
-               ha='center', va='center', fontsize=14, bbox=exclude_style, fontweight='bold')
+                'Low detection frequency',
+                ha='center', va='center', fontsize=14, bbox=exclude_style, fontweight='bold')
 
         # ENHANCED: Thicker exclusion arrow (3px instead of 1.5px)
         ax.arrow(6.2, y_pos, 1.5, 0, head_width=0.3, head_length=0.3,
-                fc='red', ec='red', linewidth=3, linestyle='--')
+                 fc='red', ec='red', linewidth=3, linestyle='--')
 
         # ENHANCED: Thicker arrow down
-        ax.arrow(5, y_pos-0.8, 0, -0.8, head_width=0.4, head_length=0.3,
-                fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos - 0.8, 0, -0.8, head_width=0.4, head_length=0.3,
+                 fc='black', ec='black', linewidth=3)
 
         # 4. Final Dataset
         # ENHANCED: Larger font (16pt instead of 11pt) - This is a key milestone
         y_pos = 12
         ax.text(5, y_pos, f'Filtered Dataset\n{n_glycopeptides_filtered} Glycopeptides\n'
-               f'{n_samples_cancer + n_samples_normal} Samples\n'
-               f'Ready for Statistical Analysis',
-               ha='center', va='center', fontsize=16, bbox=box_style,
-               fontweight='bold')
+                f'{n_samples_cancer + n_samples_normal} Samples\n'
+                'Ready for Statistical Analysis',
+                ha='center', va='center', fontsize=16, bbox=box_style,
+                fontweight='bold')
 
         # ENHANCED: Thicker three-way split arrows (3px instead of 1.5px)
-        ax.arrow(5, y_pos-0.8, -2, -1.2, head_width=0.3, head_length=0.3,
-                fc='black', ec='black', linewidth=3)
-        ax.arrow(5, y_pos-0.8, 0, -1.5, head_width=0.3, head_length=0.3,
-                fc='black', ec='black', linewidth=3)
-        ax.arrow(5, y_pos-0.8, 2, -1.2, head_width=0.3, head_length=0.3,
-                fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos - 0.8, -2, -1.2, head_width=0.3, head_length=0.3,
+                 fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos - 0.8, 0, -1.5, head_width=0.3, head_length=0.3,
+                 fc='black', ec='black', linewidth=3)
+        ax.arrow(5, y_pos - 0.8, 2, -1.2, head_width=0.3, head_length=0.3,
+                 fc='black', ec='black', linewidth=3)
 
         # 5. Analysis Branches
         # ENHANCED: Larger font (14pt instead of 10pt)
         y_pos = 9
 
         # Branch 1: PCA/PLS-DA
-        ax.text(2.5, y_pos, f'Multivariate Analysis\nPCA + PLS-DA\n'
-               f'{n_glycopeptides_filtered} features analyzed',
-               ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
+        ax.text(2.5, y_pos, 'Multivariate Analysis\nPCA + PLS-DA\n'
+                f'{n_glycopeptides_filtered} features analyzed',
+                ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
 
         # Branch 2: Biomarker Validation
-        ax.text(5, y_pos, f'Biomarker Validation\nBootstrap (1000 iter)\n'
-               f'{n_stable_biomarkers} stable biomarkers',
-               ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
+        ax.text(5, y_pos, 'Biomarker Validation\nBootstrap (1000 iter)\n'
+                f'{n_stable_biomarkers} stable biomarkers',
+                ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
 
         # Branch 3: Differential Expression
-        ax.text(7.5, y_pos, f'Differential Expression\nMann-Whitney + FDR\n'
-               f'{n_significant} significant (FDR<0.05)',
-               ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
+        ax.text(7.5, y_pos, 'Differential Expression\nMann-Whitney + FDR\n'
+                f'{n_significant} significant (FDR<0.05)',
+                ha='center', va='center', fontsize=14, bbox=analysis_style, fontweight='bold')
 
         # Final outputs
         # ENHANCED: Larger font (16pt instead of 13pt)
         y_pos = 6.5
         ax.text(5, y_pos, 'Outputs',
-               ha='center', va='center', fontsize=16, fontweight='bold')
+                ha='center', va='center', fontsize=16, fontweight='bold')
 
         # ENHANCED: Larger font for outputs (13pt instead of 10pt)
         y_pos = 5.5
@@ -505,8 +504,8 @@ class FlowchartGenerator:
             '• Complete audit trail (ALCOA++ compliant)'
         ]
         for i, output in enumerate(outputs):
-            ax.text(5, y_pos - i*0.6, output,
-                   ha='center', va='center', fontsize=13, fontweight='bold')
+            ax.text(5, y_pos - i * 0.6, output,
+                    ha='center', va='center', fontsize=13, fontweight='bold')
 
         # ENHANCED: Larger legend (14pt instead of 10pt) with thicker borders
         y_pos = 2
@@ -516,8 +515,8 @@ class FlowchartGenerator:
             mpatches.Patch(facecolor='#90EE90', edgecolor='black', linewidth=3, label='Analysis')
         ]
         ax.legend(handles=legend_elements, loc='lower center', ncol=3,
-                 fontsize=14, frameon=True, bbox_to_anchor=(0.5, -0.05),
-                 edgecolor='black', fancybox=False, shadow=False, framealpha=1.0)
+                  fontsize=14, frameon=True, bbox_to_anchor=(0.5, -0.05),
+                  edgecolor='black', fancybox=False, shadow=False, framealpha=1.0)
 
         plt.tight_layout()
         plt.savefig(output_file, dpi=300, bbox_inches='tight')
@@ -543,21 +542,21 @@ class QCDashboardGenerator:
         # Read summary data
         summary_file = results_dir / 'analysis_summary.txt'
         if summary_file.exists():
-            with open(summary_file, 'r') as f:
-                summary_text = f.read()
+            with open(summary_file) as f:
+                f.read()
         else:
-            summary_text = "Summary not available"
+            pass
 
         # Read statistical validation results
         cv_file = results_dir / 'plsda_cross_validation.txt'
         if cv_file.exists():
-            with open(cv_file, 'r') as f:
+            with open(cv_file) as f:
                 cv_text = f.read()
         else:
             cv_text = "Cross-validation results not available"
 
         # HTML template
-        html_content = f"""<!DOCTYPE html>
+        html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -858,9 +857,9 @@ def generate_publication_report(results_dir: Path):
     logger.info("\n" + "=" * 80)
     logger.info("Publication report materials generated successfully!")
     logger.info("=" * 80)
-    logger.info(f"\nGenerated files:")
+    logger.info("\nGenerated files:")
     logger.info(f"  - {methods_file}")
-    logger.info(f"  - Supplementary_Table_S1_Stable_Biomarkers.xlsx")
-    logger.info(f"  - Supplementary_Table_S2_Differential_Expression.xlsx")
+    logger.info("  - Supplementary_Table_S1_Stable_Biomarkers.xlsx")
+    logger.info("  - Supplementary_Table_S2_Differential_Expression.xlsx")
     logger.info(f"  - {flowchart_file}")
     logger.info(f"  - {dashboard_file}")

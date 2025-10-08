@@ -18,8 +18,6 @@ NEW FEATURES:
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-from pathlib import Path
 import logging
 from scipy import stats as scipy_stats
 
@@ -33,8 +31,7 @@ from .plot_config import (
     AXIS_LABEL_SIZE,
     TICK_LABEL_SIZE,
     LEGEND_SIZE,
-    ANNOTATION_SIZE,
-    apply_standard_axis_style
+    ANNOTATION_SIZE
 )
 
 logger = logging.getLogger(__name__)
@@ -101,7 +98,7 @@ class PieChartPlotMixin:
         )
 
         ax1.set_title('Cancer Group\nGlycan Type Distribution',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
 
         # ===== Normal pie chart =====
         normal_values = [normal_data[gt] for gt in glycan_types]
@@ -117,7 +114,7 @@ class PieChartPlotMixin:
         )
 
         ax2.set_title('Normal Group\nGlycan Type Distribution',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
 
         # ===== Fold change bar chart (MetaboAnalyst style) =====
         fold_changes = []
@@ -158,7 +155,7 @@ class PieChartPlotMixin:
                     try:
                         _, p_val = scipy_stats.mannwhitneyu(cancer_nonzero, normal_nonzero, alternative='two-sided')
                         p_values.append(p_val)
-                    except:
+                    except Exception:
                         p_values.append(1.0)
                 else:
                     p_values.append(1.0)
@@ -168,7 +165,7 @@ class PieChartPlotMixin:
         # Plot bars
         x_pos = np.arange(len(glycan_types))
         bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                      edgecolor='black', linewidth=1.5, alpha=0.9)
+                       edgecolor='black', linewidth=1.5, alpha=0.9)
 
         # Add fold change values on top of bars
         for i, (bar, fc, p_val) in enumerate(zip(bars, fold_changes, p_values)):
@@ -178,9 +175,9 @@ class PieChartPlotMixin:
             fc_text = f'{fc:.2f}x'
             y_pos = height + 0.05
 
-            ax3.text(bar.get_x() + bar.get_width()/2., y_pos,
-                    fc_text, ha='center', va='bottom',
-                    fontsize=ANNOTATION_SIZE, weight='bold')
+            ax3.text(bar.get_x() + bar.get_width() / 2., y_pos,
+                     fc_text, ha='center', va='bottom',
+                     fontsize=ANNOTATION_SIZE, weight='bold')
 
             # Significance marker (Prism style)
             if p_val < 0.001:
@@ -193,9 +190,9 @@ class PieChartPlotMixin:
                 sig = ''
 
             if sig:
-                ax3.text(bar.get_x() + bar.get_width()/2., y_pos + 0.15,
-                        sig, ha='center', va='bottom',
-                        fontsize=14, weight='bold', color='black')
+                ax3.text(bar.get_x() + bar.get_width() / 2., y_pos + 0.15,
+                         sig, ha='center', va='bottom',
+                         fontsize=14, weight='bold', color='black')
 
         # Add reference line at FC=1.0 (no change)
         ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=2, alpha=0.7, label='No change')
@@ -205,7 +202,7 @@ class PieChartPlotMixin:
         ax3.set_xticklabels(glycan_types, fontsize=TICK_LABEL_SIZE, weight='bold')
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
 
         # Add legend for colors
         from matplotlib.patches import Patch
@@ -222,7 +219,7 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Glycan Type Distribution & Comparative Analysis',
-                    fontsize=TITLE_SIZE+2, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98)
 
         plt.tight_layout()
 
@@ -235,9 +232,9 @@ class PieChartPlotMixin:
         trace_data = pd.DataFrame({
             'GlycanType': glycan_types,
             'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v/cancer_total_sum*100 for v in cancer_values],
+            'Cancer_Percentage': [v / cancer_total_sum * 100 for v in cancer_values],
             'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v/normal_total_sum*100 for v in normal_values],
+            'Normal_Percentage': [v / normal_total_sum * 100 for v in normal_values],
             'Fold_Change': fold_changes,
             'P_Value': p_values
         })
@@ -306,7 +303,7 @@ class PieChartPlotMixin:
         )
 
         ax1.set_title('Cancer Group\nPrimary Classification',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
 
         # Normal pie chart
         normal_values = [normal_data[cat] for cat in primary_categories]
@@ -322,7 +319,7 @@ class PieChartPlotMixin:
         )
 
         ax2.set_title('Normal Group\nPrimary Classification',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
 
         # Fold change bar chart
         fold_changes = []
@@ -350,14 +347,14 @@ class PieChartPlotMixin:
         # Plot bars
         x_pos = np.arange(len(primary_categories))
         bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                      edgecolor='black', linewidth=1.5, alpha=0.9)
+                       edgecolor='black', linewidth=1.5, alpha=0.9)
 
         # Add fold change values
         for bar, fc in zip(bars, fold_changes):
             height = bar.get_height()
-            ax3.text(bar.get_x() + bar.get_width()/2., height + 0.05,
-                    f'{fc:.2f}x', ha='center', va='bottom',
-                    fontsize=11, weight='bold')
+            ax3.text(bar.get_x() + bar.get_width() / 2., height + 0.05,
+                     f'{fc:.2f}x', ha='center', va='bottom',
+                     fontsize=11, weight='bold')
 
         # Reference line
         ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=2, alpha=0.7)
@@ -367,13 +364,13 @@ class PieChartPlotMixin:
         ax3.set_xticklabels(primary_categories, fontsize=TICK_LABEL_SIZE, weight='bold', rotation=15, ha='right')
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
         ax3.grid(True, alpha=0.15, linestyle='-', linewidth=0.5, axis='y', zorder=0)
         ax3.set_axisbelow(True)
 
         # Overall title
         fig.suptitle('Primary Classification Distribution & Comparative Analysis',
-                    fontsize=TITLE_SIZE+2, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98)
 
         plt.tight_layout()
 
@@ -386,9 +383,9 @@ class PieChartPlotMixin:
         trace_data = pd.DataFrame({
             'PrimaryClassification': primary_categories,
             'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v/cancer_total_sum*100 if cancer_total_sum > 0 else 0 for v in cancer_values],
+            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
             'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v/normal_total_sum*100 if normal_total_sum > 0 else 0 for v in normal_values],
+            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values],
             'Fold_Change': fold_changes
         })
         save_trace_data(trace_data, self.output_dir, 'pie_chart_primary_classification_enhanced_data.csv')
@@ -450,7 +447,7 @@ class PieChartPlotMixin:
         )
 
         ax1.set_title('Cancer Group\nSecondary Classification',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
 
         # Normal pie chart
         normal_values = [normal_data[cat] for cat in secondary_categories]
@@ -466,7 +463,7 @@ class PieChartPlotMixin:
         )
 
         ax2.set_title('Normal Group\nSecondary Classification',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
 
         # Fold change bar chart
         fold_changes = []
@@ -494,14 +491,14 @@ class PieChartPlotMixin:
         # Plot bars
         x_pos = np.arange(len(secondary_categories))
         bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                      edgecolor='black', linewidth=1.5, alpha=0.9)
+                       edgecolor='black', linewidth=1.5, alpha=0.9)
 
         # Add fold change values
         for bar, fc in zip(bars, fold_changes):
             height = bar.get_height()
-            ax3.text(bar.get_x() + bar.get_width()/2., height + 0.05,
-                    f'{fc:.2f}x', ha='center', va='bottom',
-                    fontsize=11, weight='bold')
+            ax3.text(bar.get_x() + bar.get_width() / 2., height + 0.05,
+                     f'{fc:.2f}x', ha='center', va='bottom',
+                     fontsize=11, weight='bold')
 
         # Reference line
         ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=2, alpha=0.7)
@@ -511,13 +508,13 @@ class PieChartPlotMixin:
         ax3.set_xticklabels(secondary_categories, fontsize=TICK_LABEL_SIZE, weight='bold', rotation=20, ha='right')
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
-                     fontsize=TITLE_SIZE, weight='bold', pad=15)
+                      fontsize=TITLE_SIZE, weight='bold', pad=15)
         ax3.grid(True, alpha=0.15, linestyle='-', linewidth=0.5, axis='y', zorder=0)
         ax3.set_axisbelow(True)
 
         # Overall title
         fig.suptitle('Secondary Classification Distribution & Comparative Analysis',
-                    fontsize=TITLE_SIZE+2, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98)
 
         plt.tight_layout()
 
@@ -530,9 +527,9 @@ class PieChartPlotMixin:
         trace_data = pd.DataFrame({
             'SecondaryClassification': secondary_categories,
             'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v/cancer_total_sum*100 if cancer_total_sum > 0 else 0 for v in cancer_values],
+            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
             'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v/normal_total_sum*100 if normal_total_sum > 0 else 0 for v in normal_values],
+            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values],
             'Fold_Change': fold_changes
         })
         save_trace_data(trace_data, self.output_dir, 'pie_chart_secondary_classification_enhanced_data.csv')

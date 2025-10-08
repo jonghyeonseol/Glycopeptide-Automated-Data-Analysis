@@ -26,7 +26,7 @@ except Exception as e:
 # Test instantiation
 try:
     dashboard = InteractiveDashboard(output_dir='Results')
-    print(f"✓ Dashboard instantiated successfully")
+    print("✓ Dashboard instantiated successfully")
     print(f"  Output directory: {dashboard.output_dir}")
 except Exception as e:
     print(f"✗ Failed to instantiate dashboard: {e}")

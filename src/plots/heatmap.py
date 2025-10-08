@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 
@@ -18,7 +17,7 @@ class HeatmapMixin:
     """Mixin class for heatmap-related plots"""
 
     def plot_heatmap(self, df: pd.DataFrame, figsize: tuple = (16, 12), top_n: int = 20,
-                    output_suffix: str = 'main'):
+                     output_suffix: str = 'main'):
         """
         Create clustered heatmap of top glycopeptides with hierarchical clustering
 
@@ -61,7 +60,7 @@ class HeatmapMixin:
         heatmap_data = np.log2(heatmap_data + 1)
 
         # Transpose for sample clustering (samples as rows)
-        heatmap_data_t = heatmap_data.T
+        heatmap_data.T
 
         # Create row labels (Peptide_GlycanComposition_GlycanType)
         row_labels = [

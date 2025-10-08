@@ -10,9 +10,7 @@ Architecture:
 """
 
 import pandas as pd
-import numpy as np
 from pathlib import Path
-from typing import Dict, Tuple
 import logging
 
 from .data_preparation import (
@@ -60,9 +58,9 @@ class DataPipeline:
         Returns:
             Filtered DataFrame
         """
-        logger.info("="*80)
+        logger.info("=" * 80)
         logger.info("DATA PIPELINE: Applying Detection Filter (Single Source of Truth)")
-        logger.info("="*80)
+        logger.info("=" * 80)
 
         # Store raw dataset statistics
         self._calculate_raw_statistics(df)
@@ -76,10 +74,10 @@ class DataPipeline:
         # Log glycan-type ratio changes
         self._log_glycan_ratio_changes()
 
-        logger.info("="*80)
+        logger.info("=" * 80)
         logger.info("GUARANTEE: All visualizations will use this filtered dataset")
         logger.info("RESULT: Consistent glycan-type ratios across all outputs")
-        logger.info("="*80)
+        logger.info("=" * 80)
 
         return df_filtered
 
@@ -90,7 +88,7 @@ class DataPipeline:
         # Glycan type distribution (raw)
         if 'GlycanType' in df.columns:
             glycan_counts_raw = df['GlycanType'].value_counts().to_dict()
-            glycan_pct_raw = {k: v/len(df)*100 for k, v in glycan_counts_raw.items()}
+            glycan_pct_raw = {k: v / len(df) * 100 for k, v in glycan_counts_raw.items()}
 
             self.glycan_type_stats['raw'] = {
                 'counts': glycan_counts_raw,
@@ -114,8 +112,8 @@ class DataPipeline:
         self.filtering_stats['total_removed'] = total_removed
         self.filtering_stats['pct_removed'] = pct_removed
 
-        logger.info(f"\nDetection Filtering Results:")
-        logger.info(f"  Threshold: ≥{self.config.min_detection_pct*100:.0f}% detection in at least one group")
+        logger.info("\nDetection Filtering Results:")
+        logger.info(f"  Threshold: ≥{self.config.min_detection_pct * 100:.0f}% detection in at least one group")
         logger.info(f"  Before:    {total_before:5d} glycopeptides")
         logger.info(f"  After:     {total_after:5d} glycopeptides")
         logger.info(f"  Removed:   {total_removed:5d} ({pct_removed:5.1f}%)")
@@ -123,7 +121,7 @@ class DataPipeline:
         # Glycan type distribution (filtered)
         if 'GlycanType' in df_filtered.columns:
             glycan_counts_filtered = df_filtered['GlycanType'].value_counts().to_dict()
-            glycan_pct_filtered = {k: v/len(df_filtered)*100 for k, v in glycan_counts_filtered.items()}
+            glycan_pct_filtered = {k: v / len(df_filtered) * 100 for k, v in glycan_counts_filtered.items()}
 
             self.glycan_type_stats['filtered'] = {
                 'counts': glycan_counts_filtered,
@@ -147,9 +145,9 @@ class DataPipeline:
         # Find all unique glycan types
         all_types = set(raw_pct.keys()) | set(filtered_pct.keys())
 
-        logger.info(f"\nGlycan-Type Ratio Changes (Raw → Filtered):")
+        logger.info("\nGlycan-Type Ratio Changes (Raw → Filtered):")
         logger.info(f"  {'Type':15s}  {'Raw %':>8s}  {'Filtered %':>12s}  {'Change':>10s}")
-        logger.info(f"  {'-'*15}  {'-'*8}  {'-'*12}  {'-'*10}")
+        logger.info(f"  {'-' * 15}  {'-' * 8}  {'-' * 12}  {'-' * 10}")
 
         for glycan_type in sorted(all_types):
             raw_p = raw_pct.get(glycan_type, 0)
@@ -167,14 +165,14 @@ class DataPipeline:
             Markdown-formatted report string
         """
         report = []
-        report.append("\n" + "="*80)
+        report.append("\n" + "=" * 80)
         report.append("DATA FILTERING REPORT")
-        report.append("="*80)
+        report.append("=" * 80)
         report.append("")
 
         # Filter settings
         report.append("Filter Settings:")
-        report.append(f"  - Detection threshold: ≥{self.config.min_detection_pct*100:.0f}% in at least one group")
+        report.append(f"  - Detection threshold: ≥{self.config.min_detection_pct * 100:.0f}% in at least one group")
         report.append(f"  - Minimum samples: {self.config.min_samples}")
         report.append(f"  - Missing data method: {self.config.missing_data_method}")
         report.append("")
@@ -184,8 +182,10 @@ class DataPipeline:
             report.append("Filtering Results:")
             report.append(f"  - Before filtering: {self.filtering_stats['total_before']:,} glycopeptides")
             report.append(f"  - After filtering:  {self.filtering_stats['total_after']:,} glycopeptides")
-            report.append(f"  - Removed:          {self.filtering_stats['total_removed']:,} ({self.filtering_stats['pct_removed']:.1f}%)")
-            report.append(f"  - Reason: <{self.config.min_detection_pct*100:.0f}% detection in both groups")
+            removed_count = self.filtering_stats['total_removed']
+            removed_pct = self.filtering_stats['pct_removed']
+            report.append(f"  - Removed:          {removed_count:,} ({removed_pct:.1f}%)")
+            report.append(f"  - Reason: <{self.config.min_detection_pct * 100:.0f}% detection in both groups")
             report.append("")
 
         # Glycan type distributions
@@ -210,16 +210,16 @@ class DataPipeline:
         report.append("  ✓ Glycan-type ratios are IDENTICAL across all outputs")
         report.append("  ✓ No double-filtering or inconsistent subsets")
         report.append("")
-        report.append("="*80)
+        report.append("=" * 80)
 
         return "\n".join(report)
 
     def save_datasets(self,
-                     df_raw: pd.DataFrame,
-                     df_filtered: pd.DataFrame,
-                     output_dir: Path,
-                     raw_filename: str = 'integrated.csv',
-                     filtered_filename: str = 'integrated_filtered.csv'):
+                      df_raw: pd.DataFrame,
+                      df_filtered: pd.DataFrame,
+                      output_dir: Path,
+                      raw_filename: str = 'integrated.csv',
+                      filtered_filename: str = 'integrated_filtered.csv'):
         """
         Save both raw and filtered datasets with ALCOA++ metadata headers
 
@@ -241,9 +241,9 @@ class DataPipeline:
         with open(raw_path, 'w') as f:
             # Write metadata header
             f.write(metadata_collector.get_metadata_header_lines())
-            f.write(f"# Dataset: RAW (Unfiltered)\n")
+            f.write("# Dataset: RAW (Unfiltered)\n")
             f.write(f"# Glycopeptides: {len(df_raw)}\n")
-            f.write(f"# Description: Complete integrated dataset before filtering\n")
+            f.write("# Description: Complete integrated dataset before filtering\n")
             f.write("#\n")
             # Write DataFrame
             df_raw.to_csv(f, index=False)
@@ -254,10 +254,10 @@ class DataPipeline:
         with open(filtered_path, 'w') as f:
             # Write metadata header
             f.write(metadata_collector.get_metadata_header_lines())
-            f.write(f"# Dataset: FILTERED (Used in all analyses)\n")
+            f.write("# Dataset: FILTERED (Used in all analyses)\n")
             f.write(f"# Glycopeptides: {len(df_filtered)}\n")
-            f.write(f"# Filter: ≥{self.config.min_detection_pct*100:.0f}% detection in at least one group\n")
-            f.write(f"# Description: Quality-controlled dataset used in ALL downstream analyses\n")
+            f.write(f"# Filter: ≥{self.config.min_detection_pct * 100:.0f}% detection in at least one group\n")
+            f.write("# Description: Quality-controlled dataset used in ALL downstream analyses\n")
             f.write("#\n")
             # Write DataFrame
             df_filtered.to_csv(f, index=False)
@@ -319,7 +319,8 @@ class DataPipeline:
             if not (cancer_ok or normal_ok):
                 raise ValueError(
                     f"Glycopeptide at index {idx} doesn't meet filter criteria:\n"
-                    f"  Cancer: {c_det:.1%} detection ({c_cnt} samples), Normal: {n_det:.1%} detection ({n_cnt} samples)"
+                    f"  Cancer: {c_det:.1%} detection ({c_cnt} samples), "
+                    f"Normal: {n_det:.1%} detection ({n_cnt} samples)"
                 )
 
         logger.info("✓ Filtering validation passed")

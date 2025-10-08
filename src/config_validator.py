@@ -8,9 +8,7 @@ from typing import Any, Dict, List
 import yaml
 
 from .exceptions import (
-    ConfigurationError,
-    MissingConfigKeyError,
-    InvalidConfigValueError
+    ConfigurationError
 )
 
 
@@ -263,7 +261,7 @@ def load_and_validate_config(config_path: str) -> Dict[str, Any]:
         raise ConfigurationError(f"Configuration file not found: {config_path}")
 
     try:
-        with open(config_file, 'r') as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
     except yaml.YAMLError as e:
         raise ConfigurationError(f"Invalid YAML syntax in {config_path}: {str(e)}")

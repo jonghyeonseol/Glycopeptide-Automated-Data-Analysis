@@ -6,15 +6,12 @@ Handles Fucosylation and Sialylation annotation
 import pandas as pd
 import re
 from functools import lru_cache
-from typing import Optional
 
 from .constants import (
     DEFAULT_SIALYLATION_MARKER,
     DEFAULT_FUCOSYLATION_MARKER,
     MONOSACCHARIDE_H,
     MONOSACCHARIDE_N,
-    MONOSACCHARIDE_A,
-    MONOSACCHARIDE_F,
     MONOSACCHARIDE_G,
     GLYCAN_TYPE_HM,
     GLYCAN_TYPE_F,
@@ -41,10 +38,8 @@ from .constants import (
     LEGACY_BOTH,
     HIGH_MANNOSE_MIN_H,
     HIGH_MANNOSE_EXACT_N,
-    COMPLEX_HYBRID_MIN_N,
-    GLYCAN_COMPOSITION_PATTERN
+    COMPLEX_HYBRID_MIN_N
 )
-from .exceptions import InvalidGlycanCompositionError, AnnotationError
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -373,14 +368,18 @@ class GlycanAnnotator:
         )
 
         # Log statistics
-        logger.info(f"Annotation complete:")
-        logger.info(f"\nPrimary Classification:")
+        logger.info("Annotation complete:")
+        logger.info("\nPrimary Classification:")
         logger.info(df_annotated['PrimaryClassification'].value_counts())
-        logger.info(f"\nSecondary Classification:")
+        logger.info("\nSecondary Classification:")
         logger.info(df_annotated['SecondaryClassification'].value_counts())
-        logger.info(f"\nLegacy Statistics:")
-        logger.info(f"  - Sialylated: {df_annotated['IsSialylated'].sum()} ({df_annotated['IsSialylated'].sum()/len(df_annotated)*100:.1f}%)")
-        logger.info(f"  - Fucosylated: {df_annotated['IsFucosylated'].sum()} ({df_annotated['IsFucosylated'].sum()/len(df_annotated)*100:.1f}%)")
+        logger.info("\nLegacy Statistics:")
+        sialylated_count = df_annotated['IsSialylated'].sum()
+        sialylated_pct = sialylated_count / len(df_annotated) * 100
+        logger.info(f"  - Sialylated: {sialylated_count} ({sialylated_pct:.1f}%)")
+        fucosylated_count = df_annotated['IsFucosylated'].sum()
+        fucosylated_pct = fucosylated_count / len(df_annotated) * 100
+        logger.info(f"  - Fucosylated: {fucosylated_count} ({fucosylated_pct:.1f}%)")
 
         return df_annotated
 

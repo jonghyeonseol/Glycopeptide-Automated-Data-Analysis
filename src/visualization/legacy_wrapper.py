@@ -7,7 +7,7 @@ without rewriting all 18+ plot modules.
 """
 
 from pathlib import Path
-from typing import Dict, Any, Callable
+from typing import Dict, Any
 import pandas as pd
 
 import sys

@@ -10,10 +10,7 @@ Provides utilities for publication-quality visualizations:
 Created: 2025-10-06 (Phase 2.2)
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
-from typing import Tuple, Dict, List, Optional
-import warnings
+from typing import Dict, List, Optional
 
 
 # ==============================================================================
@@ -59,7 +56,7 @@ def verify_colorblind_safe(hex_color: str) -> Dict[str, str]:
     trita_b = r * 0.433 + b * 0.567
 
     def rgb_to_hex(r, g, b):
-        return f"#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}"
+        return f"#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}"
 
     return {
         'original': hex_color,
@@ -125,9 +122,9 @@ COLORBLIND_EXTENDED_PALETTE = {
 # ==============================================================================
 
 def add_sample_size_to_title(ax, n_total: Optional[int] = None,
-                            n_cancer: Optional[int] = None,
-                            n_normal: Optional[int] = None,
-                            current_title: str = "") -> str:
+                             n_cancer: Optional[int] = None,
+                             n_normal: Optional[int] = None,
+                             current_title: str = "") -> str:
     """
     Add sample size information to plot title
 
@@ -185,18 +182,18 @@ def annotate_sample_sizes_on_groups(ax, group_names: List[str],
     """
     if bbox_style is None:
         bbox_style = dict(boxstyle='round,pad=0.5', facecolor='white',
-                         alpha=0.8, edgecolor='gray', linewidth=1)
+                          alpha=0.8, edgecolor='gray', linewidth=1)
 
     annotation_text = ", ".join([f"{name}: n={group_sizes.get(name, 0)}"
                                 for name in group_names if name in group_sizes])
 
     # Place annotation in upper right corner
     ax.text(0.98, y_position, annotation_text,
-           transform=ax.transAxes,
-           fontsize=fontsize,
-           verticalalignment='top',
-           horizontalalignment='right',
-           bbox=bbox_style)
+            transform=ax.transAxes,
+            fontsize=fontsize,
+            verticalalignment='top',
+            horizontalalignment='right',
+            bbox=bbox_style)
 
 
 def add_sample_size_legend(ax, n_cancer: int, n_normal: int,
@@ -230,12 +227,12 @@ def add_sample_size_legend(ax, n_cancer: int, n_normal: int,
     va = 'top' if 'upper' in location else 'bottom'
 
     ax.text(x, y, sample_text,
-           transform=ax.transAxes,
-           fontsize=fontsize,
-           verticalalignment=va,
-           horizontalalignment=ha,
-           bbox=props,
-           family='monospace')
+            transform=ax.transAxes,
+            fontsize=fontsize,
+            verticalalignment=va,
+            horizontalalignment=ha,
+            bbox=props,
+            family='monospace')
 
 
 # ==============================================================================
@@ -309,7 +306,12 @@ def test_colorblind_visibility(color1: str, color2: str,
         'deuteranopia_contrast': deuter_contrast,
         'passes_normal': contrast_ratio >= min_contrast,
         'passes_colorblind': deuter_contrast >= min_contrast,
-        'wcag_level': 'AAA' if contrast_ratio >= 7.0 else ('AA' if contrast_ratio >= 4.5 else ('A' if contrast_ratio >= 3.0 else 'Fail'))
+        'wcag_level': (
+            'AAA' if contrast_ratio >= 7.0 else
+            'AA' if contrast_ratio >= 4.5 else
+            'A' if contrast_ratio >= 3.0 else
+            'Fail'
+        )
     }
 
 
@@ -318,7 +320,7 @@ def test_colorblind_visibility(color1: str, color2: str,
 # ==============================================================================
 
 def optimize_font_sizes_for_publication(figure_width_inches: float = 10,
-                                       target_journal: str = 'nature') -> Dict[str, int]:
+                                        target_journal: str = 'nature') -> Dict[str, int]:
     """
     Calculate optimal font sizes for publication based on figure width
 
@@ -349,7 +351,8 @@ def optimize_font_sizes_for_publication(figure_width_inches: float = 10,
     is_single_column = figure_width_mm <= spec['single_col_mm'] * 1.2
 
     # Scale factor based on figure size
-    base_scale = figure_width_mm / spec['single_col_mm'] if is_single_column else figure_width_mm / spec['double_col_mm']
+    base_scale = figure_width_mm / \
+        spec['single_col_mm'] if is_single_column else figure_width_mm / spec['double_col_mm']
     base_scale = max(0.8, min(base_scale, 1.5))  # Clamp between 0.8 and 1.5
 
     min_size = spec['min_size']
@@ -370,8 +373,8 @@ def optimize_font_sizes_for_publication(figure_width_inches: float = 10,
 # ==============================================================================
 
 def validate_plot_accessibility(ax, check_contrast: bool = True,
-                               check_fonts: bool = True,
-                               min_font_size: int = 8) -> Dict:
+                                check_fonts: bool = True,
+                                min_font_size: int = 8) -> Dict:
     """
     Validate plot meets accessibility standards
 

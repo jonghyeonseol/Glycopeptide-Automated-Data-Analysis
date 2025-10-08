@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
 import logging
 from ..utils import save_trace_data
 from ..data_preparation import (
@@ -126,22 +125,22 @@ class SiteSpecificHeatmapMixin:
 
         # Plot main heatmap
         sns.heatmap(heatmap_matrix, ax=ax_main,
-                   cmap='RdBu_r', center=0,
-                   cbar_kws={'label': 'Log2 Fold Change\n(Cancer / Normal)', 'shrink': 0.8},
-                   yticklabels=['Log2FC'],
-                   xticklabels=row_labels,
-                   linewidths=0.5, linecolor='white')
+                    cmap='RdBu_r', center=0,
+                    cbar_kws={'label': 'Log2 Fold Change\n(Cancer / Normal)', 'shrink': 0.8},
+                    yticklabels=['Log2FC'],
+                    xticklabels=row_labels,
+                    linewidths=0.5, linecolor='white')
 
         ax_main.set_xlabel('Glycopeptide (Peptide_GlycanComposition)', fontsize=11, fontweight='bold')
         ax_main.set_ylabel('')
         ax_main.set_title(f'Site-Specific Glycosylation: Top {top_n_peptides} Peptides by VIP Score',
-                         fontsize=14, fontweight='bold', pad=20)
+                          fontsize=14, fontweight='bold', pad=20)
 
         # Rotate x-axis labels
         ax_main.set_xticklabels(ax_main.get_xticklabels(), rotation=90, ha='right', fontsize=7)
 
         # Plot annotation bar
-        ax_anno.imshow(anno_indices, aspect='auto', cmap=cmap_anno, vmin=0, vmax=len(unique_types)-1)
+        ax_anno.imshow(anno_indices, aspect='auto', cmap=cmap_anno, vmin=0, vmax=len(unique_types) - 1)
         ax_anno.set_xticks([])
         ax_anno.set_yticks([0])
         ax_anno.set_yticklabels(['Glycan Type'], fontsize=10)
@@ -155,9 +154,9 @@ class SiteSpecificHeatmapMixin:
 
         # Position legend on the RIGHT side (outside plot area, non-interruptive)
         ax_main.legend(handles=legend_elements, loc='center left',
-                      bbox_to_anchor=(1.12, 0.5), ncol=1,
-                      frameon=True, fontsize=10, title='Glycan Type',
-                      title_fontsize=11, framealpha=1.0, edgecolor='black')
+                       bbox_to_anchor=(1.12, 0.5), ncol=1,
+                       frameon=True, fontsize=10, title='Glycan Type',
+                       title_fontsize=11, framealpha=1.0, edgecolor='black')
 
         plt.tight_layout()
 

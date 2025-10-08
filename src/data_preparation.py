@@ -8,7 +8,7 @@ to ensure data consistency and scientific reproducibility.
 
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 from .logger_config import get_logger
 from .utils import get_sample_columns
 
@@ -41,8 +41,8 @@ class DataPreparationConfig:
         if missing_data_method not in ['skipna', 'replace_zero']:
             raise ValueError(f"missing_data_method must be 'skipna' or 'replace_zero', got {missing_data_method}")
 
-        logger.info(f"Data preparation config: detection_pct={min_detection_pct*100:.0f}%, "
-                   f"min_samples={min_samples}, missing_data={missing_data_method}")
+        logger.info(f"Data preparation config: detection_pct={min_detection_pct * 100:.0f}%, "
+                    f"min_samples={min_samples}, missing_data={missing_data_method}")
 
 
 def calculate_detection_statistics(df: pd.DataFrame,
@@ -77,7 +77,7 @@ def calculate_detection_statistics(df: pd.DataFrame,
     has_detection = detection_count > 0
 
     logger.debug(f"{group_name}: {has_detection.sum()}/{len(df)} glycopeptides with detection, "
-                f"mean detection rate: {detection_pct.mean()*100:.1f}%")
+                 f"mean detection rate: {detection_pct.mean() * 100:.1f}%")
 
     return {
         'count': detection_count,
@@ -163,7 +163,7 @@ def calculate_group_statistics_standardized(df: pd.DataFrame,
         result['detection_pct'][idx] = result['count'][idx] / len(sample_cols)
 
     logger.debug(f"{group_name} stats: mean_intensity={result['mean'].mean():.2e}, "
-                f"mean_detection={result['detection_pct'].mean()*100:.1f}%")
+                 f"mean_detection={result['detection_pct'].mean() * 100:.1f}%")
 
     return result
 
@@ -216,11 +216,11 @@ def filter_by_detection_frequency(df: pd.DataFrame,
     total_after = len(df_filtered)
     removed = total_before - total_after
 
-    logger.info(f"{log_prefix}Detection filter (≥{config.min_detection_pct*100:.0f}% OR "
-               f"≥{config.min_samples} samples in at least one group):")
+    logger.info(f"{log_prefix}Detection filter (≥{config.min_detection_pct * 100:.0f}% OR "
+                f"≥{config.min_samples} samples in at least one group):")
     logger.info(f"  Before: {total_before} glycopeptides")
     logger.info(f"  After: {total_after} glycopeptides")
-    logger.info(f"  Removed: {removed} ({removed/total_before*100:.1f}%)")
+    logger.info(f"  Removed: {removed} ({removed / total_before * 100:.1f}%)")
 
     if total_after == 0:
         logger.warning(f"{log_prefix}WARNING: No glycopeptides pass detection filter!")
@@ -278,7 +278,7 @@ def prepare_visualization_data(df: pd.DataFrame,
             before_merge = len(df_prep)
             df_prep = df_prep.merge(vip_scores, on=merge_cols, how='inner')
             logger.info(f"    After merge: {len(df_prep)} glycopeptides "
-                       f"({before_merge - len(df_prep)} removed without VIP scores)")
+                        f"({before_merge - len(df_prep)} removed without VIP scores)")
         else:
             raise ValueError(f"merge_method must be 'left' or 'inner', got {merge_method}")
 
@@ -324,7 +324,7 @@ def prepare_visualization_data(df: pd.DataFrame,
         )
 
     # Step 5: Calculate derived metrics (fold change)
-    logger.info(f"  Calculating fold change...")
+    logger.info("  Calculating fold change...")
 
     # Linear fold change (Cancer / Normal)
     # Handle division by zero: use pseudocount of 1
@@ -342,7 +342,7 @@ def prepare_visualization_data(df: pd.DataFrame,
     logger.info(f"  Final: {len(df_prep)} glycopeptides")
     logger.info(f"  Mean Cancer intensity: {df_prep['Cancer_Mean'].mean():.2e}")
     logger.info(f"  Mean Normal intensity: {df_prep['Normal_Mean'].mean():.2e}")
-    logger.info(f"  Mean detection rate: {df_prep['Max_Detection_Pct'].mean()*100:.1f}%")
+    logger.info(f"  Mean detection rate: {df_prep['Max_Detection_Pct'].mean() * 100:.1f}%")
 
     return df_prep
 

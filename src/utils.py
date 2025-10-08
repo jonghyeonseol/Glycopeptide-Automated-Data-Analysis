@@ -8,7 +8,7 @@ import numpy as np
 import logging
 import re
 from pathlib import Path
-from typing import List, Tuple, Union, Optional, Dict
+from typing import List, Tuple, Union, Dict
 from functools import lru_cache
 
 from .constants import (
@@ -22,7 +22,6 @@ from .constants import (
     LOG_TRANSFORM_PSEUDOCOUNT
 )
 from .exceptions import (
-    FileOperationError,
     TraceDataSaveError,
     OutputDirectoryError,
     ValidationError
@@ -233,9 +232,9 @@ def get_sample_columns(df: pd.DataFrame,
         sample_cols = df.columns.tolist()
 
     cancer_samples = [col for col in sample_cols
-                     if col.startswith(CANCER_PREFIX) and col[1:].isdigit()]
+                      if col.startswith(CANCER_PREFIX) and col[1:].isdigit()]
     normal_samples = [col for col in sample_cols
-                     if col.startswith(NORMAL_PREFIX) and col[1:].isdigit()]
+                      if col.startswith(NORMAL_PREFIX) and col[1:].isdigit()]
 
     return cancer_samples, normal_samples
 
@@ -322,7 +321,7 @@ def is_normal_sample(sample_name: str) -> bool:
 # ==============================================================================
 
 def log_transform(data: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 pseudocount: float = LOG_TRANSFORM_PSEUDOCOUNT) -> Union[pd.DataFrame, pd.Series, np.ndarray]:
+                  pseudocount: float = LOG_TRANSFORM_PSEUDOCOUNT) -> Union[pd.DataFrame, pd.Series, np.ndarray]:
     """
     Apply log2 transformation with pseudocount
 
@@ -388,13 +387,13 @@ def validate_statistical_power(cancer_samples: List[str], normal_samples: List[s
     if cancer_n < min_n:
         logger.warning(
             f"⚠️  Cancer group has only {cancer_n} samples (< {min_n} recommended). "
-            f"Statistical tests may be under-powered. Consider collecting more samples."
+            "Statistical tests may be under-powered. Consider collecting more samples."
         )
 
     if normal_n < min_n:
         logger.warning(
             f"⚠️  Normal group has only {normal_n} samples (< {min_n} recommended). "
-            f"Statistical tests may be under-powered. Consider collecting more samples."
+            "Statistical tests may be under-powered. Consider collecting more samples."
         )
 
     # Info: Report sample sizes
@@ -402,7 +401,7 @@ def validate_statistical_power(cancer_samples: List[str], normal_samples: List[s
 
 
 def calculate_fold_change(cancer_mean: float, normal_mean: float,
-                         log_scale: bool = False, pseudocount: float = 1.0) -> float:
+                          log_scale: bool = False, pseudocount: float = 1.0) -> float:
     """
     Calculate fold change between cancer and normal with pseudocount
 
@@ -481,8 +480,8 @@ def calculate_statistics(values: Union[pd.Series, np.ndarray]) -> dict:
 # ==============================================================================
 
 def validate_sample_counts(df: pd.DataFrame,
-                          min_cancer: int = 1,
-                          min_normal: int = 1) -> Tuple[int, int]:
+                           min_cancer: int = 1,
+                           min_normal: int = 1) -> Tuple[int, int]:
     """
     Validate sample counts in DataFrame
 

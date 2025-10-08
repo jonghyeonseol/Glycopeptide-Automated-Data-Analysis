@@ -41,7 +41,6 @@ class WorkflowStep(ABC):
             state: Pipeline state object
             config: Configuration dictionary
         """
-        pass
 
     def on_start(self) -> None:
         """Hook called before step executes"""
@@ -117,9 +116,9 @@ class Workflow:
             state: Pipeline state
             config: Configuration
         """
-        logger.info(f"\n{'='*80}")
+        logger.info(f"\n{'=' * 80}")
         logger.info(f"Executing Workflow: {self.name}")
-        logger.info(f"{'='*80}")
+        logger.info(f"{'=' * 80}")
 
         self.status = WorkflowStatus.RUNNING
 

@@ -6,7 +6,6 @@ Visualizes glycan type profiles as radar charts
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data
 
@@ -145,7 +144,7 @@ class RadarChartPlotMixin:
 
         # Title
         plt.title('Glycan Profile Comparison: Cancer vs Normal\n(Radar Chart)',
-                 fontsize=14, fontweight='bold', pad=20)
+                  fontsize=14, fontweight='bold', pad=20)
 
         plt.tight_layout()
 

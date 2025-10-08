@@ -6,15 +6,12 @@ NEW MODULE: Created for comprehensive glycan distribution visualization
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data
 from .plot_config import (
     LEGACY_GLYCAN_COLORS,
-    EXTENDED_CATEGORY_COLORS,
-    GROUP_PALETTE
+    EXTENDED_CATEGORY_COLORS
 )
 
 logger = logging.getLogger(__name__)
@@ -68,7 +65,7 @@ class PieChartPlotMixin:
             cancer_values,
             labels=glycan_types,
             colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%\n({pct*cancer_total_sum/100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -83,7 +80,7 @@ class PieChartPlotMixin:
             normal_values,
             labels=glycan_types,
             colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%\n({pct*normal_total_sum/100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -92,7 +89,7 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Glycan Type Distribution by Group (Based on Total Intensity)',
-                    fontsize=16, weight='bold', y=0.98)
+                     fontsize=16, weight='bold', y=0.98)
 
         plt.tight_layout()
 
@@ -105,9 +102,9 @@ class PieChartPlotMixin:
         trace_data = pd.DataFrame({
             'GlycanType': glycan_types,
             'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v/cancer_total_sum*100 for v in cancer_values],
+            'Cancer_Percentage': [v / cancer_total_sum * 100 for v in cancer_values],
             'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v/normal_total_sum*100 for v in normal_values]
+            'Normal_Percentage': [v / normal_total_sum * 100 for v in normal_values]
         })
         save_trace_data(trace_data, self.output_dir, 'pie_chart_glycan_types_data.csv')
 
@@ -163,7 +160,7 @@ class PieChartPlotMixin:
             cancer_values,
             labels=primary_categories,
             colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%\n({pct*cancer_total_sum/100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -178,7 +175,7 @@ class PieChartPlotMixin:
             normal_values,
             labels=primary_categories,
             colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%\n({pct*normal_total_sum/100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -187,7 +184,7 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Primary Classification Distribution by Group (Based on Total Intensity)',
-                    fontsize=16, weight='bold', y=0.98)
+                     fontsize=16, weight='bold', y=0.98)
 
         plt.tight_layout()
 
@@ -200,9 +197,9 @@ class PieChartPlotMixin:
         trace_data = pd.DataFrame({
             'PrimaryClassification': primary_categories,
             'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v/cancer_total_sum*100 if cancer_total_sum > 0 else 0 for v in cancer_values],
+            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
             'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v/normal_total_sum*100 if normal_total_sum > 0 else 0 for v in normal_values]
+            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values]
         })
         save_trace_data(trace_data, self.output_dir, 'pie_chart_primary_classification_data.csv')
 
@@ -252,7 +249,7 @@ class PieChartPlotMixin:
             cancer_values,
             labels=secondary_categories,
             colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%\n({pct*cancer_total_sum/100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 else '',
             startangle=90,
             textprops={'fontsize': 10, 'weight': 'bold'}
         )
@@ -267,7 +264,7 @@ class PieChartPlotMixin:
             normal_values,
             labels=secondary_categories,
             colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%\n({pct*normal_total_sum/100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 else '',
             startangle=90,
             textprops={'fontsize': 10, 'weight': 'bold'}
         )
@@ -276,7 +273,7 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Secondary Classification Distribution by Group (Based on Total Intensity)',
-                    fontsize=16, weight='bold', y=0.98)
+                     fontsize=16, weight='bold', y=0.98)
 
         plt.tight_layout()
 
@@ -289,9 +286,9 @@ class PieChartPlotMixin:
         trace_data = pd.DataFrame({
             'SecondaryClassification': secondary_categories,
             'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v/cancer_total_sum*100 if cancer_total_sum > 0 else 0 for v in cancer_values],
+            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
             'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v/normal_total_sum*100 if normal_total_sum > 0 else 0 for v in normal_values]
+            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values]
         })
         save_trace_data(trace_data, self.output_dir, 'pie_chart_secondary_classification_data.csv')
 

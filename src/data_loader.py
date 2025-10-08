@@ -4,12 +4,10 @@ Handles CSV integration from multiple input files
 """
 
 import pandas as pd
-import numpy as np
 from pathlib import Path
 from typing import List, Dict, Optional
 
 from .constants import (
-    REQUIRED_INPUT_COLUMNS,
     CSV_FILE_PATTERN,
     CANCER_PREFIX,
     NORMAL_PREFIX
@@ -152,9 +150,9 @@ class DataLoader:
 
         # Separate C and N samples
         c_samples = sorted([col for col in sample_cols if col.startswith(CANCER_PREFIX)],
-                          key=lambda x: int(x[1:]))
+                           key=lambda x: int(x[1:]))
         n_samples = sorted([col for col in sample_cols if col.startswith(NORMAL_PREFIX)],
-                          key=lambda x: int(x[1:]))
+                           key=lambda x: int(x[1:]))
 
         # Reorder columns: Peptide, GlycanComposition, sample columns, Proteins (at the end)
         ordered_cols = ['Peptide', 'GlycanComposition'] + c_samples + n_samples + ['Proteins']

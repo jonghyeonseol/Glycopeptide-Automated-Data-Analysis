@@ -7,32 +7,24 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Tuple, Optional
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.preprocessing import RobustScaler
 from sklearn.cross_decomposition import PLSRegression
-from scipy import stats
 
 from .constants import (
     DEFAULT_PCA_COMPONENTS,
     DEFAULT_LOG_TRANSFORM,
     DEFAULT_PLSDA_COMPONENTS,
     LOG_TRANSFORM_PSEUDOCOUNT,
-    GROUP_CANCER,
-    GROUP_NORMAL,
-    CANCER_PREFIX,
-    NORMAL_PREFIX
+    GROUP_CANCER
 )
 from .exceptions import (
-    InsufficientDataError,
-    MatrixShapeError,
-    NormalizationError,
-    AnalysisError
+    InsufficientDataError
 )
 from .utils import (
     replace_empty_with_zero,
     to_numeric_safe,
     get_sample_columns,
     get_all_sample_columns,
-    get_metadata_columns,
     get_sample_group,
     log_transform as utils_log_transform,
     calculate_fold_change
@@ -94,11 +86,11 @@ class GlycanAnalyzer:
         logger.info("Applying TIC normalization...")
         sample_sums = intensity_matrix_t.sum(axis=1)
         median_sum = sample_sums.median()
-        
+
         # Avoid division by zero
         sample_sums_safe = sample_sums.replace(0, 1)
         intensity_matrix_t = intensity_matrix_t.div(sample_sums_safe, axis=0) * median_sum
-        
+
         logger.info(f"  - Sample sum range before: {sample_sums.min():.2e} - {sample_sums.max():.2e}")
         logger.info(f"  - Median sum (target): {median_sum:.2e}")
 
@@ -138,7 +130,7 @@ class GlycanAnalyzer:
         # Create results DataFrame
         pca_df = pd.DataFrame(
             pca_coords,
-            columns=[f'PC{i+1}' for i in range(self.n_components)],
+            columns =[f'PC{i + 1}' for i in range(self.n_components)],
             index=sample_names
         )
 
@@ -148,10 +140,10 @@ class GlycanAnalyzer:
         # Calculate explained variance
         explained_variance = self.pca.explained_variance_ratio_
 
-        logger.info(f"PCA completed:")
-        logger.info(f"  - PC1 explained variance: {explained_variance[0]*100:.2f}%")
-        logger.info(f"  - PC2 explained variance: {explained_variance[1]*100:.2f}%")
-        logger.info(f"  - Total explained variance: {explained_variance.sum()*100:.2f}%")
+        logger.info("PCA completed:")
+        logger.info(f"  - PC1 explained variance: {explained_variance[0] * 100:.2f}%")
+        logger.info(f"  - PC2 explained variance: {explained_variance[1] * 100:.2f}%")
+        logger.info(f"  - Total explained variance: {explained_variance.sum() * 100:.2f}%")
 
         return {
             'pca_df': pca_df,
@@ -209,7 +201,7 @@ class GlycanAnalyzer:
 
         stats_df = pd.DataFrame(stats_list)
 
-        logger.info(f"\nStatistics by Glycan Type:")
+        logger.info("\nStatistics by Glycan Type:")
         logger.info(stats_df.to_string(index=False))
 
         return stats_df
@@ -453,7 +445,7 @@ class GlycanAnalyzer:
         # Stability: VIP > 1 if lower CI > 1.0 (consistently important)
         stability = vip_ci_lower > 1.0
 
-        logger.info(f"Bootstrap validation complete:")
+        logger.info("Bootstrap validation complete:")
         logger.info(f"  - {np.sum(stability)} features have stable VIP > 1.0 (CI lower > 1.0)")
         logger.info(f"  - Mean VIP score: {np.mean(vip_mean):.3f} ± {np.mean(vip_std):.3f}")
 
@@ -480,7 +472,7 @@ class GlycanAnalyzer:
         return plsda_results['vip_scores'].head(top_n)
 
     def get_top_vip_by_glycan_type(self, df: pd.DataFrame, plsda_results: dict, top_n: int = 10,
-                                    classification_col: str = 'SecondaryClassification') -> pd.DataFrame:
+                                   classification_col: str = 'SecondaryClassification') -> pd.DataFrame:
         """
         Get top N glycan types by aggregated VIP score
 

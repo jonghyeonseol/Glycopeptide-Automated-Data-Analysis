@@ -4,16 +4,13 @@ Handles histogram visualizations
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import (
-    HISTOGRAM_FIGSIZE, HISTOGRAM_X_ROTATION, HISTOGRAM_X_HA,
-    EXTENDED_CATEGORY_COLORS,
-    apply_standard_axis_style, apply_standard_legend
+    HISTOGRAM_X_ROTATION, HISTOGRAM_X_HA, EXTENDED_CATEGORY_COLORS,
+    apply_standard_axis_style,
+    apply_standard_legend
 )
 
 logger = logging.getLogger(__name__)
@@ -135,7 +132,7 @@ class HistogramMixin:
         plt.close()
 
     def plot_histogram_primary_classification(self, df: pd.DataFrame, normalization: str = 'raw',
-                                               figsize: tuple = (20, 10)):
+                                              figsize: tuple = (20, 10)):
         """
         Create histogram for primary classification (Truncated, High Mannose, ComplexHybrid)
         across all samples
@@ -150,7 +147,7 @@ class HistogramMixin:
         sample_cols = cancer_samples + normal_samples
 
         # Get intensity matrix
-        intensity_matrix = replace_empty_with_zero(df[sample_cols])
+        replace_empty_with_zero(df[sample_cols])
         # Primary classification categories
         primary_categories = ['Outlier', 'High Mannose', 'ComplexHybrid']
 
@@ -240,12 +237,13 @@ class HistogramMixin:
         logger.info(f"Saved primary classification histogram to {output_file}")
 
         # Save trace data
-        save_trace_data(plot_df.reset_index(), self.output_dir, f'histogram_primary_{normalization}_normalized_data.csv')
+        save_trace_data(plot_df.reset_index(), self.output_dir,
+                        f'histogram_primary_{normalization}_normalized_data.csv')
 
         plt.close()
 
     def plot_histogram_secondary_classification(self, df: pd.DataFrame, normalization: str = 'raw',
-                                                 figsize: tuple = (20, 10)):
+                                                figsize: tuple = (20, 10)):
         """
         Create histogram for secondary classification across all samples
         (excludes Truncated and Outlier)
@@ -350,7 +348,8 @@ class HistogramMixin:
         logger.info(f"Saved secondary classification histogram to {output_file}")
 
         # Save trace data
-        save_trace_data(plot_df.reset_index(), self.output_dir, f'histogram_secondary_{normalization}_normalized_data.csv')
+        save_trace_data(plot_df.reset_index(), self.output_dir,
+                        f'histogram_secondary_{normalization}_normalized_data.csv')
 
         plt.close()
 

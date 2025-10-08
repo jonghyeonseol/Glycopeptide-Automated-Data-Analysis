@@ -11,13 +11,12 @@ Created: 2025-10-06
 
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple, Optional
+from typing import List
 from dataclasses import dataclass
 from sklearn.cross_decomposition import PLSRegression
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, roc_auc_score, classification_report
-from scipy import stats
 import warnings
 
 
@@ -33,7 +32,7 @@ class BootstrapVIPResult:
     feature_names: List[str]
 
     def get_stable_biomarkers(self, stability_threshold: float = 0.8,
-                             vip_threshold: float = 1.0) -> pd.DataFrame:
+                              vip_threshold: float = 1.0) -> pd.DataFrame:
         """
         Identify stable biomarkers based on bootstrap results
 
@@ -49,7 +48,7 @@ class BootstrapVIPResult:
         pd.DataFrame with stable biomarkers and their statistics
         """
         stable_mask = (self.stability_score >= stability_threshold) & \
-                     (self.vip_mean >= vip_threshold)
+            (self.vip_mean >= vip_threshold)
 
         results = pd.DataFrame({
             'Feature': self.feature_names,
@@ -186,14 +185,14 @@ class StatisticalValidator:
         n_samples, n_features = X.shape
         vip_scores_all = np.zeros((n_iterations, n_features))
 
-        print(f"\n🔬 Bootstrap VIP Validation")
+        print("\n🔬 Bootstrap VIP Validation")
         print(f"   Iterations: {n_iterations}")
         print(f"   Samples: {n_samples}, Features: {n_features}")
-        print(f"   Confidence Level: {confidence_level*100:.0f}%")
+        print(f"   Confidence Level: {confidence_level * 100:.0f}%")
 
         for i in range(n_iterations):
             if (i + 1) % 100 == 0:
-                print(f"   Progress: {i+1}/{n_iterations} iterations...", end='\r')
+                print(f"   Progress: {i + 1}/{n_iterations} iterations...", end='\r')
 
             # Bootstrap resampling with replacement
             indices = np.random.choice(n_samples, size=n_samples, replace=True)
@@ -220,8 +219,8 @@ class StatisticalValidator:
 
         # Confidence intervals
         alpha = 1 - confidence_level
-        vip_ci_lower = np.percentile(vip_scores_all, alpha/2 * 100, axis=0)
-        vip_ci_upper = np.percentile(vip_scores_all, (1 - alpha/2) * 100, axis=0)
+        vip_ci_lower = np.percentile(vip_scores_all, alpha / 2 * 100, axis=0)
+        vip_ci_upper = np.percentile(vip_scores_all, (1 - alpha / 2) * 100, axis=0)
 
         # Stability score: proportion of iterations where VIP > 1.0
         stability_score = np.mean(vip_scores_all > 1.0, axis=0)
@@ -237,7 +236,7 @@ class StatisticalValidator:
         )
 
     def _calculate_vip_scores(self, X: np.ndarray, y: np.ndarray,
-                             n_components: int = 2) -> np.ndarray:
+                              n_components: int = 2) -> np.ndarray:
         """Calculate VIP scores for PLS-DA model"""
         # Standardize features
         scaler = StandardScaler()
@@ -268,10 +267,10 @@ class StatisticalValidator:
         return vips
 
     def cross_validate_plsda(self,
-                            X: np.ndarray,
-                            y: np.ndarray,
-                            n_components: int = 2,
-                            n_folds: int = 10) -> CrossValidationResult:
+                             X: np.ndarray,
+                             y: np.ndarray,
+                             n_components: int = 2,
+                             n_folds: int = 10) -> CrossValidationResult:
         """
         Perform cross-validation for PLS-DA model
 
@@ -290,7 +289,7 @@ class StatisticalValidator:
         --------
         CrossValidationResult with accuracy, ROC-AUC, and detailed reports
         """
-        print(f"\n🔬 PLS-DA Cross-Validation")
+        print("\n🔬 PLS-DA Cross-Validation")
         print(f"   Folds: {n_folds}")
         print(f"   Components: {n_components}")
 
@@ -300,7 +299,7 @@ class StatisticalValidator:
 
         # Setup cross-validation
         cv = StratifiedKFold(n_splits=n_folds, shuffle=True,
-                           random_state=self.random_state)
+                             random_state=self.random_state)
 
         accuracy_scores = []
         roc_auc_scores = []
@@ -329,8 +328,8 @@ class StatisticalValidator:
 
             # Classification report
             report = classification_report(y_test, y_pred,
-                                          target_names=['Normal', 'Cancer'],
-                                          output_dict=False)
+                                           target_names=['Normal', 'Cancer'],
+                                           output_dict=False)
             classification_reports.append(f"Fold {fold}:\n{report}")
 
             print(f"   Fold {fold}: Accuracy={accuracy:.3f}, ROC-AUC={roc_auc:.3f}")
@@ -354,9 +353,9 @@ class StatisticalValidator:
         )
 
     def calculate_cohens_d(self,
-                          group1: np.ndarray,
-                          group2: np.ndarray,
-                          feature_names: List[str]) -> EffectSizeResult:
+                           group1: np.ndarray,
+                           group2: np.ndarray,
+                           feature_names: List[str]) -> EffectSizeResult:
         """
         Calculate Cohen's d effect size for each feature
 
@@ -373,7 +372,7 @@ class StatisticalValidator:
         --------
         EffectSizeResult with Cohen's d and effect magnitude
         """
-        print(f"\n🔬 Cohen's d Effect Size Calculation")
+        print("\n🔬 Cohen's d Effect Size Calculation")
         print(f"   Group 1: {group1.shape[0]} samples")
         print(f"   Group 2: {group2.shape[0]} samples")
         print(f"   Features: {len(feature_names)}")
@@ -418,9 +417,9 @@ class StatisticalValidator:
         )
 
     def permutation_test_pca(self,
-                            X: np.ndarray,
-                            y: np.ndarray,
-                            n_permutations: int = 1000) -> PermutationTestResult:
+                             X: np.ndarray,
+                             y: np.ndarray,
+                             n_permutations: int = 1000) -> PermutationTestResult:
         """
         Permutation test for PCA group separation
 
@@ -440,9 +439,8 @@ class StatisticalValidator:
         --------
         PermutationTestResult with p-value and null distribution
         """
-        from sklearn.decomposition import PCA
 
-        print(f"\n🔬 PCA Permutation Test")
+        print("\n🔬 PCA Permutation Test")
         print(f"   Permutations: {n_permutations}")
 
         # Calculate observed statistic (between-group distance in PC space)
@@ -454,7 +452,7 @@ class StatisticalValidator:
 
         for i in range(n_permutations):
             if (i + 1) % 100 == 0:
-                print(f"   Progress: {i+1}/{n_permutations} permutations...", end='\r')
+                print(f"   Progress: {i + 1}/{n_permutations} permutations...", end='\r')
 
             # Permute labels
             y_perm = np.random.permutation(y)

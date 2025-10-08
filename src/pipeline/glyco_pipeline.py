@@ -5,7 +5,6 @@ Main pipeline for pGlyco Auto Combine
 
 from pathlib import Path
 from typing import Dict, Any
-import pandas as pd
 
 from .base_pipeline import BasePipeline, PipelineState
 from .workflow import Workflow, WorkflowStep
@@ -16,7 +15,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.data_loader import DataLoader
 from src.annotator import GlycanAnnotator
-from src.visualizer import GlycanVisualizer
 from src.data_preparation import get_standard_config_from_dict
 from src.data_pipeline import DataPipeline
 from src.utils import validate_statistical_power
@@ -91,7 +89,7 @@ class FilterDataStep(WorkflowStep):
         # Save datasets
         results_dir = config['paths']['results_dir']
         sample_columns = [col for col in state.filtered_data.columns
-                         if col.startswith('C') or col.startswith('N')]
+                          if col.startswith('C') or col.startswith('N')]
 
         output_columns = ['Peptide', 'GlycanComposition'] + sample_columns + [
             'Sialylation', 'Fucosylation', 'HighMannose', 'ComplexHybrid',
@@ -121,9 +119,9 @@ class ValidateStatisticalPowerStep(WorkflowStep):
 
     def execute(self, state: PipelineState, config: Dict[str, Any]) -> None:
         cancer_samples = [col for col in state.filtered_data.columns
-                         if col.startswith('C') and col[1:].isdigit()]
+                          if col.startswith('C') and col[1:].isdigit()]
         normal_samples = [col for col in state.filtered_data.columns
-                         if col.startswith('N') and col[1:].isdigit()]
+                          if col.startswith('N') and col[1:].isdigit()]
 
         validate_statistical_power(cancer_samples, normal_samples, min_n=5)
 

@@ -80,7 +80,6 @@ class BasePlot(ABC):
         Raises:
             PlotGenerationError: If plot generation fails
         """
-        pass
 
     def is_enabled(self, config: Dict[str, Any]) -> bool:
         """

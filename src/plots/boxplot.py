@@ -9,20 +9,18 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
 import logging
 from scipy import stats
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from ..data_preparation import (
-    DataPreparationConfig,
-    calculate_group_statistics_standardized
+    DataPreparationConfig
 )
 from .plot_config import (
     BOXPLOT_FIGSIZE, BOXPLOT_EXTENDED_FIGSIZE, BOXPLOT_WIDTH,
     BOXPLOT_LINEWIDTH, BOXPLOT_FLIERSIZE,
-    GROUP_PALETTE, LEGACY_GLYCAN_COLORS, EXTENDED_CATEGORY_COLORS,
+    LEGACY_GLYCAN_COLORS, EXTENDED_CATEGORY_COLORS,
     apply_standard_axis_style, apply_standard_legend,
-    ANNOTATION_SIZE, AXIS_LABEL_SIZE, AXIS_LABEL_WEIGHT,
+    AXIS_LABEL_SIZE, AXIS_LABEL_WEIGHT,
     TITLE_SIZE, TITLE_WEIGHT,
     add_sample_size_annotation  # Phase 2.2 enhancement
 )
@@ -164,7 +162,7 @@ class BoxplotMixin:
 
                     # Draw line connecting the two groups
                     ax.plot([x1, x2], [y_position, y_position],
-                           color='black', linewidth=1.5, zorder=10)
+                            color='black', linewidth=1.5, zorder=10)
 
                     # Add significance marker WITH effect size (Phase 1.1)
                     # Format: *** (d=2.3) - shows both p-value significance and magnitude
@@ -185,7 +183,10 @@ class BoxplotMixin:
                         zorder=11
                     )
 
-                    logger.info(f"{glycan_type}: Cancer vs Normal p={p_value:.4f} ({sig_marker}), Cohen's d={cohens_d:.3f}")
+                    logger.info(
+                        f"{glycan_type}: Cancer vs Normal p={p_value:.4f} "
+                        f"({sig_marker}), Cohen's d={cohens_d:.3f}"
+                    )
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {glycan_type}: {str(e)}")
@@ -308,7 +309,7 @@ class BoxplotMixin:
 
                     # Draw line connecting the two groups
                     ax.plot([x1, x2], [y_position, y_position],
-                           color='black', linewidth=1.5, zorder=10)
+                            color='black', linewidth=1.5, zorder=10)
 
                     # Add significance marker WITH effect size (Phase 1.1)
                     if not np.isnan(cohens_d):
@@ -328,7 +329,10 @@ class BoxplotMixin:
                         zorder=11
                     )
 
-                    logger.info(f"{category}: Cancer vs Normal p={p_value:.4f} ({sig_marker}), Cohen's d={cohens_d:.3f}")
+                    logger.info(
+                        f"{category}: Cancer vs Normal p={p_value:.4f} "
+                        f"({sig_marker}), Cohen's d={cohens_d:.3f}"
+                    )
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {category}: {str(e)}")
@@ -364,7 +368,10 @@ class BoxplotMixin:
 
         plt.close()
 
-    def plot_boxplot_primary_classification(self, df: pd.DataFrame, normalization: str = 'raw', figsize: tuple = (12, 8)):
+    def plot_boxplot_primary_classification(
+        self, df: pd.DataFrame, normalization: str = 'raw',
+        figsize: tuple = (12, 8)
+    ):
         """
         Create boxplot for primary classification
 
@@ -464,7 +471,10 @@ class BoxplotMixin:
 
         plt.close()
 
-    def plot_boxplot_secondary_classification(self, df: pd.DataFrame, normalization: str = 'raw', figsize: tuple = (14, 8)):
+    def plot_boxplot_secondary_classification(
+        self, df: pd.DataFrame, normalization: str = 'raw',
+        figsize: tuple = (14, 8)
+    ):
         """
         Create boxplot for secondary classification
 
@@ -596,7 +606,7 @@ class BoxplotMixin:
         primary_categories = ['High Mannose', 'ComplexHybrid']
 
         # STANDARDIZED: Use centralized statistics calculation
-        config = DataPreparationConfig(missing_data_method='skipna')
+        _ = DataPreparationConfig(missing_data_method='skipna')  # Config for documentation
 
         # Generate both versions
         for apply_qc in [False, True]:
@@ -661,7 +671,7 @@ class BoxplotMixin:
 
             ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
             ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)',
-                         fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+                          fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
 
             title = 'Primary Classification: Cancer vs Normal'
             if apply_qc:
@@ -723,7 +733,7 @@ class BoxplotMixin:
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
 
         # STANDARDIZED: Use centralized statistics calculation
-        config = DataPreparationConfig(missing_data_method='skipna')
+        _ = DataPreparationConfig(missing_data_method='skipna')  # Config for documentation
 
         # Generate both versions
         for apply_qc in [False, True]:
@@ -799,7 +809,7 @@ class BoxplotMixin:
 
             ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
             ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)',
-                         fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+                          fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
 
             title = 'Secondary Classification: Cancer vs Normal'
             if apply_qc:

@@ -4,7 +4,6 @@ Handles Principal Component Analysis
 """
 
 import pandas as pd
-import numpy as np
 from typing import Dict
 from sklearn.decomposition import PCA
 
@@ -74,7 +73,7 @@ class PCAAnalyzer(BaseAnalyzer):
         # Create results DataFrame
         pca_df = pd.DataFrame(
             pca_coords,
-            columns=[f'PC{i+1}' for i in range(self.n_components)],
+            columns =[f'PC{i + 1}' for i in range(self.n_components)],
             index=sample_names
         )
 
@@ -84,14 +83,14 @@ class PCAAnalyzer(BaseAnalyzer):
         # Calculate explained variance
         explained_variance = self.pca.explained_variance_ratio_
 
-        logger.info(f"PCA completed:")
+        logger.info("PCA completed:")
         for i, var in enumerate(explained_variance):
-            logger.info(f"  PC{i+1}: {var*100:.2f}% variance explained")
+            logger.info(f"  PC{i + 1}: {var * 100:.2f}% variance explained")
 
         # Get loadings (feature contributions)
         loadings = pd.DataFrame(
             self.pca.components_.T,
-            columns=[f'PC{i+1}' for i in range(self.n_components)],
+            columns =[f'PC{i + 1}' for i in range(self.n_components)],
             index=range(len(feature_names))
         )
 

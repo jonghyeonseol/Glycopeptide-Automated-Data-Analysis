@@ -86,7 +86,7 @@ class AuditLogger:
     def __new__(cls):
         """Singleton pattern - only one instance allowed"""
         if cls._instance is None:
-            cls._instance = super(AuditLogger, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self):
@@ -161,7 +161,7 @@ class AuditLogger:
             try:
                 with open(self.audit_file, 'a') as f:
                     f.write(json.dumps(event) + '\n')
-            except IOError as e:
+            except OSError as e:
                 logger.error(f"Failed to write to audit log: {e}")
 
         # Increment event counter
@@ -358,7 +358,7 @@ class AuditLogger:
         event_counts = {}
 
         if self.audit_file and self.audit_file.exists():
-            with open(self.audit_file, 'r') as f:
+            with open(self.audit_file) as f:
                 for line in f:
                     event = json.loads(line)
                     event_type = event['event_type']

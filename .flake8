@@ -1,0 +1,56 @@
+[flake8]
+# Flake8 configuration for pGlyco Auto Combine
+
+# Set max line length to 120 (more reasonable for modern development)
+max-line-length = 120
+
+# Ignore specific error codes that are acceptable for this project:
+# E402 - module level import not at top of file (acceptable for sys.path manipulation)
+# F821 - undefined name (false positives in CSS/R strings)
+# W503 - line break before binary operator (conflicts with black/modern style)
+# F841 - local variable assigned but never used (some intentional for readability)
+ignore = W503
+
+# Per-file ignores
+per-file-ignores =
+    # Allow E402 in files that need sys.path manipulation
+    src/__init__.py:E402
+    src/visualization/*.py:E402
+    src/pipeline/*.py:E402
+    src/config/*.py:E402
+    src/analysis/*.py:E402
+    # Ignore F821 (undefined names) in files with CSS or R code strings
+    src/interactive_dashboard.py:F821
+    src/plots/vip_score_plot_r.py:F821
+    src/plots/vip_score_plot.py:F821
+    # Ignore F841 (unused variables) in interactive dashboard where some variables are for template generation
+    src/interactive_dashboard.py:F841
+    src/publication_report.py:F841
+    # Ignore E501 (line too long) in files with embedded code strings (R scripts, HTML templates)
+    src/plots/vip_score_plot_r.py:E501
+    src/interactive_dashboard.py:E501
+
+# Exclude common directories
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    build,
+    dist,
+    *.egg-info,
+    .pytest_cache,
+    Results,
+    Dataset,
+    Citation,
+    docs
+
+# Show source code for each error
+show-source = True
+
+# Count errors
+count = True
+
+# Statistics at the end
+statistics = True

@@ -13,7 +13,6 @@ Captures:
 This module ensures all outputs are attributable, contemporaneous, and traceable.
 """
 
-import os
 import sys
 import platform
 import socket
@@ -42,7 +41,7 @@ class MetadataCollector:
     def __new__(cls):
         """Singleton pattern - only one instance allowed"""
         if cls._instance is None:
-            cls._instance = super(MetadataCollector, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self):
@@ -107,7 +106,7 @@ class MetadataCollector:
         """Get current git branch"""
         try:
             result = subprocess.run(
-                ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                ['git', 'rev-parse', '--abbrev-re', 'HEAD'],
                 capture_output=True,
                 text=True,
                 check=True,

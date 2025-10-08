@@ -8,10 +8,7 @@ UPDATED: Now uses centralized data preparation for consistency
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from matplotlib.patches import Rectangle
-from matplotlib.colors import LinearSegmentedColormap
-from pathlib import Path
 import logging
 from ..utils import save_trace_data, calculate_fold_change
 from ..data_preparation import (
@@ -19,7 +16,7 @@ from ..data_preparation import (
     prepare_visualization_data,
     calculate_group_statistics_standardized
 )
-from .plot_config import GLYCAN_COLORS, HEATMAP_FIGSIZE
+from .plot_config import GLYCAN_COLORS
 
 logger = logging.getLogger(__name__)
 
@@ -198,11 +195,11 @@ class GlycopeptideComparisonHeatmapMixin:
 
         x_pos = np.arange(len(glycan_order))
         ax_top.plot(x_pos, cancer_intensities, color='#E74C3C', linewidth=2.5,
-                   marker='o', markersize=6, label='Cancer', alpha=0.85,
-                   markeredgecolor='white', markeredgewidth=0.5)
+                    marker='o', markersize=6, label='Cancer', alpha=0.85,
+                    markeredgecolor='white', markeredgewidth=0.5)
         ax_top.plot(x_pos, normal_intensities, color='#3498DB', linewidth=2.5,
-                   marker='s', markersize=6, label='Normal', alpha=0.85,
-                   markeredgecolor='white', markeredgewidth=0.5)
+                    marker='s', markersize=6, label='Normal', alpha=0.85,
+                    markeredgecolor='white', markeredgewidth=0.5)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
         ax_top.set_ylabel('Aggregated\nIntensity', fontsize=12, fontweight='bold')
@@ -221,16 +218,16 @@ class GlycopeptideComparisonHeatmapMixin:
         for glycan_type, pos_info in glycan_type_positions.items():
             width = pos_info['end'] - pos_info['start']
             rect = Rectangle((pos_info['start'] - 0.5, 0), width, 1,
-                            facecolor=glycan_type_colors[glycan_type],
-                            edgecolor='#333', linewidth=1.5, alpha=0.85)
+                             facecolor=glycan_type_colors[glycan_type],
+                             edgecolor='#333', linewidth=1.5, alpha=0.85)
             ax_colorbar.add_patch(rect)
 
             # Add glycan type label in center - larger and more visible
             center_x = (pos_info['start'] + pos_info['end']) / 2 - 0.5
             ax_colorbar.text(center_x, 0.5, glycan_type, ha='center', va='center',
-                          fontsize=16, fontweight='bold', color='white',
-                          bbox=dict(boxstyle='round,pad=0.4', facecolor='black', alpha=0.6,
-                                   edgecolor='white', linewidth=1.5))
+                             fontsize=16, fontweight='bold', color='white',
+                             bbox=dict(boxstyle='round,pad=0.4', facecolor='black', alpha=0.6,
+                                       edgecolor='white', linewidth=1.5))
 
         # Hide axes
         ax_colorbar.set_xticks([])
@@ -275,8 +272,6 @@ class GlycopeptideComparisonHeatmapMixin:
             y_pos = peptide_to_idx[peptide]
             x_pos = glycan_to_idx[glycan]
 
-            color = glycan_type_colors.get(glycan_type, '#CCCCCC')
-
             # Get max intensity for THIS glycan type (relative transparency)
             type_max_intensity = max_intensity_by_type[glycan_type]
 
@@ -289,8 +284,8 @@ class GlycopeptideComparisonHeatmapMixin:
             if not np.isnan(cancer_intensity) and cancer_intensity > 0:
                 alpha = min(0.3 + (cancer_intensity / type_max_intensity) * 0.7, 1.0)
                 ax_main.scatter(x_pos, y_pos, s=400, c='#E74C3C', alpha=alpha,
-                              marker='x', linewidths=5.0, zorder=4,
-                              label='_nolegend_')
+                                marker='x', linewidths=5.0, zorder=4,
+                                label='_nolegend_')
 
             # Normal symbol (+ plus) - Blue
             normal_intensity = row['Normal_Mean']
@@ -298,14 +293,14 @@ class GlycopeptideComparisonHeatmapMixin:
             if not np.isnan(normal_intensity) and normal_intensity > 0:
                 alpha = min(0.3 + (normal_intensity / type_max_intensity) * 0.7, 1.0)
                 ax_main.scatter(x_pos, y_pos, s=400, c='#3498DB', alpha=alpha,
-                              marker='+', linewidths=5.0, zorder=3,
-                              label='_nolegend_')
+                                marker='+', linewidths=5.0, zorder=3,
+                                label='_nolegend_')
 
         # Add light vertical separators between glycan types
         for glycan_type, pos_info in glycan_type_positions.items():
             if pos_info['end'] < len(glycan_order):  # Don't draw after last group
                 ax_main.axvline(pos_info['end'] - 0.5, color='gray',
-                              linestyle='--', linewidth=1.5, alpha=0.4, zorder=1)
+                                linestyle='--', linewidth=1.5, alpha=0.4, zorder=1)
 
         # Set axis properties
         ax_main.set_xlim(-0.5, len(glycan_order) - 0.5)
@@ -343,29 +338,29 @@ class GlycopeptideComparisonHeatmapMixin:
         for gt in glycan_type_order:
             if gt in glycan_type_positions:
                 legend_elements.append(Patch(facecolor=glycan_type_colors[gt],
-                                            label=f'{gt}', alpha=0.85, edgecolor='#333'))
+                                             label=f'{gt}', alpha=0.85, edgecolor='#333'))
 
         # Group indicators - explain symbol visualization (larger, more visible)
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                     markerfacecolor='#E74C3C', markersize=14,
-                                     markeredgewidth=5.0,
-                                     label='× Cancer', markeredgecolor='#E74C3C'))
+                                      markerfacecolor='#E74C3C', markersize=14,
+                                      markeredgewidth=5.0,
+                                      label='× Cancer', markeredgecolor='#E74C3C'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                     markerfacecolor='#3498DB', markersize=14,
-                                     markeredgewidth=5.0,
-                                     label='+ Normal (Control)', markeredgecolor='#3498DB'))
+                                      markerfacecolor='#3498DB', markersize=14,
+                                      markeredgewidth=5.0,
+                                      label='+ Normal (Control)', markeredgecolor='#3498DB'))
         legend_elements.append(Patch(facecolor='gray', label='Darkness = Intensity (relative to type)',
-                                    alpha=0.5, edgecolor='#333', linewidth=1))
+                                     alpha=0.5, edgecolor='#333', linewidth=1))
 
         ax_main.legend(handles=legend_elements, loc='upper left',
-                      bbox_to_anchor=(1.01, 1), frameon=True, fontsize=12,
-                      title='Legend', title_fontsize=14, framealpha=0.95,
-                      edgecolor='#333', fancybox=True, shadow=True)
+                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=12,
+                       title='Legend', title_fontsize=14, framealpha=0.95,
+                       edgecolor='#333', fancybox=True, shadow=True)
 
         # === TITLE ===
         fig.suptitle('Glycopeptide Comparison Heatmap: Cancer vs Normal\n'
-                    f'(Top {len(peptide_order)} peptides by VIP score)',
-                    fontsize=18, fontweight='bold', y=0.995)
+                     f'(Top {len(peptide_order)} peptides by VIP score)',
+                     fontsize=18, fontweight='bold', y=0.995)
 
         # Save plot
         output_file = self.output_dir / 'glycopeptide_comparison_heatmap.png'
@@ -453,16 +448,16 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # Save comprehensive trace data
         save_trace_data(trace_data[final_columns], self.output_dir,
-                       'glycopeptide_comparison_heatmap_data.csv')
+                        'glycopeptide_comparison_heatmap_data.csv')
 
         # Also save a summary file for quick review
         summary_data = trace_data[key_columns].copy()
         save_trace_data(summary_data, self.output_dir,
-                       'glycopeptide_comparison_heatmap_summary.csv')
+                        'glycopeptide_comparison_heatmap_summary.csv')
 
         plt.close()
 
-        logger.info(f"Comparison heatmap complete:")
+        logger.info("Comparison heatmap complete:")
         logger.info(f"  - Cancer samples: {len(cancer_samples)}")
         logger.info(f"  - Normal samples: {len(normal_samples)}")
         logger.info(f"  - Peptides shown: {len(peptide_order)}")

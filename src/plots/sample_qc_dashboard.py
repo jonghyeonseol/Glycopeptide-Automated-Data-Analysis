@@ -9,8 +9,6 @@ Shows quality metrics, outliers, and technical variability per sample
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
 from scipy import stats
 import logging
 from ..utils import save_trace_data, get_sample_columns
@@ -53,11 +51,11 @@ class SampleQCDashboardMixin:
         # Create 2x3 subplot layout
         fig, axes = plt.subplots(2, 3, figsize=figsize)
         fig.suptitle('Per-Sample QC Dashboard: Data Quality Assessment',
-                    fontsize=16, fontweight='bold', y=0.995)
+                     fontsize=16, fontweight='bold', y=0.995)
 
         # Sample colors (Cancer vs Normal)
         sample_colors = ['#E74C3C' if s.startswith('C') else '#3498DB' for s in all_samples]
-        sample_groups = ['Cancer' if s.startswith('C') else 'Normal' for s in all_samples]
+        ['Cancer' if s.startswith('C') else 'Normal' for s in all_samples]
 
         # =====================================================================
         # PANEL 1: Total Intensity (TIC) per sample
@@ -65,17 +63,17 @@ class SampleQCDashboardMixin:
         ax1 = axes[0, 0]
         logger.info("  Panel 1: Total intensity per sample...")
 
-        bars1 = ax1.bar(range(len(all_samples)), qc_metrics['total_intensity'],
-                       color=sample_colors, edgecolor='black', linewidth=0.5)
+        _ = ax1.bar(range(len(all_samples)), qc_metrics['total_intensity'],
+                    color=sample_colors, edgecolor='black', linewidth=0.5)
 
         # Add group means as horizontal lines
         cancer_mean_tic = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'total_intensity'].mean()
         normal_mean_tic = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'total_intensity'].mean()
 
         ax1.axhline(cancer_mean_tic, color='#E74C3C', linestyle='--', linewidth=2,
-                   label=f'Cancer mean: {cancer_mean_tic:.2e}', alpha=0.7)
+                    label=f'Cancer mean: {cancer_mean_tic:.2e}', alpha=0.7)
         ax1.axhline(normal_mean_tic, color='#3498DB', linestyle='--', linewidth=2,
-                   label=f'Normal mean: {normal_mean_tic:.2e}', alpha=0.7)
+                    label=f'Normal mean: {normal_mean_tic:.2e}', alpha=0.7)
 
         ax1.set_xlabel('Sample', fontsize=10, fontweight='bold')
         ax1.set_ylabel('Total Intensity (TIC)', fontsize=10, fontweight='bold')
@@ -92,17 +90,17 @@ class SampleQCDashboardMixin:
         ax2 = axes[0, 1]
         logger.info("  Panel 2: Detection count per sample...")
 
-        bars2 = ax2.bar(range(len(all_samples)), qc_metrics['detection_count'],
-                       color=sample_colors, edgecolor='black', linewidth=0.5)
+        _ = ax2.bar(range(len(all_samples)), qc_metrics['detection_count'],
+                        color=sample_colors, edgecolor='black', linewidth=0.5)
 
         # Add group means
         cancer_mean_det = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'detection_count'].mean()
         normal_mean_det = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'detection_count'].mean()
 
         ax2.axhline(cancer_mean_det, color='#E74C3C', linestyle='--', linewidth=2,
-                   label=f'Cancer mean: {cancer_mean_det:.0f}', alpha=0.7)
+                    label=f'Cancer mean: {cancer_mean_det:.0f}', alpha=0.7)
         ax2.axhline(normal_mean_det, color='#3498DB', linestyle='--', linewidth=2,
-                   label=f'Normal mean: {normal_mean_det:.0f}', alpha=0.7)
+                    label=f'Normal mean: {normal_mean_det:.0f}', alpha=0.7)
 
         ax2.set_xlabel('Sample', fontsize=10, fontweight='bold')
         ax2.set_ylabel('Detected Glycopeptides', fontsize=10, fontweight='bold')
@@ -118,12 +116,12 @@ class SampleQCDashboardMixin:
         ax3 = axes[0, 2]
         logger.info("  Panel 3: Detection rate per sample...")
 
-        bars3 = ax3.bar(range(len(all_samples)), qc_metrics['detection_rate_pct'],
-                       color=sample_colors, edgecolor='black', linewidth=0.5)
+        _ = ax3.bar(range(len(all_samples)), qc_metrics['detection_rate_pct'],
+                        color=sample_colors, edgecolor='black', linewidth=0.5)
 
         # Add threshold line at 50%
         ax3.axhline(50, color='red', linestyle='--', linewidth=2,
-                   label='50% threshold', alpha=0.7)
+                    label='50% threshold', alpha=0.7)
 
         ax3.set_xlabel('Sample', fontsize=10, fontweight='bold')
         ax3.set_ylabel('Detection Rate (%)', fontsize=10, fontweight='bold')
@@ -140,17 +138,17 @@ class SampleQCDashboardMixin:
         ax4 = axes[1, 0]
         logger.info("  Panel 4: Median intensity per sample...")
 
-        bars4 = ax4.bar(range(len(all_samples)), qc_metrics['median_intensity'],
-                       color=sample_colors, edgecolor='black', linewidth=0.5)
+        _ = ax4.bar(range(len(all_samples)), qc_metrics['median_intensity'],
+                        color=sample_colors, edgecolor='black', linewidth=0.5)
 
         # Add group means
         cancer_mean_med = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'median_intensity'].mean()
         normal_mean_med = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'median_intensity'].mean()
 
         ax4.axhline(cancer_mean_med, color='#E74C3C', linestyle='--', linewidth=2,
-                   label=f'Cancer mean: {cancer_mean_med:.2e}', alpha=0.7)
+                    label=f'Cancer mean: {cancer_mean_med:.2e}', alpha=0.7)
         ax4.axhline(normal_mean_med, color='#3498DB', linestyle='--', linewidth=2,
-                   label=f'Normal mean: {normal_mean_med:.2e}', alpha=0.7)
+                    label=f'Normal mean: {normal_mean_med:.2e}', alpha=0.7)
 
         ax4.set_xlabel('Sample', fontsize=10, fontweight='bold')
         ax4.set_ylabel('Median Intensity', fontsize=10, fontweight='bold')
@@ -167,14 +165,14 @@ class SampleQCDashboardMixin:
         ax5 = axes[1, 1]
         logger.info("  Panel 5: CV distribution per sample...")
 
-        bars5 = ax5.bar(range(len(all_samples)), qc_metrics['cv_median_pct'],
-                       color=sample_colors, edgecolor='black', linewidth=0.5)
+        _ = ax5.bar(range(len(all_samples)), qc_metrics['cv_median_pct'],
+                        color=sample_colors, edgecolor='black', linewidth=0.5)
 
         # Add threshold lines
         ax5.axhline(20, color='green', linestyle='--', linewidth=2,
-                   label='Good QC (<20%)', alpha=0.7)
+                    label='Good QC (<20%)', alpha=0.7)
         ax5.axhline(30, color='orange', linestyle='--', linewidth=2,
-                   label='Acceptable (<30%)', alpha=0.7)
+                    label='Acceptable (<30%)', alpha=0.7)
 
         ax5.set_xlabel('Sample', fontsize=10, fontweight='bold')
         ax5.set_ylabel('Median CV (%)', fontsize=10, fontweight='bold')
@@ -195,13 +193,13 @@ class SampleQCDashboardMixin:
         qc_metrics['mahalanobis_distance'] = outlier_scores
 
         bars6 = ax6.bar(range(len(all_samples)), outlier_scores,
-                       color=sample_colors, edgecolor='black', linewidth=0.5)
+                        color=sample_colors, edgecolor='black', linewidth=0.5)
 
         # Add threshold line at chi-square critical value (p=0.01, df=5)
         # 5 metrics: TIC, detection_count, detection_rate, median_intensity, cv_median
         threshold = stats.chi2.ppf(0.99, df=5)  # 99% confidence
         ax6.axhline(threshold, color='red', linestyle='--', linewidth=2,
-                   label=f'Outlier threshold (p<0.01)', alpha=0.7)
+                    label='Outlier threshold (p<0.01)', alpha=0.7)
 
         ax6.set_xlabel('Sample', fontsize=10, fontweight='bold')
         ax6.set_ylabel('Mahalanobis Distance', fontsize=10, fontweight='bold')
@@ -243,7 +241,7 @@ class SampleQCDashboardMixin:
             logger.info("  No outliers detected - all samples pass QC")
 
     def _calculate_qc_metrics(self, intensity_matrix: pd.DataFrame,
-                             all_samples: list) -> pd.DataFrame:
+                              all_samples: list) -> pd.DataFrame:
         """
         Calculate QC metrics for each sample
 
@@ -305,7 +303,7 @@ class SampleQCDashboardMixin:
         """
         # Select numeric columns for multivariate analysis
         metric_cols = ['total_intensity', 'detection_count', 'detection_rate_pct',
-                      'median_intensity', 'cv_median_pct']
+                       'median_intensity', 'cv_median_pct']
 
         X = qc_metrics[metric_cols].values
 

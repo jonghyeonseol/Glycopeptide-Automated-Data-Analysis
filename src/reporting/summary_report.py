@@ -119,13 +119,13 @@ class SummaryReport(BaseReport):
         # Sialylation/Fucosylation
         sialylated = df['IsSialylated'].sum()
         fucosylated = df['IsFucosylated'].sum()
-        lines.append(f"  - Sialylated: {sialylated} ({sialylated/len(df)*100:.1f}%)")
-        lines.append(f"  - Fucosylated: {fucosylated} ({fucosylated/len(df)*100:.1f}%)")
+        lines.append(f"  - Sialylated: {sialylated} ({sialylated / len(df) * 100:.1f}%)")
+        lines.append(f"  - Fucosylated: {fucosylated} ({fucosylated / len(df) * 100:.1f}%)")
 
         # Glycan Type Distribution
         lines.append("\nGlycan Type Distribution (Legacy):")
         for glycan_type, count in df['GlycanType'].value_counts().items():
-            lines.append(f"  - {glycan_type}: {count} ({count/len(df)*100:.1f}%)")
+            lines.append(f"  - {glycan_type}: {count} ({count / len(df) * 100:.1f}%)")
 
         return "\n".join(lines)
 
@@ -137,9 +137,9 @@ class SummaryReport(BaseReport):
         explained_var = pca_results['explained_variance']
 
         return (
-            f"  - PC1 explained variance: {explained_var[0]*100:.2f}%\n"
-            f"  - PC2 explained variance: {explained_var[1]*100:.2f}%\n"
-            f"  - Total explained variance: {explained_var.sum()*100:.2f}%"
+            f"  - PC1 explained variance: {explained_var[0] * 100:.2f}%\n"
+            f"  - PC2 explained variance: {explained_var[1] * 100:.2f}%\n"
+            f"  - Total explained variance: {explained_var.sum() * 100:.2f}%"
         )
 
     def _generate_statistics_info(self, stats_df: pd.DataFrame) -> str:
@@ -166,9 +166,9 @@ class SummaryReport(BaseReport):
         results_dir = config['paths']['results_dir']
 
         lines = [
-            f"  - Integrated data (RAW): integrated.csv",
-            f"  - Integrated data (FILTERED): integrated_filtered.csv (USED IN ALL ANALYSES)",
-            f"  - Filtering report: filtering_report.txt",
+            "  - Integrated data (RAW): integrated.csv",
+            "  - Integrated data (FILTERED): integrated_filtered.csv (USED IN ALL ANALYSES)",
+            "  - Filtering report: filtering_report.txt",
             f"  - Statistics: {results_dir}/glycan_type_statistics.csv",
             f"  - VIP Scores (all): {results_dir}/vip_scores_all.csv",
             "",

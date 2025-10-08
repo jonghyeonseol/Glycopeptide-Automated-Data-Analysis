@@ -9,8 +9,6 @@ Shows where data is missing and validates filtering decisions
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
 import logging
 from ..utils import save_trace_data, get_sample_columns
 
@@ -74,7 +72,7 @@ class MissingDataPlotMixin:
         from matplotlib.gridspec import GridSpec
         fig = plt.figure(figsize=figsize)
         gs = GridSpec(3, 3, figure=fig, height_ratios=[0.15, 1, 0.15],
-                     width_ratios=[1, 0.02, 0.15], hspace=0.05, wspace=0.05)
+                      width_ratios=[1, 0.02, 0.15], hspace=0.05, wspace=0.05)
 
         # Main heatmap (center)
         ax_main = fig.add_subplot(gs[1, 0])
@@ -103,16 +101,16 @@ class MissingDataPlotMixin:
 
         # Plot heatmap (white = missing, color = detected)
         im = ax_main.imshow(display_matrix.values, aspect='auto', cmap='RdYlGn',
-                           interpolation='nearest', vmin=0, vmax=1)
+                            interpolation='nearest', vmin=0, vmax=1)
 
         # Sample group colors (Cancer vs Normal)
         sample_colors = ['#E74C3C' if s.startswith('C') else '#3498DB' for s in all_samples]
 
         # Add sample group color bar at top
         for i, (sample, color) in enumerate(zip(all_samples, sample_colors)):
-            ax_main.add_patch(plt.Rectangle((i-0.5, -0.5), 1, 0.3,
-                                           facecolor=color, edgecolor='none',
-                                           clip_on=False, transform=ax_main.transData))
+            ax_main.add_patch(plt.Rectangle((i - 0.5, -0.5), 1, 0.3,
+                                            facecolor=color, edgecolor='none',
+                                            clip_on=False, transform=ax_main.transData))
 
         # Labels and styling
         ax_main.set_xlabel('Sample', fontsize=12, fontweight='bold')
@@ -125,17 +123,17 @@ class MissingDataPlotMixin:
         # =====================================================================
         # TOP BAR CHART - Sample detection rates
         # =====================================================================
-        bars = ax_top.bar(range(len(all_samples)), sample_detection.values,
-                         color=sample_colors, edgecolor='black', linewidth=0.5)
+        _ = ax_top.bar(range(len(all_samples)), sample_detection.values,
+                       color=sample_colors, edgecolor='black', linewidth=0.5)
 
         # Add threshold line at 30%
         ax_top.axhline(30, color='red', linestyle='--', linewidth=2,
-                      label='30% filter threshold', zorder=10)
+                       label='30% filter threshold', zorder=10)
 
         ax_top.set_ylim(0, 100)
         ax_top.set_ylabel('Detection\nRate (%)', fontsize=10, fontweight='bold')
         ax_top.set_title('Missing Data Matrix: Detection Completeness',
-                        fontsize=14, fontweight='bold', pad=15)
+                         fontsize=14, fontweight='bold', pad=15)
         ax_top.legend(loc='upper right', fontsize=8)
         ax_top.grid(axis='y', alpha=0.3)
         plt.setp(ax_top.get_xticklabels(), visible=False)
@@ -145,7 +143,7 @@ class MissingDataPlotMixin:
         # RIGHT BAR CHART - Glycopeptide detection rates
         # =====================================================================
         ax_right.barh(range(len(display_detection)), display_detection.values,
-                     color='#27AE60', edgecolor='black', linewidth=0.5)
+                      color='#27AE60', edgecolor='black', linewidth=0.5)
 
         # Add threshold line at 30%
         ax_right.axvline(30, color='red', linestyle='--', linewidth=2, zorder=10)
@@ -173,9 +171,9 @@ class MissingDataPlotMixin:
         stats_text += f"Samples: {n_samples} ({len(cancer_samples)}C, {len(normal_samples)}N)"
 
         ax_main.text(0.02, 0.98, stats_text, transform=ax_main.transAxes,
-                    fontsize=9, verticalalignment='top',
-                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8),
-                    family='monospace', zorder=1000)
+                     fontsize=9, verticalalignment='top',
+                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8),
+                     family='monospace', zorder=1000)
 
         # =====================================================================
         # DATA INTEGRITY NOTES
@@ -198,8 +196,8 @@ class MissingDataPlotMixin:
             integrity_text += f"✓ Balanced detection: C={cancer_mean:.1f}%, N={normal_mean:.1f}%"
 
         fig.text(0.02, 0.02, integrity_text, fontsize=8, family='monospace',
-                verticalalignment='bottom',
-                bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+                 verticalalignment='bottom',
+                 bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
 
         # Save plot
         output_file = self.output_dir / 'missing_data_matrix.png'

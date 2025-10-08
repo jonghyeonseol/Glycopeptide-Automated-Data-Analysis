@@ -140,7 +140,7 @@ def main():
         print("\n" + "="*80)
         print("Analysis Complete!")
         print("="*80)
-        print(f"\nResults saved to: Results/")
+        print("\nResults saved to: Results/")
         print("\n" + "="*80 + "\n")
 
     except PGlycoAutoError as e:

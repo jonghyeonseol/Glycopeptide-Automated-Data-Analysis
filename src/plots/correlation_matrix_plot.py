@@ -7,9 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
 import logging
-from scipy.stats import pearsonr
 from ..utils import replace_empty_with_zero, save_trace_data
 
 logger = logging.getLogger(__name__)
@@ -35,7 +33,7 @@ class CorrelationMatrixPlotMixin:
         self._plot_single_correlation_matrix(df, normal_samples, 'Normal', '#3498DB')
 
     def _plot_single_correlation_matrix(self, df: pd.DataFrame, samples: list,
-                                       group_name: str, color: str):
+                                        group_name: str, color: str):
         """
         Create a single correlation matrix for a group of samples
 
@@ -70,22 +68,22 @@ class CorrelationMatrixPlotMixin:
 
         # Plot heatmap
         sns.heatmap(corr_matrix, ax=ax,
-                   mask=~mask,  # Show upper triangle only
-                   cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                   square=True, linewidths=0.5, linecolor='white',
-                   cbar_kws={'label': 'Pearson Correlation', 'shrink': 0.8},
-                   annot=True, fmt='.2f', annot_kws={'size': 8})
+                    mask=~mask,  # Show upper triangle only
+                    cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
+                    square=True, linewidths=0.5, linecolor='white',
+                    cbar_kws={'label': 'Pearson Correlation', 'shrink': 0.8},
+                    annot=True, fmt='.2f', annot_kws={'size': 8})
 
         # Plot lower triangle as colored squares without numbers
         sns.heatmap(corr_matrix, ax=ax,
-                   mask=mask,  # Show lower triangle
-                   cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                   square=True, linewidths=0.5, linecolor='white',
-                   cbar=False, annot=False)
+                    mask=mask,  # Show lower triangle
+                    cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
+                    square=True, linewidths=0.5, linecolor='white',
+                    cbar=False, annot=False)
 
         ax.set_title(f'Sample Correlation Matrix: {group_name} Samples\n'
-                    f'(Upper triangle: values, Lower triangle: heatmap)',
-                    fontsize=14, fontweight='bold', pad=20)
+                     '(Upper triangle: values, Lower triangle: heatmap)',
+                     fontsize=14, fontweight='bold', pad=20)
 
         plt.tight_layout()
 
@@ -144,14 +142,14 @@ class CorrelationMatrixPlotMixin:
 
         # Create clustermap
         g = sns.clustermap(corr_matrix,
-                          cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                          linewidths=0.5, linecolor='white',
-                          cbar_kws={'label': 'Pearson Correlation'},
-                          figsize=(12, 10),
-                          dendrogram_ratio=0.15)
+                           cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
+                           linewidths=0.5, linecolor='white',
+                           cbar_kws={'label': 'Pearson Correlation'},
+                           figsize=(12, 10),
+                           dendrogram_ratio=0.15)
 
         g.fig.suptitle(f'Hierarchical Clustering: {group_name} Sample Correlation',
-                      fontsize=14, fontweight='bold', y=0.98)
+                       fontsize=14, fontweight='bold', y=0.98)
 
         # Save plot
         output_file = self.output_dir / f'correlation_clustermap_{group_name.lower()}.png'

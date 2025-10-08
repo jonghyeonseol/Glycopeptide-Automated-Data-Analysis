@@ -4,10 +4,7 @@ Handles distribution visualizations
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
 import logging
 from ..utils import save_trace_data
 
@@ -47,7 +44,7 @@ class DistributionPlotMixin:
         for bar in bars:
             height = bar.get_height()
             ax.text(
-                bar.get_x() + bar.get_width()/2.,
+                bar.get_x() + bar.get_width() / 2.,
                 height,
                 f'{int(height)}',
                 ha='center',

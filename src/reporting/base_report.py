@@ -84,7 +84,6 @@ class BaseReport(ABC):
         Returns:
             Formatted report content
         """
-        pass
 
     def render(self) -> str:
         """

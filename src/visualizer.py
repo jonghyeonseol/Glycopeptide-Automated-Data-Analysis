@@ -4,7 +4,6 @@ Handles data visualization (PCA, boxplot, heatmap, histogram, VIP scores, distri
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
@@ -85,7 +84,11 @@ class GlycanVisualizer(
         plt.rcParams['axes.labelsize'] = 12
         plt.rcParams['axes.titlesize'] = 14
 
-    def plot_all(self, df: pd.DataFrame, pca_results: dict, boxplot_data: pd.DataFrame, boxplot_data_extended: pd.DataFrame = None):
+    def plot_all(
+        self, df: pd.DataFrame, pca_results: dict,
+        boxplot_data: pd.DataFrame,
+        boxplot_data_extended: pd.DataFrame = None
+    ):
         """
         Generate all plots
 

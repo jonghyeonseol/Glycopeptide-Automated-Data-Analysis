@@ -6,13 +6,11 @@ UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
 import logging
 from matplotlib.gridspec import GridSpec
-from ..utils import get_sample_columns, save_trace_data
+from ..utils import get_sample_columns
 from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
@@ -24,7 +22,10 @@ logger = logging.getLogger(__name__)
 class VIPScorePlotMixin:
     """Mixin class for VIP score-related plots"""
 
-    def plot_vip_scores_glycopeptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):
+    def plot_vip_scores_glycopeptide(
+        self, df: pd.DataFrame, vip_df: pd.DataFrame,
+        figsize: tuple = (10, 6), top_n: int = 10
+    ):
         """
         Plot top VIP scores by glycopeptide with heatmap showing Cancer/Normal intensity
 
@@ -42,7 +43,7 @@ class VIPScorePlotMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
+        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized mean calculation
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -89,7 +90,7 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(top_n_data['VIP_Score'], range(len(top_n_data)),
-                      c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
         ax_vip.set_yticks(range(len(top_n_data)))
         ax_vip.set_yticklabels(top_n_data['Label'], fontsize=8)
         ax_vip.set_xlabel('VIP Score', fontsize=12)
@@ -100,10 +101,10 @@ class VIPScorePlotMixin:
 
         # Plot heatmap (right) with square cells
         sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
-                   cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
-                            'ticks': [0, 1]},
-                   linewidths=0.5, linecolor='white',
-                   vmin=0, vmax=1, yticklabels=False, square=True)
+                    cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
+                              'ticks': [0, 1]},
+                    linewidths=0.5, linecolor='white',
+                    vmin=0, vmax=1, yticklabels=False, square=True)
 
         # Customize colorbar labels
         cbar = ax_heatmap.collections[0].colorbar
@@ -123,7 +124,10 @@ class VIPScorePlotMixin:
 
         plt.close()
 
-    def plot_vip_scores_glycan_composition(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):
+    def plot_vip_scores_glycan_composition(
+        self, df: pd.DataFrame, vip_df: pd.DataFrame,
+        figsize: tuple = (10, 6), top_n: int = 10
+    ):
         """
         Plot VIP scores by GlycanComposition with heatmap
 
@@ -139,7 +143,7 @@ class VIPScorePlotMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
+        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -189,7 +193,7 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(glycan_vip['VIP_Score'], range(len(glycan_vip)),
-                      c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
         ax_vip.set_yticks(range(len(glycan_vip)))
         ax_vip.set_yticklabels(glycan_vip['GlycanComposition'], fontsize=9)
         ax_vip.set_xlabel('VIP Score', fontsize=12)
@@ -200,10 +204,10 @@ class VIPScorePlotMixin:
 
         # Plot heatmap (right) with square cells
         sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
-                   cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
-                            'ticks': [0, 1]},
-                   linewidths=0.5, linecolor='white',
-                   vmin=0, vmax=1, yticklabels=False, square=True)
+                    cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
+                              'ticks': [0, 1]},
+                    linewidths=0.5, linecolor='white',
+                    vmin=0, vmax=1, yticklabels=False, square=True)
 
         # Customize colorbar labels
         cbar = ax_heatmap.collections[0].colorbar
@@ -223,7 +227,10 @@ class VIPScorePlotMixin:
 
         plt.close()
 
-    def plot_vip_scores_peptide(self, df: pd.DataFrame, vip_df: pd.DataFrame, figsize: tuple = (10, 6), top_n: int = 10):
+    def plot_vip_scores_peptide(
+        self, df: pd.DataFrame, vip_df: pd.DataFrame,
+        figsize: tuple = (10, 6), top_n: int = 10
+    ):
         """
         Plot VIP scores by Peptide with heatmap
 
@@ -239,7 +246,7 @@ class VIPScorePlotMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
+        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -289,7 +296,7 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(peptide_vip['VIP_Score'], range(len(peptide_vip)),
-                      c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
         ax_vip.set_yticks(range(len(peptide_vip)))
         ax_vip.set_yticklabels(peptide_vip['Peptide'], fontsize=8)
         ax_vip.set_xlabel('VIP Score', fontsize=12)
@@ -300,10 +307,10 @@ class VIPScorePlotMixin:
 
         # Plot heatmap (right) with square cells
         sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
-                   cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
-                            'ticks': [0, 1]},
-                   linewidths=0.5, linecolor='white',
-                   vmin=0, vmax=1, yticklabels=False, square=True)
+                    cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
+                              'ticks': [0, 1]},
+                    linewidths=0.5, linecolor='white',
+                    vmin=0, vmax=1, yticklabels=False, square=True)
 
         # Customize colorbar labels
         cbar = ax_heatmap.collections[0].colorbar

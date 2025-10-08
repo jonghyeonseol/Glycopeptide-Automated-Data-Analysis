@@ -6,24 +6,12 @@ UPDATED: Now uses centralized data preparation for consistency
 """
 
 import pandas as pd
-import numpy as np
-from pathlib import Path
 import logging
 import rpy2.robjects as ro
-from rpy2.robjects import pandas2ri
-from rpy2.robjects.packages import importr
-from rpy2.robjects.conversion import localconverter
-from ..utils import get_sample_columns, save_trace_data
+from ..utils import get_sample_columns
 from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
-)
-from .plot_config import (
-    VIP_FEATURE_NAME_SIZE, VIP_DOT_SIZE, VIP_DOT_COLOR, VIP_DOT_ALPHA,
-    VIP_USE_GRADIENT, VIP_HEATMAP_LOW_COLOR, VIP_HEATMAP_MID_COLOR, VIP_HEATMAP_HIGH_COLOR,
-    VIP_HEATMAP_SQUARE_SIZE, VIP_HEATMAP_HEIGHT, VIP_HEATMAP_SPACING, VIP_HEATMAP_OFFSET,
-    VIP_GROUP_LABEL_SIZE, VIP_FIGURE_WIDTH, VIP_FIGURE_HEIGHT,
-    VIP_LEFT_MARGIN_EXPAND
 )
 
 logger = logging.getLogger(__name__)
@@ -75,7 +63,7 @@ class VIPScorePlotRMixin:
         plot_data['y_pos'] = [i * 0.5 for i in range(len(plot_data))]
 
         # Create R script for plotting - MetaboAnalyst style
-        r_script = f"""
+        r_script = """
         library(ggplot2)
         library(grid)
 
@@ -232,7 +220,7 @@ class VIPScorePlotRMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
+        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -282,7 +270,7 @@ class VIPScorePlotRMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
+        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -335,7 +323,7 @@ class VIPScorePlotRMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
+        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -390,7 +378,8 @@ class VIPScorePlotRMixin:
 
         for peptide in reversed(top_peptides):  # Reverse for top-to-bottom plotting
             # Get all glycoforms for this peptide, sorted by VIP score descending
-            peptide_glycoforms = vip_df[vip_df['Peptide'] == peptide].sort_values('VIP_Score', ascending=False).reset_index(drop=True)
+            peptide_glycoforms = vip_df[vip_df['Peptide'] == peptide].sort_values(
+                'VIP_Score', ascending=False).reset_index(drop=True)
 
             # Get sample columns (C1-C24, N1-N24)
             cancer_samples, normal_samples = get_sample_columns(df)
@@ -439,10 +428,10 @@ class VIPScorePlotRMixin:
             # Add spacing between peptide groups
             y_pos += 0.5
 
-        plot_data = pd.DataFrame(plot_rows)
+        plot_data = pd.DataFrame(plot_rows)  # noqa: F841 - Used in R script below
 
         # Create R script
-        r_script = f"""
+        r_script = """
         library(ggplot2)
         library(grid)
 
@@ -578,4 +567,5 @@ class VIPScorePlotRMixin:
 
         # Execute R script
         ro.r(r_script)
-        logger.info(f"Saved R-based peptide grouped VIP score plot to {self.output_dir / 'vip_score_peptide_grouped_r.png'}")
+        logger.info(
+            f"Saved R-based peptide grouped VIP score plot to {self.output_dir / 'vip_score_peptide_grouped_r.png'}")

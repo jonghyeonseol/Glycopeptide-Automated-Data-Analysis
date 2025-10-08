@@ -3,7 +3,7 @@ Configuration Schema
 Defines and validates configuration structure
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
