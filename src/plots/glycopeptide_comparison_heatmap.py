@@ -16,7 +16,7 @@ from ..data_preparation import (
     prepare_visualization_data,
     calculate_group_statistics_standardized
 )
-from .plot_config import GLYCAN_COLORS
+from .plot_config import GLYCAN_COLORS, save_publication_figure, DPI_COMPLEX
 
 logger = logging.getLogger(__name__)
 
@@ -364,8 +364,8 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # Save plot
         output_file = self.output_dir / 'glycopeptide_comparison_heatmap.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved glycopeptide comparison heatmap to {output_file}")
+        save_publication_figure(fig, output_file, dpi=DPI_COMPLEX)
+        logger.info(f"Saved glycopeptide comparison heatmap to {output_file} (optimized, {DPI_COMPLEX} DPI)")
 
         # === SAVE COMPREHENSIVE TRACE DATA ===
 

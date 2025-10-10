@@ -146,3 +146,11 @@ Results/Trace/*.csv
 *.tmp
 *.bak
 *.backup
+
+# Cleanup - Added 2025-10-08
+Logs/
+*.log
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store

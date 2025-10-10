@@ -13,6 +13,29 @@ from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
 )
+from .plot_config import (
+    VIP_DOT_SIZE,
+    VIP_DOT_COLOR,
+    VIP_DOT_ALPHA,
+    VIP_HEATMAP_LOW_COLOR,
+    VIP_HEATMAP_MID_COLOR,
+    VIP_HEATMAP_HIGH_COLOR,
+    VIP_HEATMAP_OFFSET,
+    VIP_HEATMAP_SPACING,
+    VIP_HEATMAP_SQUARE_SIZE,
+    VIP_HEATMAP_HEIGHT,
+    VIP_GROUP_LABEL_SIZE,
+    VIP_FEATURE_NAME_SIZE,
+    VIP_FIGURE_WIDTH,
+    VIP_FIGURE_HEIGHT,
+    VIP_SIGNIFICANCE_THRESHOLD,
+    VIP_SHOW_THRESHOLD_LINE,
+    VIP_THRESHOLD_LINE_COLOR,
+    VIP_THRESHOLD_LINE_TYPE,
+    VIP_THRESHOLD_LINE_WIDTH,
+    VIP_HEATMAP_SQUARE_SIZE_ENHANCED,
+    DPI_SUPPLEMENTARY
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +86,7 @@ class VIPScorePlotRMixin:
         plot_data['y_pos'] = [i * 0.5 for i in range(len(plot_data))]
 
         # Create R script for plotting - MetaboAnalyst style
-        r_script = """
+        r_script = f"""
         library(ggplot2)
         library(grid)
 
@@ -102,13 +125,13 @@ class VIPScorePlotRMixin:
                       size = {VIP_DOT_SIZE}, color = "{VIP_DOT_COLOR}",
                       alpha = {VIP_DOT_ALPHA}, shape = 16) +
 
-            # Cancer squares - COMPACT SIZE (Option B: smaller true squares)
+            # Cancer squares - ENHANCED SIZE (larger for better visibility)
             geom_point(data = df, aes(x = cancer_square_x, y = y_pos, fill = Cancer_Intensity),
-                      shape = 22, size = 6, stroke = 0.3, color = "white") +
+                      shape = 22, size = {VIP_HEATMAP_SQUARE_SIZE_ENHANCED}, stroke = 0.3, color = "white") +
 
-            # Normal squares - COMPACT SIZE (Option B: smaller true squares)
+            # Normal squares - ENHANCED SIZE (larger for better visibility)
             geom_point(data = df, aes(x = normal_square_x, y = y_pos, fill = Normal_Intensity),
-                      shape = 22, size = 6, stroke = 0.3, color = "white") +
+                      shape = 22, size = {VIP_HEATMAP_SQUARE_SIZE_ENHANCED}, stroke = 0.3, color = "white") +
 
             # RED-BLUE GRADIENT scale (MetaboAnalyst exact colors)
             # Phase 1.4: Clarified legend to show this represents relative intensity
@@ -144,21 +167,31 @@ class VIPScorePlotRMixin:
 
             # Vertical group labels above squares (compact, 90° rotated)
             annotate("text", x = cancer_square_x, y = max(df$y_pos) + 0.8,
-                    label = "Bottom", size = 3.0, angle = 90, hjust = 0, vjust = 0.5) +
+                    label = "Cancer", size = 3.2, angle = 90, hjust = 0, vjust = 0.5, fontface = "bold") +
             annotate("text", x = normal_square_x, y = max(df$y_pos) + 0.8,
-                    label = "Top", size = 3.0, angle = 90, hjust = 0, vjust = 0.5) +
+                    label = "Normal", size = 3.2, angle = 90, hjust = 0, vjust = 0.5, fontface = "bold") +
 
-            # Labels (Phase 1.4: Added subtitle for clarity)
-            labs(title = "Top {top_n} Features by VIP Score (PLS-DA)",
-                 subtitle = "Heatmap: Relative intensity per group (Bottom squares: Normal, Top squares: Cancer)",
+            # VIP significance threshold line (VIP > 1.0 is typically significant)
+            geom_vline(xintercept = {VIP_SIGNIFICANCE_THRESHOLD},
+                      linetype = "{VIP_THRESHOLD_LINE_TYPE}",
+                      color = "{VIP_THRESHOLD_LINE_COLOR}",
+                      linewidth = {VIP_THRESHOLD_LINE_WIDTH},
+                      alpha = 0.6) +
+            annotate("text", x = {VIP_SIGNIFICANCE_THRESHOLD}, y = -0.3,
+                    label = "VIP = 1.0", size = 2.8, hjust = -0.1, color = "{VIP_THRESHOLD_LINE_COLOR}") +
+
+            # Labels (Enhanced: clearer subtitle)
+            labs(title = "{title} (PLS-DA)",
+                 subtitle = "Heatmap shows relative intensity (Cancer: left squares, Normal: right squares)",
                  x = "VIP scores",
                  y = "") +
 
             # CLEAN THEME (MetaboAnalyst exact style)
             theme_minimal() +
             theme(
-                # Title
-                plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 10)),
+                # Title and Subtitle
+                plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 5)),
+                plot.subtitle = element_text(size = 11, hjust = 0.5, margin = margin(b = 10), color = "gray30"),
 
                 # Axes
                 axis.title.x = element_text(size = 14, margin = margin(t = 8)),
@@ -188,13 +221,13 @@ class VIPScorePlotRMixin:
                 plot.margin = margin(t = 25, r = 80, b = 15, l = 200)
             )
 
-        # Save plot
-        ggsave("{output_file}", plot = p, width = {VIP_FIGURE_WIDTH}, height = {VIP_FIGURE_HEIGHT}, dpi = 300, bg = "white")
+        # Save plot (optimized DPI)
+        ggsave("{output_file}", plot = p, width = {VIP_FIGURE_WIDTH}, height = {VIP_FIGURE_HEIGHT}, dpi = {DPI_SUPPLEMENTARY}, bg = "white")
         """
 
         # Execute R script
         ro.r(r_script)
-        logger.info(f"Saved R-based VIP score plot to {output_file}")
+        logger.info(f"Saved R-based VIP score plot to {output_file} (optimized, {DPI_SUPPLEMENTARY} DPI)")
 
     def plot_vip_scores_glycopeptide_r(self, df: pd.DataFrame, vip_df: pd.DataFrame, top_n: int = 10):
         """
@@ -220,7 +253,6 @@ class VIPScorePlotRMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -270,7 +302,6 @@ class VIPScorePlotRMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -323,7 +354,6 @@ class VIPScorePlotRMixin:
         # Get sample columns
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        cancer_samples + normal_samples
 
         # STANDARDIZED: Prepare heatmap data using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -431,7 +461,7 @@ class VIPScorePlotRMixin:
         plot_data = pd.DataFrame(plot_rows)  # noqa: F841 - Used in R script below
 
         # Create R script
-        r_script = """
+        r_script = f"""
         library(ggplot2)
         library(grid)
 
@@ -561,11 +591,11 @@ class VIPScorePlotRMixin:
                 plot.margin = margin(10, 15, 10, 10)
             )
 
-        # Save plot
-        ggsave("{self.output_dir / 'vip_score_peptide_grouped_r.png'}", plot = p, width = 12, height = 8, dpi = 300, bg = "white")
+        # Save plot (optimized DPI)
+        ggsave("{self.output_dir / 'vip_score_peptide_grouped_r.png'}", plot = p, width = 12, height = 8, dpi = {DPI_SUPPLEMENTARY}, bg = "white")
         """
 
         # Execute R script
         ro.r(r_script)
         logger.info(
-            f"Saved R-based peptide grouped VIP score plot to {self.output_dir / 'vip_score_peptide_grouped_r.png'}")
+            f"Saved R-based peptide grouped VIP score plot to {self.output_dir / 'vip_score_peptide_grouped_r.png'} (optimized, {DPI_SUPPLEMENTARY} DPI)")

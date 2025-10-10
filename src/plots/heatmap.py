@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
+from .plot_config import (
+    HEATMAP_DPI, HEATMAP_FIGSIZE, save_publication_figure,
+    HEATMAP_CMAP_INTENSITY, enhance_heatmap_colorbar, apply_publication_theme
+)
 
 logger = logging.getLogger(__name__)
 
@@ -78,10 +82,10 @@ class HeatmapMixin:
             else:
                 sample_colors.append('#3498DB')  # Normal - blue
 
-        # Create clustermap with hierarchical clustering on both axes
+        # ENHANCED: Create clustermap with publication-quality styling
         g = sns.clustermap(
             heatmap_data,
-            cmap='YlOrRd',
+            cmap=HEATMAP_CMAP_INTENSITY,  # ✨ Perceptually uniform viridis
             figsize=figsize,
             dendrogram_ratio=0.15,
             cbar_pos=(0.02, 0.83, 0.03, 0.15),
@@ -90,12 +94,18 @@ class HeatmapMixin:
             row_cluster=True,  # Cluster glycopeptides
             xticklabels=True,
             yticklabels=True,
-            linewidths=0.5,
-            linecolor='lightgray',
+            linewidths=0.3,  # ✨ Subtle cell borders
+            linecolor='white',  # ✨ White borders for cleaner look
             col_colors=sample_colors,
             method='average',  # Linkage method
             metric='euclidean'  # Distance metric
         )
+
+        # ✨ ENHANCED: Apply publication theme to entire figure
+        apply_publication_theme(g.fig)
+
+        # ✨ ENHANCED: Improve colorbar styling
+        enhance_heatmap_colorbar(g.cax, label='Log2(Intensity + 1)', fontsize=11)
 
         # Adjust labels (Phase 1.2: larger fonts for top 20)
         label_fontsize = 13 if top_n <= 20 else 12
@@ -135,8 +145,8 @@ class HeatmapMixin:
             output_file = self.output_dir / f'heatmap_top{top_n}_supplementary.png'
             trace_file = f'heatmap_top{top_n}_supplementary_data.csv'
 
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved clustered heatmap to {output_file}")
+        save_publication_figure(plt.gcf(), output_file, dpi=HEATMAP_DPI)
+        logger.info(f"Saved clustered heatmap to {output_file} (optimized, 150 DPI)")
 
         # Save trace data
         trace_data = heatmap_data.copy()
@@ -194,10 +204,10 @@ class HeatmapMixin:
             else:
                 sample_colors.append('#3498DB')  # Normal - blue
 
-        # Create clustermap with hierarchical clustering on both axes
+        # ENHANCED: Create clustermap with publication-quality styling
         g = sns.clustermap(
             heatmap_data,
-            cmap='YlOrRd',
+            cmap=HEATMAP_CMAP_INTENSITY,  # ✨ Perceptually uniform viridis
             figsize=figsize,
             dendrogram_ratio=0.1,
             cbar_pos=(0.02, 0.85, 0.03, 0.12),
@@ -206,11 +216,17 @@ class HeatmapMixin:
             row_cluster=True,  # Cluster glycopeptides
             xticklabels=True,
             yticklabels=False,  # Too many glycopeptides to show labels
-            linewidths=0,
+            linewidths=0,  # No borders for dense heatmap
             col_colors=sample_colors,
             method='average',  # Linkage method
             metric='euclidean'  # Distance metric
         )
+
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(g.fig)
+
+        # ✨ ENHANCED: Improve colorbar styling
+        enhance_heatmap_colorbar(g.cax, label='Log2(Intensity + 1)', fontsize=11)
 
         # Adjust labels
         g.ax_heatmap.set_xlabel('Sample', fontsize=12)
@@ -237,10 +253,10 @@ class HeatmapMixin:
             fontsize=10
         )
 
-        # Save plot
+        # Save plot with optimized settings (150 DPI for complex heatmap)
         output_file = self.output_dir / 'heatmap_full_glycan_profile.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved full glycan profile heatmap to {output_file}")
+        save_publication_figure(plt.gcf(), output_file, dpi=HEATMAP_DPI)
+        logger.info(f"Saved full glycan profile heatmap to {output_file} (optimized, 150 DPI)")
 
         # Save trace data
         trace_data = heatmap_data.copy()

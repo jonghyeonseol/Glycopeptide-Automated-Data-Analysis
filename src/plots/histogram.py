@@ -10,7 +10,8 @@ from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import (
     HISTOGRAM_X_ROTATION, HISTOGRAM_X_HA, EXTENDED_CATEGORY_COLORS,
     apply_standard_axis_style,
-    apply_standard_legend
+    apply_standard_legend,
+    save_publication_figure, HISTOGRAM_DPI
 )
 
 logger = logging.getLogger(__name__)
@@ -123,8 +124,8 @@ class HistogramMixin:
 
         # Save plot
         output_file = self.output_dir / 'histogram_glycan_types_by_sample_normalized.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved normalized histogram to {output_file}")
+        save_publication_figure(fig, output_file, dpi=HISTOGRAM_DPI)
+        logger.info(f"Saved normalized histogram to {output_file} (optimized, {HISTOGRAM_DPI} DPI)")
 
         # Save trace data
         save_trace_data(plot_df.reset_index(), self.output_dir, 'histogram_glycan_types_by_sample_normalized_data.csv')
@@ -233,8 +234,8 @@ class HistogramMixin:
 
         # Save plot
         output_file = self.output_dir / f'histogram_primary_{normalization}_normalized.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved primary classification histogram to {output_file}")
+        save_publication_figure(fig, output_file, dpi=HISTOGRAM_DPI)
+        logger.info(f"Saved primary classification histogram to {output_file} (optimized, {HISTOGRAM_DPI} DPI)")
 
         # Save trace data
         save_trace_data(plot_df.reset_index(), self.output_dir,
@@ -344,8 +345,8 @@ class HistogramMixin:
 
         # Save plot
         output_file = self.output_dir / f'histogram_secondary_{normalization}_normalized.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved secondary classification histogram to {output_file}")
+        save_publication_figure(fig, output_file, dpi=HISTOGRAM_DPI)
+        logger.info(f"Saved secondary classification histogram to {output_file} (optimized, {HISTOGRAM_DPI} DPI)")
 
         # Save trace data
         save_trace_data(plot_df.reset_index(), self.output_dir,
@@ -435,8 +436,8 @@ class HistogramMixin:
 
         # Save plot
         output_file = self.output_dir / 'histogram_primary_cancer_vs_normal.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved primary Cancer vs Normal histogram to {output_file}")
+        save_publication_figure(fig, output_file, dpi=HISTOGRAM_DPI)
+        logger.info(f"Saved primary Cancer vs Normal histogram to {output_file} (optimized, {HISTOGRAM_DPI} DPI)")
 
         # Save trace data
         save_trace_data(plot_df.reset_index(), self.output_dir, 'histogram_primary_cancer_vs_normal_data.csv')
@@ -525,8 +526,8 @@ class HistogramMixin:
 
         # Save plot
         output_file = self.output_dir / 'histogram_secondary_cancer_vs_normal.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved secondary Cancer vs Normal histogram to {output_file}")
+        save_publication_figure(fig, output_file, dpi=HISTOGRAM_DPI)
+        logger.info(f"Saved secondary Cancer vs Normal histogram to {output_file} (optimized, {HISTOGRAM_DPI} DPI)")
 
         # Save trace data
         save_trace_data(plot_df.reset_index(), self.output_dir, 'histogram_secondary_cancer_vs_normal_data.csv')

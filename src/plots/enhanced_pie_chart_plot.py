@@ -31,7 +31,8 @@ from .plot_config import (
     AXIS_LABEL_SIZE,
     TICK_LABEL_SIZE,
     LEGEND_SIZE,
-    ANNOTATION_SIZE
+    ANNOTATION_SIZE,
+    save_publication_figure, DPI_MAIN
 )
 
 logger = logging.getLogger(__name__)
@@ -225,8 +226,8 @@ class PieChartPlotMixin:
 
         # Save plot
         output_file = self.output_dir / 'pie_chart_glycan_types_enhanced.png'
-        plt.savefig(output_file, dpi=DPI, bbox_inches='tight')
-        logger.info(f"Saved enhanced glycan type pie charts to {output_file}")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved enhanced glycan type pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({
@@ -376,8 +377,8 @@ class PieChartPlotMixin:
 
         # Save plot
         output_file = self.output_dir / 'pie_chart_primary_classification_enhanced.png'
-        plt.savefig(output_file, dpi=DPI, bbox_inches='tight')
-        logger.info(f"Saved enhanced primary classification pie charts to {output_file}")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved enhanced primary classification pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({
@@ -520,8 +521,8 @@ class PieChartPlotMixin:
 
         # Save plot
         output_file = self.output_dir / 'pie_chart_secondary_classification_enhanced.png'
-        plt.savefig(output_file, dpi=DPI, bbox_inches='tight')
-        logger.info(f"Saved enhanced secondary classification pie charts to {output_file}")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved enhanced secondary classification pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({

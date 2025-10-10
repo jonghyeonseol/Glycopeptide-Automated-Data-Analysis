@@ -15,7 +15,10 @@ from .plot_config import (
     PCA_POINT_LINEWIDTH, PCA_POINT_ALPHA,
     apply_standard_axis_style, apply_standard_legend,
     add_sample_size_annotation,  # Phase 2.2 enhancement
-    get_group_style  # Phase 3 enhancement
+    get_group_style,  # Phase 3 enhancement
+    save_publication_figure, PCA_DPI,
+    create_fancy_bbox, apply_publication_theme,  # ✨ Enhanced styling
+    GRADIENT_ALPHA_START, GRADIENT_ALPHA_END  # ✨ Gradient fills
 )
 
 logger = logging.getLogger(__name__)
@@ -26,7 +29,7 @@ class PCAPlotMixin:
 
     def _draw_confidence_ellipse(self, ax, x, y, color, alpha=0.2, n_std=1.96):
         """
-        Draw 95% confidence ellipse for a group of points
+        Draw 95% confidence ellipse with ENHANCED gradient fill
 
         Args:
             ax: Matplotlib axis
@@ -54,19 +57,39 @@ class PCAPlotMixin:
         # Width and height are "full" widths, not radius
         width, height = 2 * n_std * np.sqrt(eigenvalues)
 
-        # Draw ellipse
-        ellipse = Ellipse(
+        # ✨ ENHANCED: Draw multiple ellipses with gradient alpha (center→edge fade)
+        n_gradient_levels = 5
+        alphas = np.linspace(GRADIENT_ALPHA_START * 0.4, GRADIENT_ALPHA_END * 0.3, n_gradient_levels)
+
+        for i, alpha_val in enumerate(alphas):
+            scale = 1.0 - (i * 0.15)  # Shrink towards center
+            ellipse = Ellipse(
+                xy=(np.mean(x), np.mean(y)),
+                width=width * scale,
+                height=height * scale,
+                angle=angle,
+                facecolor=color,
+                edgecolor='none',  # No edge for gradient layers
+                alpha=alpha_val,
+                linewidth=0,
+                zorder=1
+            )
+            ax.add_patch(ellipse)
+
+        # ✨ Draw outer boundary with dashed line
+        ellipse_boundary = Ellipse(
             xy=(np.mean(x), np.mean(y)),
             width=width,
             height=height,
             angle=angle,
-            facecolor=color,
+            facecolor='none',
             edgecolor=color,
-            alpha=alpha,
+            alpha=0.6,
             linewidth=2,
-            linestyle='--'
+            linestyle='--',
+            zorder=2
         )
-        ax.add_patch(ellipse)
+        ax.add_patch(ellipse_boundary)
 
     def plot_pca(self, pca_results: dict, figsize: tuple = (10, 8)):
         """
@@ -106,7 +129,7 @@ class PCAPlotMixin:
                    marker=normal_marker,  # Phase 3: Square for Normal
                    label='Normal (□)', zorder=3)
 
-        # Draw 95% confidence ellipses
+        # ✨ Draw ENHANCED 95% confidence ellipses with gradient fill
         self._draw_confidence_ellipse(ax, cancer_scores['PC1'].values, cancer_scores['PC2'].values,
                                       color=cancer_color, alpha=0.15)
         self._draw_confidence_ellipse(ax, normal_scores['PC1'].values, normal_scores['PC2'].values,
@@ -118,12 +141,13 @@ class PCAPlotMixin:
             # Color label by group
             label_color = cancer_color if row['Group'] == 'Cancer' else normal_color
 
-            # Add text annotation using standardized font size
+            # ✨ ENHANCED: Add text annotation with fancy bbox
+            bbox_props = create_fancy_bbox(facecolor='white', edgecolor=label_color,
+                                           alpha=0.85, linewidth=1.2)
             texts.append(ax.text(row['PC1'], row['PC2'], idx,
                                  fontsize=PCA_LABEL_FONTSIZE, ha='center', va='center',
                                  color=label_color, fontweight='bold',
-                                 bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
-                                           edgecolor=label_color, alpha=0.7, linewidth=1),
+                                 bbox=bbox_props,
                                  zorder=5))
 
         # Adjust text to avoid overlap
@@ -155,10 +179,13 @@ class PCAPlotMixin:
 
         plt.tight_layout()
 
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
         # Save plot
         output_file = self.output_dir / 'pca_plot.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved PCA plot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=PCA_DPI)
+        logger.info(f"✨ Saved ENHANCED PCA plot to {output_file} ({PCA_DPI} DPI)")
 
         # Save trace data
         trace_data = pca_df.copy()
@@ -224,10 +251,13 @@ class PCAPlotMixin:
         ax.grid(True, alpha=0.3)
         plt.tight_layout()
 
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
         # Save plot
         output_file = self.output_dir / 'pca_samples.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved PCA plot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=PCA_DPI)
+        logger.info(f"✨ Saved ENHANCED PCA plot to {output_file} ({PCA_DPI} DPI)")
 
         # Save trace data
         trace_data = pca_df.copy()

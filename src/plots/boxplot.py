@@ -17,12 +17,14 @@ from ..data_preparation import (
 )
 from .plot_config import (
     BOXPLOT_FIGSIZE, BOXPLOT_EXTENDED_FIGSIZE, BOXPLOT_WIDTH,
-    BOXPLOT_LINEWIDTH, BOXPLOT_FLIERSIZE,
+    BOXPLOT_LINEWIDTH, BOXPLOT_FLIERSIZE, BOXPLOT_DPI,
     LEGACY_GLYCAN_COLORS, EXTENDED_CATEGORY_COLORS,
     apply_standard_axis_style, apply_standard_legend,
     AXIS_LABEL_SIZE, AXIS_LABEL_WEIGHT,
     TITLE_SIZE, TITLE_WEIGHT,
-    add_sample_size_annotation  # Phase 2.2 enhancement
+    add_sample_size_annotation,  # Phase 2.2 enhancement
+    save_publication_figure,  # Phase 2.3: Optimized saving
+    enhance_statistical_bracket, apply_publication_theme  # ✨ Enhanced styling
 )
 
 logger = logging.getLogger(__name__)
@@ -147,11 +149,9 @@ class BoxplotMixin:
                 else:
                     sig_marker = 'ns'
 
-                # Add significance marker if significant (connecting Cancer and Normal groups)
+                # ✨ ENHANCED: Add significance bracket if significant
                 if sig_marker != 'ns':
                     # Calculate x positions for the connecting line
-                    # Cancer is at x=0, Normal is at x=1
-                    # Each glycan type is offset within each group
                     n_types = len(existing_types)
                     x_offset = (i - (n_types - 1) / 2) * (BOXPLOT_WIDTH / n_types)
 
@@ -160,27 +160,18 @@ class BoxplotMixin:
 
                     y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
 
-                    # Draw line connecting the two groups
-                    ax.plot([x1, x2], [y_position, y_position],
-                            color='black', linewidth=1.5, zorder=10)
-
-                    # Add significance marker WITH effect size (Phase 1.1)
-                    # Format: *** (d=2.3) - shows both p-value significance and magnitude
+                    # Format annotation text with effect size
                     if not np.isnan(cohens_d):
                         annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
                     else:
                         annotation_text = sig_marker
 
-                    ax.text(
-                        (x1 + x2) / 2,
-                        y_position,
-                        annotation_text,
-                        ha='center',
-                        va='bottom',
-                        fontsize=11,  # Slightly smaller for two-line text
-                        fontweight='bold',
+                    # ✨ Use enhanced statistical bracket (rounded ends, fancy box)
+                    enhance_statistical_bracket(
+                        ax, x1, x2, y_position,
+                        text=annotation_text,
                         color='black',
-                        zorder=11
+                        fontsize=11
                     )
 
                     logger.info(
@@ -210,12 +201,15 @@ class BoxplotMixin:
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                    location='upper left', fontsize=10)
 
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
         plt.tight_layout()
 
-        # Save plot
+        # Save plot with optimized settings
         output_file = self.output_dir / 'boxplot_glycan_types.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved boxplot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+        logger.info(f"✨ Saved ENHANCED boxplot to {output_file}")
 
         # Save trace data
         save_trace_data(boxplot_data, self.output_dir, 'boxplot_glycan_types_data.csv')
@@ -356,12 +350,15 @@ class BoxplotMixin:
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                    location='upper left', fontsize=10)
 
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
         plt.tight_layout()
 
-        # Save plot
+        # Save plot with optimized settings
         output_file = self.output_dir / 'boxplot_extended_categories.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved extended boxplot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+        logger.info(f"✨ Saved ENHANCED extended boxplot to {output_file}")
 
         # Save trace data
         save_trace_data(boxplot_data, self.output_dir, 'boxplot_extended_categories_data.csv')
@@ -463,11 +460,14 @@ class BoxplotMixin:
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                    location='upper left', fontsize=10)
 
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
         plt.tight_layout()
 
         output_file = self.output_dir / f'boxplot_primary_{normalization}_normalized.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved primary boxplot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+        logger.info(f"✨ Saved ENHANCED primary boxplot to {output_file}")
 
         plt.close()
 
@@ -566,11 +566,14 @@ class BoxplotMixin:
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                    location='upper left', fontsize=10)
 
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
         plt.tight_layout()
 
         output_file = self.output_dir / f'boxplot_secondary_{normalization}_normalized.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved secondary boxplot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+        logger.info(f"✨ Saved ENHANCED secondary boxplot to {output_file}")
 
         plt.close()
 
@@ -689,12 +692,15 @@ class BoxplotMixin:
             add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                        location='upper left', fontsize=10)
 
+            # ✨ ENHANCED: Apply publication theme
+            apply_publication_theme(fig)
+
             plt.tight_layout()
 
             suffix = '_qc' if apply_qc else ''
             output_file = self.output_dir / f'boxplot_primary_cancer_vs_normal{suffix}.png'
-            plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-            logger.info(f"Saved primary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
+            save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+            logger.info(f"✨ Saved ENHANCED primary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
 
             # Save trace data
             save_trace_data(plot_df, self.output_dir, f'boxplot_primary_cancer_vs_normal{suffix}_data.csv')
@@ -827,12 +833,15 @@ class BoxplotMixin:
             add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                        location='upper left', fontsize=10)
 
+            # ✨ ENHANCED: Apply publication theme
+            apply_publication_theme(fig)
+
             plt.tight_layout()
 
             suffix = '_qc' if apply_qc else ''
             output_file = self.output_dir / f'boxplot_secondary_cancer_vs_normal{suffix}.png'
-            plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-            logger.info(f"Saved secondary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
+            save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+            logger.info(f"✨ Saved ENHANCED secondary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
 
             # Save trace data
             save_trace_data(plot_df, self.output_dir, f'boxplot_secondary_cancer_vs_normal{suffix}_data.csv')

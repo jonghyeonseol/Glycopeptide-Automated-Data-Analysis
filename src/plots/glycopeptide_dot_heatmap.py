@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data
-from .plot_config import GLYCAN_COLORS
+from .plot_config import GLYCAN_COLORS, save_publication_figure, DPI_COMPLEX
 
 logger = logging.getLogger(__name__)
 
@@ -217,8 +217,8 @@ class GlycopeptideDotHeatmapMixin:
 
         # Save plot
         output_file = self.output_dir / f'glycopeptide_dot_heatmap_{sample_name}.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved glycopeptide dot heatmap to {output_file}")
+        save_publication_figure(fig, output_file, dpi=DPI_COMPLEX)
+        logger.info(f"Saved glycopeptide dot heatmap to {output_file} (optimized, {DPI_COMPLEX} DPI)")
 
         # Save trace data
         trace_data = df_plot[['Peptide', 'GlycanComposition', 'GlycanTypeCategory',

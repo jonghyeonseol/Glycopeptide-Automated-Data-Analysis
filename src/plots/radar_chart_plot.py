@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data
+from .plot_config import save_publication_figure, DPI_MAIN
 
 logger = logging.getLogger(__name__)
 
@@ -19,88 +20,57 @@ class RadarChartPlotMixin:
         """
         Create radar chart comparing glycan profiles between Cancer and Normal
 
+        Uses mutually exclusive GlycanTypeCategory for accurate percentage distribution.
+
         Args:
-            df: Annotated DataFrame with intensity data
+            df: Annotated DataFrame with intensity data and GlycanTypeCategory
             figsize: Figure size (width, height)
         """
         # Get sample columns
         cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
         normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
 
-        # Calculate percentages for each category
+        # Check if GlycanTypeCategory exists
+        if 'GlycanTypeCategory' not in df.columns:
+            logger.error("GlycanTypeCategory column not found in DataFrame")
+            return None
+
+        # Define mutually exclusive categories (5-category system)
+        category_order = ['S', 'SF', 'F', 'HM', 'C/H']
+        category_labels = {
+            'S': 'Sialylated\n(only)',
+            'SF': 'Sialofucosylated\n(both)',
+            'F': 'Fucosylated\n(only)',
+            'HM': 'High Mannose',
+            'C/H': 'Complex/Hybrid\n(no modifications)'
+        }
+
+        # Calculate total intensities per category
         categories = []
         cancer_values = []
         normal_values = []
 
-        # 1. Sialylation percentage (based on intensity)
-        if 'IsSialylated' in df.columns:
-            sial_mask = df['IsSialylated']
-        else:
-            sial_mask = df['Sialylation'] == 'Sialylated'
-
-        cancer_sial_total = replace_empty_with_zero(df[sial_mask][cancer_samples]).sum().sum()
+        # Calculate total intensity for each group
         cancer_total = replace_empty_with_zero(df[cancer_samples]).sum().sum()
-        cancer_sial_pct = (cancer_sial_total / cancer_total * 100) if cancer_total > 0 else 0
-
-        normal_sial_total = replace_empty_with_zero(df[sial_mask][normal_samples]).sum().sum()
         normal_total = replace_empty_with_zero(df[normal_samples]).sum().sum()
-        normal_sial_pct = (normal_sial_total / normal_total * 100) if normal_total > 0 else 0
 
-        categories.append('Sialylated\n(%)')
-        cancer_values.append(cancer_sial_pct)
-        normal_values.append(normal_sial_pct)
+        # Calculate percentage for each mutually exclusive category
+        for cat_code in category_order:
+            cat_mask = df['GlycanTypeCategory'] == cat_code
 
-        # 2. Fucosylation percentage
-        if 'IsFucosylated' in df.columns:
-            fuc_mask = df['IsFucosylated']
-        else:
-            fuc_mask = df['Fucosylation'] == 'Fucosylated'
+            # Cancer group
+            cancer_cat_total = replace_empty_with_zero(df[cat_mask][cancer_samples]).sum().sum()
+            cancer_cat_pct = (cancer_cat_total / cancer_total * 100) if cancer_total > 0 else 0
 
-        cancer_fuc_total = replace_empty_with_zero(df[fuc_mask][cancer_samples]).sum().sum()
-        cancer_fuc_pct = (cancer_fuc_total / cancer_total * 100) if cancer_total > 0 else 0
+            # Normal group
+            normal_cat_total = replace_empty_with_zero(df[cat_mask][normal_samples]).sum().sum()
+            normal_cat_pct = (normal_cat_total / normal_total * 100) if normal_total > 0 else 0
 
-        normal_fuc_total = replace_empty_with_zero(df[fuc_mask][normal_samples]).sum().sum()
-        normal_fuc_pct = (normal_fuc_total / normal_total * 100) if normal_total > 0 else 0
+            categories.append(category_labels[cat_code])
+            cancer_values.append(cancer_cat_pct)
+            normal_values.append(normal_cat_pct)
 
-        categories.append('Fucosylated\n(%)')
-        cancer_values.append(cancer_fuc_pct)
-        normal_values.append(normal_fuc_pct)
-
-        # 3. High Mannose percentage
-        hm_mask = df['PrimaryClassification'] == 'High Mannose'
-        cancer_hm_total = replace_empty_with_zero(df[hm_mask][cancer_samples]).sum().sum()
-        cancer_hm_pct = (cancer_hm_total / cancer_total * 100) if cancer_total > 0 else 0
-
-        normal_hm_total = replace_empty_with_zero(df[hm_mask][normal_samples]).sum().sum()
-        normal_hm_pct = (normal_hm_total / normal_total * 100) if normal_total > 0 else 0
-
-        categories.append('High Mannose\n(%)')
-        cancer_values.append(cancer_hm_pct)
-        normal_values.append(normal_hm_pct)
-
-        # 4. Complex/Hybrid percentage
-        ch_mask = df['PrimaryClassification'] == 'ComplexHybrid'
-        cancer_ch_total = replace_empty_with_zero(df[ch_mask][cancer_samples]).sum().sum()
-        cancer_ch_pct = (cancer_ch_total / cancer_total * 100) if cancer_total > 0 else 0
-
-        normal_ch_total = replace_empty_with_zero(df[ch_mask][normal_samples]).sum().sum()
-        normal_ch_pct = (normal_ch_total / normal_total * 100) if normal_total > 0 else 0
-
-        categories.append('Complex/Hybrid\n(%)')
-        cancer_values.append(cancer_ch_pct)
-        normal_values.append(normal_ch_pct)
-
-        # 5. Sialofucosylated percentage (both modifications)
-        sialofuc_mask = df['SecondaryClassification'] == 'Sialofucosylated'
-        cancer_sf_total = replace_empty_with_zero(df[sialofuc_mask][cancer_samples]).sum().sum()
-        cancer_sf_pct = (cancer_sf_total / cancer_total * 100) if cancer_total > 0 else 0
-
-        normal_sf_total = replace_empty_with_zero(df[sialofuc_mask][normal_samples]).sum().sum()
-        normal_sf_pct = (normal_sf_total / normal_total * 100) if normal_total > 0 else 0
-
-        categories.append('Sialofucosylated\n(%)')
-        cancer_values.append(cancer_sf_pct)
-        normal_values.append(normal_sf_pct)
+            logger.info(f"{cat_code}: Cancer={cancer_cat_pct:.2f}%, Normal={normal_cat_pct:.2f}%")
 
         # Number of variables
         num_vars = len(categories)
@@ -143,15 +113,20 @@ class RadarChartPlotMixin:
         ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=12)
 
         # Title
-        plt.title('Glycan Profile Comparison: Cancer vs Normal\n(Radar Chart)',
+        plt.title('Glycan Type Distribution: Cancer vs Normal\n(Mutually Exclusive Categories)',
                   fontsize=14, fontweight='bold', pad=20)
+
+        # Log totals for validation
+        cancer_sum = sum(cancer_values[:-1])  # Exclude duplicated first element
+        normal_sum = sum(normal_values[:-1])
+        logger.info(f"Radar chart percentage totals - Cancer: {cancer_sum:.2f}%, Normal: {normal_sum:.2f}%")
 
         plt.tight_layout()
 
         # Save plot
         output_file = self.output_dir / 'radar_chart_glycan_profile.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved radar chart to {output_file}")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved radar chart to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Prepare trace data (before completing the circle)
         radar_data = pd.DataFrame({

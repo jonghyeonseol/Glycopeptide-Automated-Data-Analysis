@@ -17,14 +17,18 @@ from ..data_preparation import (
     calculate_statistical_significance
 )
 from .plot_config import (
-    VOLCANO_POINT_SIZE, VOLCANO_POINT_ALPHA,
+    VOLCANO_POINT_SIZE, VOLCANO_POINT_ALPHA, VOLCANO_DPI, VOLCANO_FIGSIZE,
     VOLCANO_THRESHOLD_LINEWIDTH, VOLCANO_THRESHOLD_ALPHA,
     VOLCANO_POINT_EDGEWIDTH, VOLCANO_LABEL_FONTSIZE,
     VOLCANO_LABEL_WEIGHT, VOLCANO_LABEL_PADDING, VOLCANO_LABEL_LINEWIDTH,
     GLYCAN_COLORS,
+    GROUP_PALETTE,
     apply_standard_axis_style, apply_standard_legend,
     add_sample_size_annotation,  # Phase 2.2 enhancement
-    get_regulation_style  # Phase 3 enhancement
+    get_regulation_style,  # Phase 3 enhancement
+    save_publication_figure,  # Phase 2.3: Optimized saving
+    create_fancy_bbox, apply_publication_theme,  # ✨ Enhanced styling
+    GRADIENT_ALPHA_START, GRADIENT_ALPHA_END  # ✨ Gradient effects
 )
 
 logger = logging.getLogger(__name__)
@@ -86,7 +90,7 @@ class VolcanoPlotMixin:
     def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,
                      config: DataPreparationConfig = None,
                      fdr_threshold: float = 0.05, fc_threshold: float = 1.5,
-                     figsize: tuple = (12, 10)):
+                     figsize: tuple = None):
         """
         Create volcano plot showing log2(fold change) vs -log10(FDR)
 
@@ -153,9 +157,20 @@ class VolcanoPlotMixin:
         if len(top_significant) > 0:
             ci_results = []
             for idx in top_significant.index:
+                # Get Peptide and GlycanComposition for this row
+                peptide = top_significant.loc[idx, 'Peptide']
+                glycan = top_significant.loc[idx, 'GlycanComposition']
+
+                # Find matching row in original df using Peptide+GlycanComposition
+                mask = (df['Peptide'] == peptide) & (df['GlycanComposition'] == glycan)
+                if mask.sum() == 0:
+                    continue  # Skip if not found
+
+                df_row = df[mask].iloc[0]
+
                 # Get raw intensities for this glycopeptide
-                cancer_vals = df.loc[idx, cancer_samples].replace('', 0).astype(float).values
-                normal_vals = df.loc[idx, normal_samples].replace('', 0).astype(float).values
+                cancer_vals = df_row[cancer_samples].replace('', 0).astype(float).values
+                normal_vals = df_row[normal_samples].replace('', 0).astype(float).values
 
                 # Filter non-zero values for CI calculation
                 cancer_vals = cancer_vals[cancer_vals > 0]
@@ -194,7 +209,9 @@ class VolcanoPlotMixin:
         down_mask = (volcano_df['Log2FC'] < -np.log2(fc_threshold)) & (volcano_df['FDR'] < fdr_threshold)
         volcano_df.loc[down_mask, 'Regulation'] = 'Down in Cancer'
 
-        # Create plot
+        # Create plot with optimized figure size
+        if figsize is None:
+            figsize = VOLCANO_FIGSIZE
         fig, ax = plt.subplots(figsize=figsize)
 
         # Phase 3: Use color + shape encoding for colorblind accessibility
@@ -390,12 +407,15 @@ class VolcanoPlotMixin:
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                    location='lower right', fontsize=10)
 
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
         plt.tight_layout()
 
-        # Save plot
+        # Save plot with optimized settings (150 DPI for complex plot)
         output_file = self.output_dir / 'volcano_plot.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved volcano plot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=VOLCANO_DPI)
+        logger.info(f"✨ Saved ENHANCED volcano plot to {output_file} (150 DPI, gradient glow effects)")
 
         # Save trace data
         save_trace_data(volcano_df, self.output_dir, 'volcano_plot_data.csv')
