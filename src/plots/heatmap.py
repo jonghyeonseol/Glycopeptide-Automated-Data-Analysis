@@ -11,8 +11,14 @@ import logging
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import (
     HEATMAP_DPI, HEATMAP_FIGSIZE, save_publication_figure,
-    HEATMAP_CMAP_INTENSITY, enhance_heatmap_colorbar, apply_publication_theme
+    HEATMAP_CMAP_INTENSITY, enhance_heatmap_colorbar, apply_publication_theme,
+    COLOR_CANCER, COLOR_NORMAL,  # Premium colors
+    DESIGN_SYSTEM_AVAILABLE
 )
+
+# Import premium design system if available
+if DESIGN_SYSTEM_AVAILABLE:
+    from .design_system import ColorSystem
 
 logger = logging.getLogger(__name__)
 
@@ -74,13 +80,13 @@ class HeatmapMixin:
 
         heatmap_data.index = row_labels
 
-        # Create color annotation for sample groups
+        # ✨ PREMIUM: Create color annotation with enhanced colors
         sample_colors = []
         for col in heatmap_data.columns:
             if col.startswith('C'):
-                sample_colors.append('#E74C3C')  # Cancer - red
+                sample_colors.append(COLOR_CANCER)  # Cancer - premium red
             else:
-                sample_colors.append('#3498DB')  # Normal - blue
+                sample_colors.append(COLOR_NORMAL)  # Normal - premium blue
 
         # ENHANCED: Create clustermap with publication-quality styling
         g = sns.clustermap(
@@ -123,11 +129,11 @@ class HeatmapMixin:
         plt.setp(g.ax_heatmap.xaxis.get_majorticklabels(), rotation=90, fontsize=tick_fontsize)
         plt.setp(g.ax_heatmap.yaxis.get_majorticklabels(), rotation=0, fontsize=tick_fontsize)
 
-        # Add legend for sample colors - position to avoid clustering line
+        # ✨ PREMIUM: Enhanced legend with premium colors
         from matplotlib.patches import Patch
         legend_elements = [
-            Patch(facecolor='#E74C3C', label='Cancer'),
-            Patch(facecolor='#3498DB', label='Normal')
+            Patch(facecolor=COLOR_CANCER, label='Cancer', edgecolor='black', linewidth=0.5),
+            Patch(facecolor=COLOR_NORMAL, label='Normal', edgecolor='black', linewidth=0.5)
         ]
         g.ax_heatmap.legend(
             handles=legend_elements,
@@ -196,13 +202,13 @@ class HeatmapMixin:
 
         heatmap_data.index = row_labels
 
-        # Create color annotation for sample groups
+        # ✨ PREMIUM: Create color annotation with enhanced colors
         sample_colors = []
         for col in heatmap_data.columns:
             if col.startswith('C'):
-                sample_colors.append('#E74C3C')  # Cancer - red
+                sample_colors.append(COLOR_CANCER)  # Cancer - premium red
             else:
-                sample_colors.append('#3498DB')  # Normal - blue
+                sample_colors.append(COLOR_NORMAL)  # Normal - premium blue
 
         # ENHANCED: Create clustermap with publication-quality styling
         g = sns.clustermap(
@@ -239,11 +245,11 @@ class HeatmapMixin:
         # Rotate sample labels
         plt.setp(g.ax_heatmap.xaxis.get_majorticklabels(), rotation=90)
 
-        # Add legend for sample colors - position to avoid clustering line
+        # ✨ PREMIUM: Enhanced legend with premium colors
         from matplotlib.patches import Patch
         legend_elements = [
-            Patch(facecolor='#E74C3C', label='Cancer'),
-            Patch(facecolor='#3498DB', label='Normal')
+            Patch(facecolor=COLOR_CANCER, label='Cancer', edgecolor='black', linewidth=0.5),
+            Patch(facecolor=COLOR_NORMAL, label='Normal', edgecolor='black', linewidth=0.5)
         ]
         g.ax_heatmap.legend(
             handles=legend_elements,

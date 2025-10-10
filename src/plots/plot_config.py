@@ -39,21 +39,39 @@ DESIGN PRINCIPLES FOR SCIENTIFIC VISUALIZATION:
 """
 
 # ==============================================================================
-# Font Sizes - PUBLICATION QUALITY
-# Designed for 300 DPI output, readable in printed journals
+# PREMIUM DESIGN SYSTEM INTEGRATION
+# ==============================================================================
+try:
+    from .design_system import (
+        TypographySystem, ColorSystem, VisualEffects,
+        LayoutSystem, SmartAnnotation, PanelSystem
+    )
+    DESIGN_SYSTEM_AVAILABLE = True
+except ImportError:
+    DESIGN_SYSTEM_AVAILABLE = False
+
+# ==============================================================================
+# Font Sizes - ENHANCED TYPOGRAPHY (Publication Quality)
+# Now with premium font stack and enhanced hierarchy
 # ==============================================================================
 
-TITLE_SIZE = 16  # Increased for better visibility
-AXIS_LABEL_SIZE = 14  # Increased - must be clearly readable
-TICK_LABEL_SIZE = 12  # Increased - critical for data interpretation
-LEGEND_SIZE = 12  # Increased for accessibility
+# Enhanced font sizes using typography system
+TITLE_SIZE = 18  # Enhanced from 16 (bolder presence)
+AXIS_LABEL_SIZE = 15  # Enhanced from 14 (improved readability)
+TICK_LABEL_SIZE = 13  # Enhanced from 12 (clearer at print resolution)
+LEGEND_SIZE = 12  # Maintained for balance
 LEGEND_TITLE_SIZE = 13
-ANNOTATION_SIZE = 11  # Increased - annotations must be readable
+ANNOTATION_SIZE = 11  # Maintained
 
-# Font Weights (Prism uses regular weight more often for cleaner look)
+# Font Weights (stronger hierarchy)
 TITLE_WEIGHT = 'bold'
-AXIS_LABEL_WEIGHT = 'normal'  # Changed from bold - cleaner
+AXIS_LABEL_WEIGHT = 'medium'  # Enhanced from 'normal' (better presence)
 LEGEND_TITLE_WEIGHT = 'bold'
+
+# Premium font preferences (fallback chain)
+FONT_FAMILY_DISPLAY = 'Inter'  # Titles
+FONT_FAMILY_TEXT = 'Roboto'    # Body text
+FONT_FAMILY_MONO = 'Fira Mono' # Data/code
 
 # ==============================================================================
 # Colors - Group Comparison (Cancer vs Normal)
@@ -61,13 +79,29 @@ LEGEND_TITLE_WEIGHT = 'bold'
 # Based on ColorBrewer "Set1" - Verified accessible
 # ==============================================================================
 
-# Group colors - Cancer vs Normal (colorblind-safe)
-COLOR_CANCER = '#E41A1C'  # Red - colorblind-safe, verified
-COLOR_NORMAL = '#377EB8'  # Blue - colorblind-safe, verified
+# Group colors - PREMIUM ENHANCED (Cancer vs Normal)
+# Warmer, bolder colors with better emotional resonance
+COLOR_CANCER = '#E63946'  # Cinnabar Red - Enhanced (warmer, bolder than #E41A1C)
+COLOR_CANCER_LIGHT = '#FF758F'  # Light variant for gradients
+COLOR_CANCER_DARK = '#B8283A'   # Dark variant for emphasis
+
+COLOR_NORMAL = '#457B9D'  # Sapphire Blue - Enhanced (cooler, more stable than #377EB8)
+COLOR_NORMAL_LIGHT = '#7DA3C6'  # Light variant for gradients
+COLOR_NORMAL_DARK = '#2D5670'   # Dark variant for emphasis
 
 GROUP_PALETTE = {
     'Cancer': COLOR_CANCER,
     'Normal': COLOR_NORMAL
+}
+
+# Extended palette with gradients
+GROUP_PALETTE_PREMIUM = {
+    'Cancer': COLOR_CANCER,
+    'Cancer_Light': COLOR_CANCER_LIGHT,
+    'Cancer_Dark': COLOR_CANCER_DARK,
+    'Normal': COLOR_NORMAL,
+    'Normal_Light': COLOR_NORMAL_LIGHT,
+    'Normal_Dark': COLOR_NORMAL_DARK
 }
 
 # NOTE: Group colors are colorblind-safe:
@@ -88,11 +122,20 @@ GROUP_PALETTE = {
 # - Red: Fucosylated (core modifications)
 
 GLYCAN_COLORS = {
-    'HM': '#27AE60',    # Emerald Green - High Mannose (simple, early-stage)
-    'F': '#E74C3C',     # Alizarin Red - Fucosylated (core fucose)
-    'S': '#E91E63',     # Material Pink - Sialylated (charged, terminal)
-    'SF': '#E67E22',    # Carrot Orange - Sialofucosylated (dual modifications)
-    'C/H': '#3498DB'    # Peter River Blue - Complex/Hybrid (mature structures)
+    'HM': '#10B981',    # Emerald (Material 3.0) - Enhanced green, more vibrant
+    'F': '#F59E0B',     # Amber (Material 3.0) - Warm energy color
+    'S': '#8B5CF6',     # Violet (Material 3.0) - Transformation/charge
+    'SF': '#EC4899',    # Pink (Material 3.0) - Complexity indicator
+    'C/H': '#3B82F6'    # Blue (Material 3.0) - Stability/maturity
+}
+
+# PREMIUM: Material Design 3.0 palette (better color harmony + accessibility)
+GLYCAN_COLORS_PREMIUM = {
+    'HM': '#10B981',    # Emerald - High Mannose (growth, foundation)
+    'F': '#F59E0B',     # Amber - Fucosylated (energy, core modification)
+    'S': '#8B5CF6',     # Violet - Sialylated (transformation, charged)
+    'SF': '#EC4899',    # Pink - Sialofucosylated (complexity, dual)
+    'C/H': '#3B82F6'    # Blue - Complex/Hybrid (stability, mature)
 }
 
 # Color meaning rationale:

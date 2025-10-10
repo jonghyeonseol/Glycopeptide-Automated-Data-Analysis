@@ -18,8 +18,15 @@ from .plot_config import (
     get_group_style,  # Phase 3 enhancement
     save_publication_figure, PCA_DPI,
     create_fancy_bbox, apply_publication_theme,  # ✨ Enhanced styling
-    GRADIENT_ALPHA_START, GRADIENT_ALPHA_END  # ✨ Gradient fills
+    GRADIENT_ALPHA_START, GRADIENT_ALPHA_END,  # ✨ Gradient fills
+    TITLE_SIZE, AXIS_LABEL_SIZE,  # Enhanced typography
+    COLOR_CANCER, COLOR_NORMAL, COLOR_CANCER_LIGHT, COLOR_NORMAL_LIGHT,  # Premium colors
+    DESIGN_SYSTEM_AVAILABLE
 )
+
+# Import premium design system if available
+if DESIGN_SYSTEM_AVAILABLE:
+    from .design_system import VisualEffects, LayoutSystem, SmartAnnotation
 
 logger = logging.getLogger(__name__)
 
@@ -129,11 +136,16 @@ class PCAPlotMixin:
                    marker=normal_marker,  # Phase 3: Square for Normal
                    label='Normal (□)', zorder=3)
 
-        # ✨ Draw ENHANCED 95% confidence ellipses with gradient fill
+        # ✨ PREMIUM: Draw enhanced confidence ellipses with multi-layer gradient
         self._draw_confidence_ellipse(ax, cancer_scores['PC1'].values, cancer_scores['PC2'].values,
-                                      color=cancer_color, alpha=0.15)
+                                      color=COLOR_CANCER, alpha=0.2)
         self._draw_confidence_ellipse(ax, normal_scores['PC1'].values, normal_scores['PC2'].values,
-                                      color=normal_color, alpha=0.15)
+                                      color=COLOR_NORMAL, alpha=0.2)
+
+        # ✨ PREMIUM: Add subtle glow to ellipse borders for depth
+        if DESIGN_SYSTEM_AVAILABLE:
+            # Add background gradient for depth
+            VisualEffects.add_gradient_background(ax, '#FFFFFF', '#F8F9FA', direction='vertical')
 
         # Add sample labels (for all points)
         texts = []
@@ -159,14 +171,19 @@ class PCAPlotMixin:
         except Exception:
             logger.warning("adjustText optimization failed, showing overlapping labels")
 
-        # Apply standardized styling
+        # ✨ PREMIUM: Apply enhanced styling with better typography
         apply_standard_axis_style(
             ax,
-            xlabel =f'PC1 ({explained_var[0] * 100:.2f}%)',
-            ylabel =f'PC2 ({explained_var[1] * 100:.2f}%)',
-            title='PCA: Cancer vs Normal Samples (with Sample Labels)',
+            xlabel=f'PC1 ({explained_var[0] * 100:.2f}% variance explained)',
+            ylabel=f'PC2 ({explained_var[1] * 100:.2f}% variance explained)',
+            title='Principal Component Analysis\nCancer vs Normal Sample Separation',
             grid=True
         )
+
+        # ✨ PREMIUM: Enhance title with better formatting
+        title = ax.get_title()
+        ax.set_title(title, fontsize=TITLE_SIZE, fontweight='bold',
+                    family='Inter', pad=20)
 
         # Apply standardized legend (positioned outside plot area)
         apply_standard_legend(ax)
