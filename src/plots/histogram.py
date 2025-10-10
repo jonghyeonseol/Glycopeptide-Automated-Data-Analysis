@@ -11,8 +11,14 @@ from .plot_config import (
     HISTOGRAM_X_ROTATION, HISTOGRAM_X_HA, EXTENDED_CATEGORY_COLORS,
     apply_standard_axis_style,
     apply_standard_legend,
-    save_publication_figure, HISTOGRAM_DPI
+    save_publication_figure, HISTOGRAM_DPI,
+    apply_publication_theme,  # ✨ Enhanced styling
+    DESIGN_SYSTEM_AVAILABLE
 )
+
+# Import premium design system if available
+if DESIGN_SYSTEM_AVAILABLE:
+    from .design_system import VisualEffects
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +125,9 @@ class HistogramMixin:
 
         # Use scientific notation for y-axis
         ax.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
+
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
 
         plt.tight_layout()
 

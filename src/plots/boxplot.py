@@ -24,8 +24,13 @@ from .plot_config import (
     TITLE_SIZE, TITLE_WEIGHT,
     add_sample_size_annotation,  # Phase 2.2 enhancement
     save_publication_figure,  # Phase 2.3: Optimized saving
-    enhance_statistical_bracket, apply_publication_theme  # ✨ Enhanced styling
+    enhance_statistical_bracket, apply_publication_theme,  # ✨ Enhanced styling
+    DESIGN_SYSTEM_AVAILABLE
 )
+
+# Import premium design system if available
+if DESIGN_SYSTEM_AVAILABLE:
+    from .design_system import VisualEffects
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +92,10 @@ class BoxplotMixin:
             figsize = BOXPLOT_FIGSIZE
 
         fig, ax = plt.subplots(figsize=figsize)
+
+        # ✨ PREMIUM: Add subtle gradient background for depth
+        if DESIGN_SYSTEM_AVAILABLE:
+            VisualEffects.add_gradient_background(ax, '#FFFFFF', '#F8F9FA', direction='vertical')
 
         # Define fixed order for glycan types
         glycan_order = ['Non', 'Sialylated', 'Fucosylated', 'Both']
@@ -228,6 +237,10 @@ class BoxplotMixin:
             figsize = BOXPLOT_EXTENDED_FIGSIZE
 
         fig, ax = plt.subplots(figsize=figsize)
+
+        # ✨ PREMIUM: Add subtle gradient background for depth
+        if DESIGN_SYSTEM_AVAILABLE:
+            VisualEffects.add_gradient_background(ax, '#FFFFFF', '#F8F9FA', direction='vertical')
 
         # Define fixed order for extended categories
         category_order = ['HM', 'C/H', 'Fucosylated', 'Sialylated', 'Sialofucosylated']

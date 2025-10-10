@@ -28,8 +28,15 @@ from .plot_config import (
     get_regulation_style,  # Phase 3 enhancement
     save_publication_figure,  # Phase 2.3: Optimized saving
     create_fancy_bbox, apply_publication_theme,  # ✨ Enhanced styling
-    GRADIENT_ALPHA_START, GRADIENT_ALPHA_END  # ✨ Gradient effects
+    GRADIENT_ALPHA_START, GRADIENT_ALPHA_END,  # ✨ Gradient effects
+    COLOR_CANCER, COLOR_NORMAL,  # Premium Material Design colors
+    TITLE_SIZE, AXIS_LABEL_SIZE,  # Enhanced typography
+    DESIGN_SYSTEM_AVAILABLE
 )
+
+# Import premium design system if available
+if DESIGN_SYSTEM_AVAILABLE:
+    from .design_system import VisualEffects, ColorSystem
 
 logger = logging.getLogger(__name__)
 
@@ -214,6 +221,10 @@ class VolcanoPlotMixin:
             figsize = VOLCANO_FIGSIZE
         fig, ax = plt.subplots(figsize=figsize)
 
+        # ✨ PREMIUM: Add subtle gradient background for depth
+        if DESIGN_SYSTEM_AVAILABLE:
+            VisualEffects.add_gradient_background(ax, '#FFFFFF', '#F8F9FA', direction='vertical')
+
         # Phase 3: Use color + shape encoding for colorblind accessibility
         # Plot points by regulation status
         for regulation in ['Up in Cancer', 'Down in Cancer', 'Non-significant']:
@@ -382,6 +393,11 @@ class VolcanoPlotMixin:
             title='Volcano Plot: Differential Glycopeptide Expression\nCancer vs Normal',
             grid=True
         )
+
+        # ✨ PREMIUM: Enhance title with better typography
+        title = ax.get_title()
+        ax.set_title(title, fontsize=TITLE_SIZE, fontweight='bold',
+                    family='Inter', pad=20)
 
         # Apply standardized legend (positioned outside plot area)
         apply_standard_legend(ax)

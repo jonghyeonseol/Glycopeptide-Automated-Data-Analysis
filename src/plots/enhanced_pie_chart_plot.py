@@ -32,8 +32,14 @@ from .plot_config import (
     TICK_LABEL_SIZE,
     LEGEND_SIZE,
     ANNOTATION_SIZE,
-    save_publication_figure, DPI_MAIN
+    save_publication_figure, DPI_MAIN,
+    apply_publication_theme,  # ✨ Enhanced styling
+    DESIGN_SYSTEM_AVAILABLE
 )
+
+# Import premium design system if available
+if DESIGN_SYSTEM_AVAILABLE:
+    from .design_system import VisualEffects
 
 logger = logging.getLogger(__name__)
 
@@ -220,7 +226,10 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Glycan Type Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family='Inter')
+
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
 
         plt.tight_layout()
 
@@ -371,7 +380,10 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Primary Classification Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family='Inter')
+
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
 
         plt.tight_layout()
 
@@ -515,7 +527,10 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Secondary Classification Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family='Inter')
+
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
 
         plt.tight_layout()
 
