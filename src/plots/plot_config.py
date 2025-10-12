@@ -68,10 +68,11 @@ TITLE_WEIGHT = 'bold'
 AXIS_LABEL_WEIGHT = 'medium'  # Enhanced from 'normal' (better presence)
 LEGEND_TITLE_WEIGHT = 'bold'
 
-# Premium font preferences (fallback chain)
-FONT_FAMILY_DISPLAY = 'Inter'  # Titles
-FONT_FAMILY_TEXT = 'Roboto'    # Body text
-FONT_FAMILY_MONO = 'Fira Mono' # Data/code
+# Premium font preferences (fallback chain - macOS optimized)
+# SF Pro Display is the macOS system font, excellent alternative to Inter
+FONT_FAMILY_DISPLAY = 'SF Pro Display'  # Titles (macOS native, similar to Inter)
+FONT_FAMILY_TEXT = 'SF Pro Text'        # Body text (macOS native, similar to Roboto)
+FONT_FAMILY_MONO = 'SF Mono'            # Data/code (macOS native monospace)
 
 # ==============================================================================
 # Colors - Group Comparison (Cancer vs Normal)
@@ -145,28 +146,28 @@ GLYCAN_COLORS_PREMIUM = {
 # - SF (Orange): Combination color (red + yellow tones)
 # - C/H (Blue): Complex structures, stable/mature
 
-# Legacy glycan type colors (SEMANTIC SCHEME)
+# Legacy glycan type colors - UPDATED TO MATERIAL DESIGN 3.0
 LEGACY_GLYCAN_COLORS = {
-    'Non': '#95A5A6',           # Gray - Non-modified (neutral)
-    'Sialylated': '#E91E63',    # Pink - Sialylated (matches main scheme)
-    'Fucosylated': '#E74C3C',   # Red - Fucosylated (matches main scheme)
-    'Both': '#E67E22'           # Orange - Sialofucosylated (matches main scheme)
+    'Non': '#95A5A6',           # Gray - Non-modified (neutral, unchanged)
+    'Sialylated': '#8B5CF6',    # Violet (Material 3.0) - Sialylated (charged, transformation)
+    'Fucosylated': '#F59E0B',   # Amber (Material 3.0) - Fucosylated (energy, core modification)
+    'Both': '#EC4899'           # Pink (Material 3.0) - Sialofucosylated (complexity, dual)
 }
 
-# Extended category colors (SEMANTIC SCHEME)
+# Extended category colors - UPDATED TO MATERIAL DESIGN 3.0
 EXTENDED_CATEGORY_COLORS = {
-    'HM': '#27AE60',              # Green - High Mannose
-    'High mannose': '#27AE60',    # Alias for consistency
-    'High Mannose': '#27AE60',    # Alias (capitalized)
-    'C/H': '#3498DB',             # Blue - Complex/Hybrid
-    'Complex/Hybrid': '#3498DB',  # Alias
-    'ComplexHybrid': '#3498DB',   # Alias (no space/slash)
-    'Fucosylated': '#E74C3C',     # Red - Fucosylated
-    'Sialylated': '#E91E63',      # Pink - Sialylated
-    'Sialofucosylated': '#E67E22',  # Orange - Sialofucosylated
-    'Both': '#E67E22',            # Alias for Sialofucosylated
-    'Truncated': '#95A5A6',       # Gray - Truncated/Other
-    'Other': '#95A5A6'            # Gray - Other
+    'HM': '#10B981',              # Emerald (Material 3.0) - High Mannose (growth, foundation)
+    'High mannose': '#10B981',    # Alias for consistency
+    'High Mannose': '#10B981',    # Alias (capitalized)
+    'C/H': '#3B82F6',             # Blue (Material 3.0) - Complex/Hybrid (stability, mature)
+    'Complex/Hybrid': '#3B82F6',  # Alias
+    'ComplexHybrid': '#3B82F6',   # Alias (no space/slash)
+    'Fucosylated': '#F59E0B',     # Amber (Material 3.0) - Fucosylated (energy, core modification)
+    'Sialylated': '#8B5CF6',      # Violet (Material 3.0) - Sialylated (transformation, charged)
+    'Sialofucosylated': '#EC4899',  # Pink (Material 3.0) - Sialofucosylated (complexity, dual)
+    'Both': '#EC4899',            # Alias for Sialofucosylated
+    'Truncated': '#95A5A6',       # Gray - Truncated/Other (unchanged)
+    'Other': '#95A5A6'            # Gray - Other (unchanged)
 }
 
 # ==============================================================================

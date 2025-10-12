@@ -31,10 +31,11 @@ class TypographySystem:
     Based on modern design standards (Apple HIG, Material Design 3.0)
     """
 
-    # Font families (with fallbacks for cross-platform)
-    FONT_STACK_DISPLAY = ['Inter', 'SF Pro Display', 'Helvetica Neue', 'Arial', 'sans-serif']
-    FONT_STACK_TEXT = ['Roboto', 'SF Pro Text', 'Helvetica', 'Arial', 'sans-serif']
-    FONT_STACK_MONO = ['Fira Mono', 'SF Mono', 'Consolas', 'Courier New', 'monospace']
+    # Font families (macOS optimized with fallbacks)
+    # SF Pro Display/Text are macOS native fonts, excellent quality and readability
+    FONT_STACK_DISPLAY = ['SF Pro Display', 'Helvetica Neue', 'Arial', 'sans-serif']
+    FONT_STACK_TEXT = ['SF Pro Text', 'Helvetica', 'Arial', 'sans-serif']
+    FONT_STACK_MONO = ['SF Mono', 'Monaco', 'Courier New', 'monospace']
 
     # Font sizes (scaled from base 14pt)
     SCALE_RATIO = 1.25  # Major third scale
@@ -303,15 +304,17 @@ class VisualEffects:
 
     @staticmethod
     def add_gradient_background(ax, color_start: str = '#FFFFFF',
-                               color_end: str = '#F8F9FA',
+                               color_end: str = '#F5F5F5',
                                direction: str = 'vertical'):
         """
         Add subtle gradient background to axes
 
+        Enhanced: More visible gradient (3% gray difference instead of 1%)
+
         Args:
             ax: Matplotlib axes
-            color_start: Starting color (top or left)
-            color_end: Ending color (bottom or right)
+            color_start: Starting color (top or left) - default pure white
+            color_end: Ending color (bottom or right) - default light gray
             direction: 'vertical' or 'horizontal'
         """
         # Create gradient
@@ -320,10 +323,10 @@ class VisualEffects:
         # Create colormap
         cmap = mcolors.LinearSegmentedColormap.from_list('bg_gradient', [color_start, color_end])
 
-        # Apply as background
+        # Apply as background with higher alpha for better visibility
         ax.imshow(gradient, aspect='auto', cmap=cmap,
                  extent=ax.get_xlim() + ax.get_ylim(),
-                 zorder=0, alpha=0.3)
+                 zorder=0, alpha=0.6)
 
     @staticmethod
     def create_glassmorphism_box(ax, x: float, y: float, width: float, height: float,
