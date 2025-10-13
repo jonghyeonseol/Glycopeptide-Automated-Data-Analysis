@@ -132,9 +132,18 @@ def run_visualizations(state, config):
                 config=data_prep_config
             )
 
-    # Generate Sankey diagram for glycan type flows
+    # Generate Sankey diagrams
     logger.info("Creating Sankey diagram for glycan type flows...")
     visualizer.plot_glycan_type_sankey(
+        df=state.filtered_data,
+        vip_scores=vip_scores,
+        config=data_prep_config,
+        log2fc_threshold=1.0,  # 2-fold change
+        fdr_threshold=0.05
+    )
+
+    logger.info("Creating Sankey diagram for Group → Glycan Type distribution...")
+    visualizer.plot_group_to_glycan_sankey(
         df=state.filtered_data,
         vip_scores=vip_scores,
         config=data_prep_config,
