@@ -387,6 +387,32 @@ MARKER_EDGE_COLOR_LIGHT = 'white'  # Light marker edges (for dark markers)
 SEPARATOR_EDGE_COLOR = 'gray'    # Separator lines between groups
 PANEL_EDGE_COLOR = '#333'        # Multi-panel plot borders
 
+# ==============================================================================
+# Zorder (Layer Ordering) Constants - CENTRALIZED CONFIGURATION
+# Controls visual stacking order for proper layering of plot elements
+# ==============================================================================
+
+# Background layers (behind everything)
+ZORDER_BACKGROUND = 0        # Background elements (filled regions, confidence bands)
+ZORDER_GRID = 0              # Grid lines (same as background, behind data)
+ZORDER_SEPARATOR = 1         # Separator lines between groups
+
+# Data layers (main visual elements)
+ZORDER_DATA_LOW = 3          # Secondary data elements (less important)
+ZORDER_DATA_HIGH = 4         # Primary data elements (main focus)
+
+# Reference and threshold layers
+ZORDER_THRESHOLD = 10        # Threshold/reference lines (axhline, axvline)
+ZORDER_ANNOTATION = 11       # Text annotations, statistical brackets
+
+# Overlay layers (above data)
+ZORDER_OVERLAY = 100         # Overlay elements (highlight regions)
+ZORDER_EFFECT = 200          # Special visual effects
+
+# Top layers (always visible)
+ZORDER_TOP = 1000            # Top-level elements (legends, important labels)
+ZORDER_ABSOLUTE_TOP = 1001   # Absolute top priority (critical information)
+
 # PNG Compression Settings (File Size Optimization)
 # Matplotlib supports automatic PNG optimization
 SAVE_KWARGS = {

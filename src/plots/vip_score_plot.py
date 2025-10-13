@@ -30,7 +30,13 @@ from .plot_config import (
     save_publication_figure, DPI_MAIN,
     TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE,
     ALPHA_MEDIUM_LIGHT,  # Alpha constants
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 logger = logging.getLogger(__name__)
@@ -107,7 +113,7 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(top_n_data['VIP_Score'], range(len(top_n_data)),
-                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=ZORDER_DATA_LOW)
         ax_vip.set_yticks(range(len(top_n_data)))
         ax_vip.set_yticklabels(top_n_data['Label'], fontsize=TICK_LABEL_SIZE)
         ax_vip.set_xlabel('VIP Score', fontsize=AXIS_LABEL_SIZE)
@@ -210,7 +216,7 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(glycan_vip['VIP_Score'], range(len(glycan_vip)),
-                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=ZORDER_DATA_LOW)
         ax_vip.set_yticks(range(len(glycan_vip)))
         ax_vip.set_yticklabels(glycan_vip['GlycanComposition'], fontsize=TICK_LABEL_SIZE)
         ax_vip.set_xlabel('VIP Score', fontsize=AXIS_LABEL_SIZE)
@@ -313,7 +319,7 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(peptide_vip['VIP_Score'], range(len(peptide_vip)),
-                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=ZORDER_DATA_LOW)
         ax_vip.set_yticks(range(len(peptide_vip)))
         ax_vip.set_yticklabels(peptide_vip['Peptide'], fontsize=TICK_LABEL_SIZE)
         ax_vip.set_xlabel('VIP Score', fontsize=AXIS_LABEL_SIZE)

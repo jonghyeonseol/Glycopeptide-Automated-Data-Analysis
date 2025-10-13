@@ -28,7 +28,13 @@ from .plot_config import (
     POINT_ALPHA, OVERLAY_ALPHA, FRAME_ALPHA, ANNOTATION_ALPHA,
     SCATTER_SIZE_SMALL, SCATTER_SIZE_LARGE, MARKER_SIZE_SMALL,
     LINE_MARKER_SIZE, LEGEND_MARKER_SIZE, LEGEND_MARKER_SIZE_LARGE,
-    EDGE_COLOR_WHITE, FRAME_EDGE_COLOR, SEPARATOR_EDGE_COLOR, MARKER_EDGE_COLOR_LIGHT
+    EDGE_COLOR_WHITE, FRAME_EDGE_COLOR, SEPARATOR_EDGE_COLOR, MARKER_EDGE_COLOR_LIGHT,
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 logger = logging.getLogger(__name__)
@@ -293,7 +299,7 @@ class GlycopeptideComparisonHeatmapMixin:
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
-                               zorder=4,
+                               zorder=ZORDER_DATA_HIGH,
                                label='_nolegend_')
 
             # Plot Normal marker (+ symbol)
@@ -303,14 +309,14 @@ class GlycopeptideComparisonHeatmapMixin:
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
-                               zorder=3,
+                               zorder=ZORDER_DATA_LOW,
                                label='_nolegend_')
 
         # Add light vertical separators between glycan types
         for glycan_type, pos_info in glycan_type_positions.items():
             if pos_info['end'] < len(glycan_order):  # Don't draw after last group
                 ax_main.axvline(pos_info['end'] - 0.5, color='gray',
-                                linestyle='--', linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MEDIUM, zorder=1)
+                                linestyle='--', linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MEDIUM, zorder=ZORDER_SEPARATOR)
 
         # Set axis properties with equal aspect ratio for square cells
         ax_main.set_aspect('equal', adjustable='box')
@@ -331,13 +337,13 @@ class GlycopeptideComparisonHeatmapMixin:
         ax_main.invert_yaxis()
 
         # Grid - enhanced visibility
-        ax_main.grid(True, alpha=ALPHA_MEDIUM_HIGH, linestyle='-', linewidth=LINE_NORMAL, color='#BBBBBB', zorder=0)
+        ax_main.grid(True, alpha=ALPHA_MEDIUM_HIGH, linestyle='-', linewidth=LINE_NORMAL, color='#BBBBBB', zorder=ZORDER_BACKGROUND)
         ax_main.set_axisbelow(True)
 
         # Add minor grid for better cell separation
         ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
         ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
-        ax_main.grid(which='minor', alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#DDDDDD', zorder=0)
+        ax_main.grid(which='minor', alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#DDDDDD', zorder=ZORDER_BACKGROUND)
 
         # === LEGEND ===
         from matplotlib.patches import Patch
@@ -714,7 +720,7 @@ class GlycopeptideComparisonHeatmapMixin:
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
-                               zorder=4,
+                               zorder=ZORDER_DATA_HIGH,
                                label='_nolegend_')
 
             # Plot Normal marker (+ symbol) - reduced size
@@ -724,14 +730,14 @@ class GlycopeptideComparisonHeatmapMixin:
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
-                               zorder=3,
+                               zorder=ZORDER_DATA_LOW,
                                label='_nolegend_')
 
         # Add light vertical separators between glycan types
         for glycan_type, pos_info in glycan_type_positions.items():
             if pos_info['end'] < len(glycan_order):
                 ax_main.axvline(pos_info['end'] - 0.5, color='gray',
-                                linestyle='--', linewidth=LINE_NORMAL, alpha=ALPHA_MEDIUM, zorder=1)
+                                linestyle='--', linewidth=LINE_NORMAL, alpha=ALPHA_MEDIUM, zorder=ZORDER_SEPARATOR)
 
         # Set axis properties with equal aspect ratio
         ax_main.set_aspect('equal', adjustable='box')
@@ -752,13 +758,13 @@ class GlycopeptideComparisonHeatmapMixin:
         ax_main.invert_yaxis()
 
         # Grid - lighter for full scale
-        ax_main.grid(True, alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#CCCCCC', zorder=0)
+        ax_main.grid(True, alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#CCCCCC', zorder=ZORDER_BACKGROUND)
         ax_main.set_axisbelow(True)
 
         # Add minor grid
         ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
         ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
-        ax_main.grid(which='minor', alpha=ALPHA_VERY_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH_THIN, color='#DDDDDD', zorder=0)
+        ax_main.grid(which='minor', alpha=ALPHA_VERY_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH_THIN, color='#DDDDDD', zorder=ZORDER_BACKGROUND)
 
         # === LEGEND ===
         from matplotlib.patches import Patch
@@ -1080,7 +1086,7 @@ class GlycopeptideComparisonHeatmapMixin:
                                c=glycan_type_color,  # All same color
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
-                               zorder=4,
+                               zorder=ZORDER_DATA_HIGH,
                                label='_nolegend_')
 
             # Plot Normal marker (+ symbol) - colored by glycan type
@@ -1090,7 +1096,7 @@ class GlycopeptideComparisonHeatmapMixin:
                                c=glycan_type_color,  # All same color
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
-                               zorder=3,
+                               zorder=ZORDER_DATA_LOW,
                                label='_nolegend_')
 
         # Set axis properties with equal aspect ratio
@@ -1112,13 +1118,13 @@ class GlycopeptideComparisonHeatmapMixin:
         ax_main.invert_yaxis()
 
         # Grid
-        ax_main.grid(True, alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#CCCCCC', zorder=0)
+        ax_main.grid(True, alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#CCCCCC', zorder=ZORDER_BACKGROUND)
         ax_main.set_axisbelow(True)
 
         # Add minor grid
         ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
         ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
-        ax_main.grid(which='minor', alpha=ALPHA_VERY_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH_THIN, color='#DDDDDD', zorder=0)
+        ax_main.grid(which='minor', alpha=ALPHA_VERY_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH_THIN, color='#DDDDDD', zorder=ZORDER_BACKGROUND)
 
         # === LEGEND ===
         from matplotlib.lines import Line2D

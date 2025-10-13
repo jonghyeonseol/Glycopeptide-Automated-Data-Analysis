@@ -27,7 +27,13 @@ from .plot_config import (
     LINE_THIN, LINE_THICK,  # Linewidth constants
     ALPHA_MEDIUM_LIGHT, ALPHA_VERY_HIGH,  # Alpha constants,
     EDGE_COLOR_NONE,
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 logger = logging.getLogger(__name__)
@@ -146,7 +152,7 @@ class MissingDataPlotMixin:
 
         # Add threshold line at 30%
         ax_top.axhline(30, color='red', linestyle='--', linewidth=LINE_THICK,
-                       label='30% filter threshold', zorder=10)
+                       label='30% filter threshold', zorder=ZORDER_THRESHOLD)
 
         ax_top.set_ylim(0, 100)
         ax_top.set_ylabel('Detection\nRate (%)', fontsize=ANNOTATION_SIZE, fontweight='bold')
@@ -164,7 +170,7 @@ class MissingDataPlotMixin:
                       color='#27AE60', edgecolor=EDGE_COLOR_BLACK, linewidth=LINE_THIN)
 
         # Add threshold line at 30%
-        ax_right.axvline(30, color='red', linestyle='--', linewidth=LINE_THICK, zorder=10)
+        ax_right.axvline(30, color='red', linestyle='--', linewidth=LINE_THICK, zorder=ZORDER_THRESHOLD)
 
         ax_right.set_xlim(0, 100)
         ax_right.set_xlabel('Detection\nRate (%)', fontsize=ANNOTATION_SIZE, fontweight='bold')
@@ -191,7 +197,7 @@ class MissingDataPlotMixin:
         ax_main.text(0.02, 0.98, stats_text, transform=ax_main.transAxes,
                      fontsize=ANNOTATION_SIZE, verticalalignment='top',
                      bbox=dict(boxstyle='round', facecolor='wheat', alpha=ALPHA_VERY_HIGH),
-                     family='monospace', zorder=1000)
+                     family='monospace', zorder=ZORDER_TOP)
 
         # =====================================================================
         # DATA INTEGRITY NOTES

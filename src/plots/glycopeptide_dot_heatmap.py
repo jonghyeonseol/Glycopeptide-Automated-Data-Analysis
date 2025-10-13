@@ -15,7 +15,13 @@ from .plot_config import (
     ALPHA_VERY_LIGHT, ALPHA_MEDIUM_LIGHT, ALPHA_HIGH, ALPHA_VERY_HIGH, ALPHA_MEDIUM_HIGH,  # Alpha constants
     MARKER_SIZE_SMALL, DOT_HEATMAP_SIZE,  # Marker size constants
     SEPARATOR_EDGE_COLOR,  # Edge color standardization
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 logger = logging.getLogger(__name__)
@@ -163,7 +169,7 @@ class GlycopeptideDotHeatmapMixin:
                 # Plot dot
                 color = glycan_type_colors.get(glycan_type, '#CCCCCC')
                 ax_main.scatter(x_pos, y_pos, s=DOT_HEATMAP_SIZE, c=color, alpha=alpha,
-                                edgecolors=EDGE_COLOR_BLACK, linewidths=0.5, zorder=3)
+                                edgecolors=EDGE_COLOR_BLACK, linewidths=0.5, zorder=ZORDER_DATA_LOW)
 
         # Add background shading for glycan type groups
         x_pos = 0

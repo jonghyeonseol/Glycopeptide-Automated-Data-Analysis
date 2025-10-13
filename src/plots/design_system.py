@@ -324,10 +324,10 @@ class VisualEffects:
         cmap = mcolors.LinearSegmentedColormap.from_list('bg_gradient', [color_start, color_end])
 
         # Apply as background with higher alpha for better visibility
-        from .plot_config import ALPHA_MODERATE, EDGE_COLOR_NONE
+        from .plot_config import ALPHA_MODERATE, EDGE_COLOR_NONE, ZORDER_BACKGROUND
         ax.imshow(gradient, aspect='auto', cmap=cmap,
                  extent=ax.get_xlim() + ax.get_ylim(),
-                 zorder=0, alpha=ALPHA_MODERATE)
+                 zorder=ZORDER_BACKGROUND, alpha=ALPHA_MODERATE)
 
     @staticmethod
     def create_glassmorphism_box(ax, x: float, y: float, width: float, height: float,
@@ -342,7 +342,7 @@ class VisualEffects:
             blur_alpha: Background blur simulation (via alpha), defaults to ALPHA_TRANSPARENT
             border_color: Border glow color
         """
-        from .plot_config import ALPHA_TRANSPARENT, ALPHA_MEDIUM_LIGHT
+        from .plot_config import ALPHA_TRANSPARENT, ALPHA_MEDIUM_LIGHT, ZORDER_OVERLAY
         if blur_alpha is None:
             blur_alpha = ALPHA_TRANSPARENT
 
@@ -352,7 +352,7 @@ class VisualEffects:
                        edgecolor=border_color,
                        alpha=blur_alpha,
                        linewidth=1.5,
-                       zorder=100)
+                       zorder=ZORDER_OVERLAY)
 
         # Add subtle glow to border
         VisualEffects.create_glow_effect(ax, box, glow_color=border_color, intensity=ALPHA_MEDIUM_LIGHT)
@@ -479,7 +479,7 @@ class SmartAnnotation:
         x_offset, y_offset = ax.transLimits.transform((x, y))
 
         # Create fancy annotation
-        from .plot_config import ALPHA_MOSTLY_OPAQUE, ALPHA_VERY_HIGH
+        from .plot_config import ALPHA_MOSTLY_OPAQUE, ALPHA_VERY_HIGH, ZORDER_EFFECT
         bbox_props = dict(
             boxstyle=f'{style},pad=0.6' if style == 'rounded' else style,
             facecolor='white',
@@ -504,7 +504,7 @@ class SmartAnnotation:
                 linewidth=1.5,
                 alpha=ALPHA_VERY_HIGH
             ),
-            zorder=200
+            zorder=ZORDER_EFFECT
         )
 
 
@@ -546,11 +546,14 @@ class PanelSystem:
 
         x, y = pos_map.get(position, (-0.15, 1.05))
 
+        # Import required constants from plot_config
+        from .plot_config import EDGE_COLOR_NONE, ZORDER_TOP, ZORDER_ABSOLUTE_TOP
+
         # Create circular background
         circle = Circle((x, y), 0.04, transform=ax.transAxes,
                        facecolor=ColorSystem.GRAY_800,
                        edgecolor=EDGE_COLOR_NONE,
-                       zorder=1000,
+                       zorder=ZORDER_TOP,
                        clip_on=False)
         ax.add_patch(circle)
 
@@ -561,7 +564,7 @@ class PanelSystem:
                fontweight=fontweight,
                color='white',
                ha='center', va='center',
-               zorder=1001,
+               zorder=ZORDER_ABSOLUTE_TOP,
                clip_on=False)
 
 

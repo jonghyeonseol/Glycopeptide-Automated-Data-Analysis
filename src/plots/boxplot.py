@@ -28,7 +28,13 @@ from .plot_config import (
     save_publication_figure,  # Phase 2.3: Optimized saving
     enhance_statistical_bracket, apply_publication_theme,  # ✨ Enhanced styling
     DESIGN_SYSTEM_AVAILABLE,
-    LINE_MEDIUM_THICK  # Linewidth constants
+    LINE_MEDIUM_THICK,  # Linewidth constants
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 # Import premium design system if available
@@ -402,7 +408,7 @@ class BoxplotMixin:
 
                 # Draw line connecting the two groups
                 ax.plot([x1, x2], [y_position, y_position],
-                        color='black', linewidth=LINE_MEDIUM_THICK, zorder=10)
+                        color='black', linewidth=LINE_MEDIUM_THICK, zorder=ZORDER_THRESHOLD)
 
                 # Add significance marker WITH effect size (Phase 1.1)
                 if not np.isnan(cohens_d):
@@ -419,7 +425,7 @@ class BoxplotMixin:
                     fontsize=ANNOTATION_SIZE,  # Slightly smaller for two-line text
                     fontweight='bold',
                     color='black',
-                    zorder=11
+                    zorder=ZORDER_ANNOTATION
                 )
 
                 logger.info(

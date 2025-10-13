@@ -160,6 +160,188 @@ grep -rn "edgecolors=" src/plots/*.py | grep -v "plot_config.py" | \
 **Commit Date**: 2025-10-13 00:01:17 +0900
 **Files Changed**: 24 files, +708 insertions, -486 deletions
 
+### Phase 10.3.7: Zorder (Layer Ordering) Standardization
+
+**Objective**: Eliminate all hardcoded zorder values and centralize them in plot_config.py for consistent visual layering across all plots.
+
+**Problem**: Plot modules used hardcoded zorder integers (0, 1, 2, 3, 4, 5, 10, 11, 100, 200, 1000, 1001) scattered across 10 files, making it difficult to maintain consistent visual stacking order and adjust layering globally.
+
+**Solution**: Created comprehensive zorder constant system in plot_config.py with semantic naming that describes the visual purpose of each layer level.
+
+### New Zorder Constants (plot_config.py:390-414)
+
+```python
+# ==============================================================================
+# Zorder (Layer Ordering) Constants - CENTRALIZED CONFIGURATION
+# Controls visual stacking order for proper layering of plot elements
+# ==============================================================================
+
+# Background layers (behind everything)
+ZORDER_BACKGROUND = 0        # Background elements (filled regions, confidence bands)
+ZORDER_GRID = 0              # Grid lines (same as background, behind data)
+ZORDER_SEPARATOR = 1         # Separator lines between groups
+
+# Data layers (main visual elements)
+ZORDER_DATA_LOW = 3          # Secondary data elements (less important)
+ZORDER_DATA_HIGH = 4         # Primary data elements (main focus)
+
+# Reference and threshold layers
+ZORDER_THRESHOLD = 10        # Threshold/reference lines (axhline, axvline)
+ZORDER_ANNOTATION = 11       # Text annotations, statistical brackets
+
+# Overlay layers (above data)
+ZORDER_OVERLAY = 100         # Overlay elements (highlight regions)
+ZORDER_EFFECT = 200          # Special visual effects
+
+# Top layers (always visible)
+ZORDER_TOP = 1000            # Top-level elements (legends, important labels)
+ZORDER_ABSOLUTE_TOP = 1001   # Absolute top priority (critical information)
+```
+
+### Replacements Completed
+
+**46 total hardcoded zorder values replaced** across **10 files**:
+- 14 instances of `zorder=0` → `ZORDER_BACKGROUND` or `ZORDER_GRID`
+- 4 instances of `zorder=1` → `ZORDER_SEPARATOR`
+- 3 instances of `zorder=2` → `ZORDER_DATA_LOW` (context-dependent)
+- 6 instances of `zorder=3` → `ZORDER_DATA_LOW`
+- 5 instances of `zorder=4` → `ZORDER_DATA_HIGH`
+- 5 instances of `zorder=5` → `ZORDER_ANNOTATION` (context-dependent)
+- 4 instances of `zorder=10` → `ZORDER_THRESHOLD`
+- 2 instances of `zorder=11` → `ZORDER_ANNOTATION`
+- 1 instance of `zorder=100` → `ZORDER_OVERLAY`
+- 1 instance of `zorder=200` → `ZORDER_EFFECT`
+- 1 instance of `zorder=1000` → `ZORDER_TOP`
+
+### Files Modified (11 total)
+
+**Plot Modules**:
+- volcano_plot.py - 6 replacements (scatter plots, threshold lines)
+- design_system.py - 5 replacements (unique local import pattern, visual effects)
+- boxplot.py - 2 replacements (statistical brackets, threshold lines)
+- glycopeptide_comparison_heatmap.py - 14 replacements (scatter markers, separators)
+- vip_score_plot.py - 3 replacements (bar plots, annotations)
+- pca_plot.py - 6 replacements (confidence ellipses, text labels)
+- glycopeptide_dot_heatmap.py - 1 replacement (scatter markers)
+- enhanced_pie_chart_plot.py - 4 replacements (statistical brackets)
+- missing_data_plot.py - 3 replacements (threshold lines, annotations)
+- plsda_diagnostic_plot.py - 2 replacements (threshold lines, annotations)
+
+**Configuration**:
+- plot_config.py - Added 11 new zorder constants (10 standard + ZORDER_GRID)
+
+### Bug Fixes (8 Import Syntax Errors)
+
+**Root Cause**: Automated batch script added zorder imports but failed to ensure proper comma placement before the import block, causing syntax errors in 8 files.
+
+**Errors Fixed**:
+1. volcano_plot.py:36 - Missing comma after `EDGE_COLOR_BLACK`
+2. boxplot.py:31 - Missing comma after `LINE_MEDIUM_THICK`
+3. vip_score_plot.py:33 - Missing comma after `EDGE_COLOR_BLACK`
+4. pca_plot.py:35 - Missing comma after `EDGE_COLOR_BLACK`
+5. glycopeptide_dot_heatmap.py:18 - Missing comma after `EDGE_COLOR_BLACK`
+6. enhanced_pie_chart_plot.py:46 - Missing comma after `EDGE_COLOR_BLACK`
+7. missing_data_plot.py:30 - Missing comma after `EDGE_COLOR_BLACK`
+8. plsda_diagnostic_plot.py:39 - Missing comma after `EDGE_COLOR_BLACK`
+
+**Solution**: Created `/tmp/fix_zorder_commas.py` script to systematically fix comma placement by moving commas from inside comments to after constant names.
+
+### Additional Manual Fixes
+
+**pca_plot.py** - 2 zorder values (2 and 5) were not in the automated mapping:
+- Line 114: `zorder=2` → `ZORDER_DATA_LOW` (ellipse boundary)
+- Line 180: `zorder=5` → `ZORDER_ANNOTATION` (text labels)
+
+**design_system.py** - Unique local import pattern requiring 4 manual import additions:
+- Line 327: Added `ZORDER_BACKGROUND` to `add_gradient_background()` method
+- Line 345: Added `ZORDER_OVERLAY` to `create_glassmorphism_box()` method
+- Line 482: Added `ZORDER_EFFECT` to `create_callout()` method
+- Line 550: Added `ZORDER_TOP`, `ZORDER_ABSOLUTE_TOP` to `add_panel_label()` method
+
+### Production Test Results
+
+**Test Run**: 2025-10-14 (successful execution)
+- ✅ All syntax errors fixed
+- ✅ All imports properly added (including local imports)
+- ✅ Pipeline completed successfully
+- ✅ Generated **54 PNG visualizations** at 300 DPI
+- ✅ All zorder values now use centralized constants
+- ✅ Zero remaining hardcoded zorder integers
+
+**Verification**:
+```bash
+# Confirmed 0 remaining hardcoded zorder values:
+grep -rn "zorder\s*=\s*[0-9]" src/plots/*.py | \
+  grep -v "plot_config.py" | wc -l
+# Output: 0
+```
+
+### Benefits
+
+**Maintainability**:
+- Single source of truth for visual layering
+- Easy to adjust global z-axis stacking order
+- Semantic naming improves code readability
+- Clear visual hierarchy documentation
+
+**Consistency**:
+- Predictable layering across all plots
+- Background elements always behind data
+- Annotations always visible on top
+- Standardized visual depth perception
+
+**Extensibility**:
+- Easy to add new layer levels
+- Support for complex visual effects
+- Clear layering guidelines for new plots
+- Simplified debugging of overlapping elements
+
+### Code Quality Metrics
+
+**Before Phase 10.3.7**:
+- 46 hardcoded zorder integers across 10 files
+- No centralized configuration
+- Inconsistent layering (e.g., annotations at zorder=5 vs zorder=11)
+- Difficult to understand visual hierarchy
+
+**After Phase 10.3.7**:
+- 0 hardcoded zorder integers
+- 11 centralized zorder constants
+- 100% consistency across all visualizations
+- Self-documenting visual layer structure
+
+### Systematic Approach
+
+**Phase 1**: Audit existing zorder usage
+- Found 46 instances across 10 files
+- Identified 10 unique zorder values in use
+- Mapped values to semantic purposes
+
+**Phase 2**: Define centralized constants
+- Created 11 constants with descriptive names
+- Added comprehensive documentation
+- Organized into logical groups (background → data → overlays → top)
+
+**Phase 3**: Automated batch replacement
+- Created `/tmp/replace_zorder_values.py` script
+- Used regex patterns to find and replace values
+- Processed all files systematically
+
+**Phase 4**: Import addition
+- Created `/tmp/add_zorder_imports.py` script
+- Added imports to all modified files
+- Handled unique patterns (design_system.py local imports)
+
+**Phase 5**: Syntax validation and fixes
+- Compiled all files with `python3 -m py_compile`
+- Fixed 8 missing comma errors
+- Manually fixed 2 context-dependent values
+
+**Phase 6**: Testing and verification
+- Ran full pipeline test
+- Generated all 54 visualizations
+- Verified 0 remaining hardcoded values
+
 ---
 
 ## 🚀 v2.1.0 - Data Consistency + Bug Fixes

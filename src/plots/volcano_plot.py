@@ -33,7 +33,13 @@ from .plot_config import (
     TITLE_SIZE, AXIS_LABEL_SIZE, ANNOTATION_SIZE,  # Enhanced typography
     DESIGN_SYSTEM_AVAILABLE,
     ALPHA_HIGH, ALPHA_VERY_HIGH,  # Alpha constants
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,  # Edge color standardization
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 # Import premium design system if available
@@ -304,7 +310,7 @@ class VolcanoPlotMixin:
                        c=color, s=sizes, alpha=VOLCANO_POINT_ALPHA,
                        edgecolors=EDGE_COLOR_BLACK, linewidths=VOLCANO_POINT_EDGEWIDTH,
                        marker=marker,  # Phase 3: Shape encoding
-                       label=f"{regulation} ({shape_symbol}) n={len(subset)}", zorder=3)
+                       label=f"{regulation} ({shape_symbol}) n={len(subset)}", zorder=ZORDER_DATA_LOW)
 
         # Phase 2.2: Add confidence interval error bars for top significant features
         features_with_ci = volcano_df[~volcano_df['Log2FC_CI_Lower'].isna()]
@@ -332,18 +338,18 @@ class VolcanoPlotMixin:
                     capsize=4,
                     capthick=2,
                     alpha=ALPHA_HIGH,
-                    zorder=4
+                    zorder=ZORDER_DATA_HIGH
                 )
 
             logger.info(f"Added 95% CI error bars for {len(features_with_ci)} significant features")
 
         # Add threshold lines using standardized styling
         ax.axhline(-np.log10(fdr_threshold), color='gray', linestyle='--',
-                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
+                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=ZORDER_SEPARATOR)
         ax.axvline(log2fc_threshold, color='gray', linestyle='--',
-                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
+                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=ZORDER_SEPARATOR)
         ax.axvline(-log2fc_threshold, color='gray', linestyle='--',
-                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
+                   linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=ZORDER_SEPARATOR)
 
         # Apply standardized styling
         apply_standard_axis_style(
@@ -375,7 +381,7 @@ class VolcanoPlotMixin:
 
         ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
                 fontsize=ANNOTATION_SIZE, verticalalignment='top',
-                bbox=dict(boxstyle='round', facecolor='white', alpha=ALPHA_VERY_HIGH), zorder=10)
+                bbox=dict(boxstyle='round', facecolor='white', alpha=ALPHA_VERY_HIGH), zorder=ZORDER_THRESHOLD)
 
         # Add sample size annotation (Phase 2.2 enhancement)
         n_cancer = len(cancer_samples)

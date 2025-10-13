@@ -36,7 +36,13 @@ from .plot_config import (
     EDGE_LINEWIDTH_THIN, EDGE_LINEWIDTH_THICK,
     LINE_ALPHA, ALPHA_MEDIUM_LIGHT, THRESHOLD_ALPHA, OVERLAY_ALPHA, POINT_ALPHA,
     MARKER_SIZE_MEDIUM, DIAGNOSTIC_MARKER_SIZE,
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 logger = logging.getLogger(__name__)
@@ -142,7 +148,7 @@ class PLSDADiagnosticPlotMixin:
         selected_r2 = r2_scores[selected_comp - 1]
         selected_q2 = q2_scores[selected_comp - 1]
         ax1.scatter([selected_comp], [selected_r2], s=DIAGNOSTIC_MARKER_SIZE, c='red',
-                    marker='*', edgecolors=EDGE_COLOR_BLACK, linewidths=EDGE_LINEWIDTH_THICK, zorder=10)
+                    marker='*', edgecolors=EDGE_COLOR_BLACK, linewidths=EDGE_LINEWIDTH_THICK, zorder=ZORDER_THRESHOLD)
         ax1.annotate(f'Selected: {selected_comp} comp\nR²={selected_r2:.3f}, Q²={selected_q2:.3f}',
                      xy =(selected_comp, selected_r2), xytext =(selected_comp + 1, selected_r2 - 0.15),
                      fontsize=ANNOTATION_SIZE, bbox=dict(boxstyle='round', facecolor='yellow', alpha=OVERLAY_ALPHA),
@@ -259,7 +265,7 @@ class PLSDADiagnosticPlotMixin:
 
         # Add threshold line at VIP=1.0
         ax4.axvline(1.0, color='red', linestyle='--', linewidth=LINE_BOLD,
-                    label='VIP = 1.0 (Important Features)', zorder=10)
+                    label='VIP = 1.0 (Important Features)', zorder=ZORDER_THRESHOLD)
 
         # Add mean and median lines
         mean_vip = vip_scores.mean()

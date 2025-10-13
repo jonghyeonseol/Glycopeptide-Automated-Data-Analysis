@@ -32,7 +32,13 @@ from .plot_config import (
     ALPHA_MEDIUM_LIGHT,
     SCATTER_SIZE_SMALL, LEGEND_MARKER_SIZE,  # Marker size constants
     EDGE_COLOR_NONE,
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 # Import premium design system if available
@@ -90,7 +96,7 @@ class PCAPlotMixin:
                 edgecolor=EDGE_COLOR_NONE,  # No edge for gradient layers
                 alpha=alpha_val,
                 linewidth=LINE_NONE,
-                zorder=1
+                zorder=ZORDER_SEPARATOR
             )
             ax.add_patch(ellipse)
 
@@ -105,7 +111,7 @@ class PCAPlotMixin:
             alpha=ALPHA_MODERATE,
             linewidth=LINE_THICK,
             linestyle='--',
-            zorder=2
+            zorder=ZORDER_DATA_LOW
         )
         ax.add_patch(ellipse_boundary)
 
@@ -137,7 +143,7 @@ class PCAPlotMixin:
                    c=cancer_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
                    edgecolors=EDGE_COLOR_BLACK, linewidth=PCA_POINT_LINEWIDTH,
                    marker=cancer_marker,  # Phase 3: Circle for Cancer
-                   label='Cancer (○)', zorder=3)
+                   label='Cancer (○)', zorder=ZORDER_DATA_LOW)
 
         # Plot Normal samples (Square markers - colorblind-safe)
         normal_scores = pca_df[normal_mask]
@@ -145,7 +151,7 @@ class PCAPlotMixin:
                    c=normal_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
                    edgecolors=EDGE_COLOR_BLACK, linewidth=PCA_POINT_LINEWIDTH,
                    marker=normal_marker,  # Phase 3: Square for Normal
-                   label='Normal (□)', zorder=3)
+                   label='Normal (□)', zorder=ZORDER_DATA_LOW)
 
         # ✨ PREMIUM: Draw enhanced confidence ellipses with multi-layer gradient
         self._draw_confidence_ellipse(ax, cancer_scores['PC1'].values, cancer_scores['PC2'].values,
@@ -171,7 +177,7 @@ class PCAPlotMixin:
                                  fontsize=PCA_LABEL_FONTSIZE, ha='center', va='center',
                                  color=label_color, fontweight='bold',
                                  bbox=bbox_props,
-                                 zorder=5))
+                                 zorder=ZORDER_ANNOTATION))
 
         # Adjust text to avoid overlap
         try:
@@ -244,7 +250,7 @@ class PCAPlotMixin:
 
             ax.scatter(row['PC1'], row['PC2'], c=color, s=SCATTER_SIZE_SMALL,
                        alpha=ALPHA_MODERATE, edgecolors=EDGE_COLOR_BLACK, linewidth=LINE_NORMAL,
-                       marker=marker, zorder=3)  # Phase 3: Colorblind-safe markers
+                       marker=marker, zorder=ZORDER_DATA_LOW)  # Phase 3: Colorblind-safe markers
 
             # Add sample label
             ax.annotate(idx, (row['PC1'], row['PC2']),

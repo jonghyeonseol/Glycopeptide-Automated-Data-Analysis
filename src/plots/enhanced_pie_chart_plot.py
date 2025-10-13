@@ -43,7 +43,13 @@ from .plot_config import (
     ALPHA_HIGH,
     ANNOTATION_ALPHA,
     ALPHA_MOSTLY_OPAQUE,
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization
+    # Zorder constants (Phase 10.3.7)
+    ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
+    ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
+    ZORDER_THRESHOLD, ZORDER_ANNOTATION,
+    ZORDER_OVERLAY, ZORDER_EFFECT,
+    ZORDER_TOP, ZORDER_ABSOLUTE_TOP
 )
 
 # Import premium design system if available
@@ -275,7 +281,7 @@ class PieChartPlotMixin:
         ax3.legend(handles=legend_elements, loc='upper right', fontsize=LEGEND_SIZE)
 
         # Apply Prism-style grid
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -438,7 +444,7 @@ class PieChartPlotMixin:
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
                       fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -594,7 +600,7 @@ class PieChartPlotMixin:
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
                       fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -828,7 +834,7 @@ class PieChartPlotMixin:
         ax3.legend(loc='upper right', fontsize=LEGEND_SIZE)
 
         # Apply Prism-style grid
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title with emphasis on "DIRECTIONAL" (moved above figure)
