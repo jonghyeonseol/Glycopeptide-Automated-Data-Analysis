@@ -13,7 +13,10 @@ from .plot_config import (
     HEATMAP_DPI, HEATMAP_FIGSIZE, save_publication_figure,
     HEATMAP_CMAP_INTENSITY, enhance_heatmap_colorbar, apply_publication_theme,
     COLOR_CANCER, COLOR_NORMAL,  # Premium colors
-    DESIGN_SYSTEM_AVAILABLE
+    DESIGN_SYSTEM_AVAILABLE,
+    TITLE_SIZE, AXIS_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,  # Font constants
+    LINE_THIN, EDGE_LINEWIDTH_THIN,  # Linewidth constants
+    EDGE_COLOR_BLACK  # Edge color standardization
 )
 
 # Import premium design system if available
@@ -83,7 +86,7 @@ class HeatmapMixin:
         # ✨ PREMIUM: Create color annotation with enhanced colors
         sample_colors = []
         for col in heatmap_data.columns:
-            if col.startswith('C'):
+            if col in cancer_samples:
                 sample_colors.append(COLOR_CANCER)  # Cancer - premium red
             else:
                 sample_colors.append(COLOR_NORMAL)  # Normal - premium blue
@@ -111,7 +114,7 @@ class HeatmapMixin:
         apply_publication_theme(g.fig)
 
         # ✨ ENHANCED: Improve colorbar styling
-        enhance_heatmap_colorbar(g.cax, label='Log2(Intensity + 1)', fontsize=11)
+        enhance_heatmap_colorbar(g.cax, label='Log2(Intensity + 1)', fontsize=ANNOTATION_SIZE)
 
         # Adjust labels (Phase 1.2: larger fonts for top 20)
         label_fontsize = 13 if top_n <= 20 else 12
@@ -122,7 +125,7 @@ class HeatmapMixin:
         title_text = f'Top {top_n} Glycopeptides Heatmap with Hierarchical Clustering'
         if output_suffix == 'supplementary':
             title_text += ' (Supplementary)'
-        g.fig.suptitle(title_text, fontsize=14, y=1.00, fontweight='bold')
+        g.fig.suptitle(title_text, fontsize=TITLE_SIZE, y=1.00, fontweight='bold')
 
         # Rotate sample labels (Phase 1.2: larger ticks for top 20)
         tick_fontsize = 11 if top_n <= 20 else 9
@@ -132,15 +135,15 @@ class HeatmapMixin:
         # ✨ PREMIUM: Enhanced legend with premium colors
         from matplotlib.patches import Patch
         legend_elements = [
-            Patch(facecolor=COLOR_CANCER, label='Cancer', edgecolor='black', linewidth=0.5),
-            Patch(facecolor=COLOR_NORMAL, label='Normal', edgecolor='black', linewidth=0.5)
+            Patch(facecolor=COLOR_CANCER, label='Cancer', edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN),
+            Patch(facecolor=COLOR_NORMAL, label='Normal', edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
         ]
         g.ax_heatmap.legend(
             handles=legend_elements,
             loc='lower left',
             bbox_to_anchor=(1.05, 0.5),
             frameon=True,
-            fontsize=10
+            fontsize=LEGEND_SIZE
         )
 
         # Save plot (Phase 1.2: filename based on suffix)
@@ -205,7 +208,7 @@ class HeatmapMixin:
         # ✨ PREMIUM: Create color annotation with enhanced colors
         sample_colors = []
         for col in heatmap_data.columns:
-            if col.startswith('C'):
+            if col in cancer_samples:
                 sample_colors.append(COLOR_CANCER)  # Cancer - premium red
             else:
                 sample_colors.append(COLOR_NORMAL)  # Normal - premium blue
@@ -232,15 +235,15 @@ class HeatmapMixin:
         apply_publication_theme(g.fig)
 
         # ✨ ENHANCED: Improve colorbar styling
-        enhance_heatmap_colorbar(g.cax, label='Log2(Intensity + 1)', fontsize=11)
+        enhance_heatmap_colorbar(g.cax, label='Log2(Intensity + 1)', fontsize=ANNOTATION_SIZE)
 
         # Adjust labels
-        g.ax_heatmap.set_xlabel('Sample', fontsize=12)
-        g.ax_heatmap.set_ylabel('Glycopeptide', fontsize=12)
+        g.ax_heatmap.set_xlabel('Sample', fontsize=AXIS_LABEL_SIZE)
+        g.ax_heatmap.set_ylabel('Glycopeptide', fontsize=AXIS_LABEL_SIZE)
 
         # Position title at the top with more space to avoid overlap
         g.fig.suptitle(f'Full Glycan Profile Heatmap ({len(heatmap_data)} glycopeptides)',
-                       fontsize=14, y=1.00, fontweight='bold')
+                       fontsize=TITLE_SIZE, y=1.00, fontweight='bold')
 
         # Rotate sample labels
         plt.setp(g.ax_heatmap.xaxis.get_majorticklabels(), rotation=90)
@@ -248,15 +251,15 @@ class HeatmapMixin:
         # ✨ PREMIUM: Enhanced legend with premium colors
         from matplotlib.patches import Patch
         legend_elements = [
-            Patch(facecolor=COLOR_CANCER, label='Cancer', edgecolor='black', linewidth=0.5),
-            Patch(facecolor=COLOR_NORMAL, label='Normal', edgecolor='black', linewidth=0.5)
+            Patch(facecolor=COLOR_CANCER, label='Cancer', edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN),
+            Patch(facecolor=COLOR_NORMAL, label='Normal', edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
         ]
         g.ax_heatmap.legend(
             handles=legend_elements,
             loc='lower left',
             bbox_to_anchor=(1.05, 0.5),
             frameon=True,
-            fontsize=10
+            fontsize=LEGEND_SIZE
         )
 
         # Save plot with optimized settings (150 DPI for complex heatmap)

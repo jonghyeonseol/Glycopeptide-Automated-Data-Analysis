@@ -8,7 +8,15 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data
-from .plot_config import GLYCAN_COLORS, save_publication_figure, DPI_COMPLEX
+from .plot_config import (
+    GLYCAN_COLORS, save_publication_figure, DPI_COMPLEX,
+    TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,  # Font constants
+    PLOT_LINE_LINEWIDTH, EDGE_LINEWIDTH_NORMAL, LINE_THIN,  # Linewidth constants
+    ALPHA_VERY_LIGHT, ALPHA_MEDIUM_LIGHT, ALPHA_HIGH, ALPHA_VERY_HIGH, ALPHA_MEDIUM_HIGH,  # Alpha constants
+    MARKER_SIZE_SMALL, DOT_HEATMAP_SIZE,  # Marker size constants
+    SEPARATOR_EDGE_COLOR,  # Edge color standardization
+    EDGE_COLOR_BLACK  # Edge color standardization
+)
 
 logger = logging.getLogger(__name__)
 
@@ -111,11 +119,11 @@ class GlycopeptideDotHeatmapMixin:
             glycan_intensities.append(intensity)
 
         ax_top.plot(range(len(glycan_order)), glycan_intensities,
-                    color='#333333', linewidth=2, marker='o', markersize=4)
+                    color='#333333', linewidth=PLOT_LINE_LINEWIDTH, marker='o', markersize=MARKER_SIZE_SMALL)
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
-        ax_top.set_ylabel('Aggregated\nIntensity', fontsize=10)
+        ax_top.set_ylabel('Aggregated\nIntensity', fontsize=ANNOTATION_SIZE)
         ax_top.set_xticks([])
-        ax_top.grid(axis='y', alpha=0.3)
+        ax_top.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
         ax_top.spines['bottom'].set_visible(False)
         ax_top.spines['top'].set_visible(False)
         ax_top.spines['right'].set_visible(False)
@@ -150,12 +158,12 @@ class GlycopeptideDotHeatmapMixin:
 
             if intensity_raw > 0:
                 # Normalize for alpha
-                alpha = min(0.3 + (intensity_raw / sample_intensities.max()) * 0.7, 1.0)
+                alpha = min(ALPHA_MEDIUM_LIGHT + (intensity_raw / sample_intensities.max()) * ALPHA_HIGH, 1.0)
 
                 # Plot dot
                 color = glycan_type_colors.get(glycan_type, '#CCCCCC')
-                ax_main.scatter(x_pos, y_pos, s=200, c=color, alpha=alpha,
-                                edgecolors='black', linewidths=0.5, zorder=3)
+                ax_main.scatter(x_pos, y_pos, s=DOT_HEATMAP_SIZE, c=color, alpha=alpha,
+                                edgecolors=EDGE_COLOR_BLACK, linewidths=0.5, zorder=3)
 
         # Add background shading for glycan type groups
         x_pos = 0
@@ -169,13 +177,13 @@ class GlycopeptideDotHeatmapMixin:
             if type_count > 0:
                 # Add light background
                 rect = Rectangle((x_pos - 0.5, -0.5), type_count, len(peptide_order),
-                                 linewidth=1, edgecolor='gray', facecolor='none',
-                                 linestyle='--', alpha=0.3)
+                                 linewidth=EDGE_LINEWIDTH_NORMAL, edgecolor=SEPARATOR_EDGE_COLOR, facecolor='none',
+                                 linestyle='--', alpha=ALPHA_MEDIUM_LIGHT)
                 ax_main.add_patch(rect)
 
                 # Add glycan type label at top
                 ax_main.text(x_pos + type_count / 2 - 0.5, len(peptide_order) + 0.5,
-                             glycan_type, ha='center', va='bottom', fontsize=10,
+                             glycan_type, ha='center', va='bottom', fontsize=ANNOTATION_SIZE,
                              fontweight='bold', color=glycan_type_colors[glycan_type])
 
                 x_pos += type_count
@@ -186,38 +194,38 @@ class GlycopeptideDotHeatmapMixin:
 
         # Set x-axis labels (glycan compositions)
         ax_main.set_xticks(range(len(glycan_order)))
-        ax_main.set_xticklabels(glycan_order, rotation=90, fontsize=8)
+        ax_main.set_xticklabels(glycan_order, rotation=90, fontsize=TICK_LABEL_SIZE)
 
         # Set y-axis labels (peptides)
         ax_main.set_yticks(range(len(peptide_order)))
-        ax_main.set_yticklabels(peptide_order, fontsize=8)
+        ax_main.set_yticklabels(peptide_order, fontsize=TICK_LABEL_SIZE)
 
-        ax_main.set_xlabel('Glycan Composition (grouped by type)', fontsize=12)
-        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=12)
+        ax_main.set_xlabel('Glycan Composition (grouped by type)', fontsize=AXIS_LABEL_SIZE)
+        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=AXIS_LABEL_SIZE)
 
         # Invert y-axis to have highest VIP at top
         ax_main.invert_yaxis()
 
         # Grid
-        ax_main.grid(True, alpha=0.2, linestyle=':', linewidth=0.5)
+        ax_main.grid(True, alpha=ALPHA_VERY_LIGHT, linestyle=':', linewidth=LINE_THIN)
         ax_main.set_axisbelow(True)
 
         # Create legend
         from matplotlib.patches import Patch
         legend_elements = [
-            Patch(facecolor=glycan_type_colors[gt], label=gt, alpha=0.7)
+            Patch(facecolor=glycan_type_colors[gt], label=gt, alpha=ALPHA_HIGH)
             for gt in glycan_type_order
         ]
-        legend_elements.append(Patch(facecolor='gray', label='Intensity: transparency', alpha=0.5))
+        legend_elements.append(Patch(facecolor='gray', label='Intensity: transparency', alpha=ALPHA_MEDIUM_HIGH))
 
         ax_main.legend(handles=legend_elements, loc='upper left',
-                       bbox_to_anchor=(1.02, 1), frameon=True, fontsize=10,
+                       bbox_to_anchor=(1.02, 1), frameon=True, fontsize=LEGEND_SIZE,
                        title='Glycan Type')
 
         # Title
         fig.suptitle(f'Glycopeptide Dot Heatmap - Sample {sample_name}\n'
                      f'(Top {len(peptide_order)} peptides by VIP score)',
-                     fontsize=14, fontweight='bold', y=0.995)
+                     fontsize=TITLE_SIZE, fontweight='bold', y=0.995)
 
         # Save plot
         output_file = self.output_dir / f'glycopeptide_dot_heatmap_{sample_name}.png'

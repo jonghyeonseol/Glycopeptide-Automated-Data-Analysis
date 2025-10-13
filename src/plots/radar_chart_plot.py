@@ -8,7 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
-from .plot_config import save_publication_figure, DPI_MAIN
+from .plot_config import (
+    save_publication_figure, DPI_MAIN, COLOR_CANCER, COLOR_NORMAL,
+    TITLE_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,
+    PLOT_LINE_LINEWIDTH,  # Linewidth constant
+    ALPHA_LIGHT, ALPHA_MEDIUM_LIGHT  # Alpha constants
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,11 +91,11 @@ class RadarChartPlotMixin:
         fig, ax = plt.subplots(figsize=figsize, subplot_kw=dict(projection='polar'))
 
         # Plot data
-        ax.plot(angles, cancer_values, 'o-', linewidth=2, label='Cancer', color='#E74C3C')
-        ax.fill(angles, cancer_values, alpha=0.25, color='#E74C3C')
+        ax.plot(angles, cancer_values, 'o-', linewidth=PLOT_LINE_LINEWIDTH, label='Cancer', color=COLOR_CANCER)
+        ax.fill(angles, cancer_values, alpha=ALPHA_LIGHT, color=COLOR_CANCER)
 
-        ax.plot(angles, normal_values, 'o-', linewidth=2, label='Normal', color='#3498DB')
-        ax.fill(angles, normal_values, alpha=0.25, color='#3498DB')
+        ax.plot(angles, normal_values, 'o-', linewidth=PLOT_LINE_LINEWIDTH, label='Normal', color=COLOR_NORMAL)
+        ax.fill(angles, normal_values, alpha=ALPHA_LIGHT, color=COLOR_NORMAL)
 
         # Fix axis to go in the right order and start at 12 o'clock
         ax.set_theta_offset(np.pi / 2)
@@ -98,22 +103,22 @@ class RadarChartPlotMixin:
 
         # Set category labels
         ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(categories, fontsize=11, fontweight='bold')
+        ax.set_xticklabels(categories, fontsize=ANNOTATION_SIZE, fontweight='bold')
 
         # Set y-axis limits (0-100%)
         ax.set_ylim(0, 100)
         ax.set_yticks([20, 40, 60, 80, 100])
-        ax.set_yticklabels(['20%', '40%', '60%', '80%', '100%'], fontsize=9)
+        ax.set_yticklabels(['20%', '40%', '60%', '80%', '100%'], fontsize=ANNOTATION_SIZE)
 
         # Add grid
-        ax.grid(True, alpha=0.3)
+        ax.grid(True, alpha=ALPHA_MEDIUM_LIGHT)
 
         # Add legend
-        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=12)
+        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=LEGEND_SIZE)
 
         # Title
         plt.title('Glycan Type Distribution: Cancer vs Normal\n(Mutually Exclusive Categories)',
-                  fontsize=14, fontweight='bold', pad=20)
+                  fontsize=TITLE_SIZE, fontweight='bold', pad=20)
 
         # Log totals for validation
         cancer_sum = sum(cancer_values[:-1])  # Exclude duplicated first element

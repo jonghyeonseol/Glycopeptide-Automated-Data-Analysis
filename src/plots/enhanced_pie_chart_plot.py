@@ -35,7 +35,15 @@ from .plot_config import (
     ANNOTATION_SIZE,
     save_publication_figure, DPI_MAIN,
     apply_publication_theme,  # ✨ Enhanced styling
-    DESIGN_SYSTEM_AVAILABLE
+    DESIGN_SYSTEM_AVAILABLE,
+    PLOT_LINE_LINEWIDTH,
+    EDGE_LINEWIDTH_THICK,
+    GRID_LINEWIDTH,
+    ALPHA_TRANSPARENT,
+    ALPHA_HIGH,
+    ANNOTATION_ALPHA,
+    ALPHA_MOSTLY_OPAQUE,
+    EDGE_COLOR_BLACK  # Edge color standardization
 )
 
 # Import premium design system if available
@@ -218,7 +226,7 @@ class PieChartPlotMixin:
         # Plot bars
         x_pos = np.arange(len(glycan_types))
         bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                       edgecolor='black', linewidth=1.5, alpha=0.9)
+                       edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
 
         # Add fold change values on top of bars
         for i, (bar, fc, fdr) in enumerate(zip(bars, fold_changes, fdr_values)):
@@ -245,10 +253,10 @@ class PieChartPlotMixin:
             if sig:
                 ax3.text(bar.get_x() + bar.get_width() / 2., y_pos + 0.15,
                          sig, ha='center', va='bottom',
-                         fontsize=14, weight='bold', color='black')
+                         fontsize=AXIS_LABEL_SIZE, weight='bold', color='black')
 
         # Add reference line at FC=1.0 (no change)
-        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=2, alpha=0.7, label='No change')
+        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH, label='No change')
 
         # Style fold change axis
         ax3.set_xticks(x_pos)
@@ -260,14 +268,14 @@ class PieChartPlotMixin:
         # Add legend for colors
         from matplotlib.patches import Patch
         legend_elements = [
-            Patch(facecolor=GROUP_PALETTE['Cancer'], edgecolor='black', label='Enriched in Cancer (>10%)'),
-            Patch(facecolor=GROUP_PALETTE['Normal'], edgecolor='black', label='Enriched in Normal (>10%)'),
-            Patch(facecolor='#95A5A6', edgecolor='black', label='Similar (<10% difference)')
+            Patch(facecolor=GROUP_PALETTE['Cancer'], edgecolor=EDGE_COLOR_BLACK, label='Enriched in Cancer (>10%)'),
+            Patch(facecolor=GROUP_PALETTE['Normal'], edgecolor=EDGE_COLOR_BLACK, label='Enriched in Normal (>10%)'),
+            Patch(facecolor='#95A5A6', edgecolor=EDGE_COLOR_BLACK, label='Similar (<10% difference)')
         ]
         ax3.legend(handles=legend_elements, loc='upper right', fontsize=LEGEND_SIZE)
 
         # Apply Prism-style grid
-        ax3.grid(True, alpha=0.15, linestyle='-', linewidth=0.5, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -412,17 +420,17 @@ class PieChartPlotMixin:
         # Plot bars
         x_pos = np.arange(len(primary_categories))
         bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                       edgecolor='black', linewidth=1.5, alpha=0.9)
+                       edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
 
         # Add fold change values
         for bar, fc in zip(bars, fold_changes):
             height = bar.get_height()
             ax3.text(bar.get_x() + bar.get_width() / 2., height + 0.05,
                      f'{fc:.2f}x', ha='center', va='bottom',
-                     fontsize=11, weight='bold')
+                     fontsize=ANNOTATION_SIZE, weight='bold')
 
         # Reference line
-        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=2, alpha=0.7)
+        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
 
         # Style axis
         ax3.set_xticks(x_pos)
@@ -430,7 +438,7 @@ class PieChartPlotMixin:
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
                       fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=0.15, linestyle='-', linewidth=0.5, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -568,17 +576,17 @@ class PieChartPlotMixin:
         # Plot bars
         x_pos = np.arange(len(secondary_categories))
         bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                       edgecolor='black', linewidth=1.5, alpha=0.9)
+                       edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
 
         # Add fold change values
         for bar, fc in zip(bars, fold_changes):
             height = bar.get_height()
             ax3.text(bar.get_x() + bar.get_width() / 2., height + 0.05,
                      f'{fc:.2f}x', ha='center', va='bottom',
-                     fontsize=11, weight='bold')
+                     fontsize=ANNOTATION_SIZE, weight='bold')
 
         # Reference line
-        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=2, alpha=0.7)
+        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
 
         # Style axis
         ax3.set_xticks(x_pos)
@@ -586,7 +594,7 @@ class PieChartPlotMixin:
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
                       fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=0.15, linestyle='-', linewidth=0.5, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -751,7 +759,7 @@ class PieChartPlotMixin:
                           fontsize=TITLE_SIZE, weight='bold', pad=15)
         else:
             ax1.text(0.5, 0.5, 'No upregulated\nfeatures found',
-                    ha='center', va='center', fontsize=14, transform=ax1.transAxes)
+                    ha='center', va='center', fontsize=AXIS_LABEL_SIZE, transform=ax1.transAxes)
             ax1.set_title(f'Upregulated in Cancer\nLog2 FC ≥ +{log2fc_threshold}\n(n=0 features)',
                           fontsize=TITLE_SIZE, weight='bold', pad=15)
 
@@ -772,7 +780,7 @@ class PieChartPlotMixin:
                           fontsize=TITLE_SIZE, weight='bold', pad=15)
         else:
             ax2.text(0.5, 0.5, 'No downregulated\nfeatures found',
-                    ha='center', va='center', fontsize=14, transform=ax2.transAxes)
+                    ha='center', va='center', fontsize=AXIS_LABEL_SIZE, transform=ax2.transAxes)
             ax2.set_title(f'Downregulated in Cancer\nLog2 FC ≤ -{log2fc_threshold}\n(n=0 features)',
                           fontsize=TITLE_SIZE, weight='bold', pad=15)
 
@@ -787,12 +795,12 @@ class PieChartPlotMixin:
 
         bars1 = ax3.bar(x_pos - width/2, up_values, width,
                        label=f'Upregulated (n={n_upregulated})',
-                       color=GROUP_PALETTE['Cancer'], edgecolor='black',
-                       linewidth=1.5, alpha=0.9)
+                       color=GROUP_PALETTE['Cancer'], edgecolor=EDGE_COLOR_BLACK,
+                       linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
         bars2 = ax3.bar(x_pos + width/2, down_values, width,
                        label=f'Downregulated (n={n_downregulated})',
-                       color=GROUP_PALETTE['Normal'], edgecolor='black',
-                       linewidth=1.5, alpha=0.9)
+                       color=GROUP_PALETTE['Normal'], edgecolor=EDGE_COLOR_BLACK,
+                       linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
 
         # Add count labels on bars
         for bar in bars1:
@@ -820,7 +828,7 @@ class PieChartPlotMixin:
         ax3.legend(loc='upper right', fontsize=LEGEND_SIZE)
 
         # Apply Prism-style grid
-        ax3.grid(True, alpha=0.15, linestyle='-', linewidth=0.5, axis='y', zorder=0)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=0)
         ax3.set_axisbelow(True)
 
         # Overall title with emphasis on "DIRECTIONAL" (moved above figure)

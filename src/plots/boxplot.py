@@ -23,10 +23,12 @@ from .plot_config import (
     apply_standard_axis_style, apply_standard_legend,
     AXIS_LABEL_SIZE, AXIS_LABEL_WEIGHT,
     TITLE_SIZE, TITLE_WEIGHT,
+    ANNOTATION_SIZE,  # Font constant
     add_sample_size_annotation,  # Phase 2.2 enhancement
     save_publication_figure,  # Phase 2.3: Optimized saving
     enhance_statistical_bracket, apply_publication_theme,  # ✨ Enhanced styling
-    DESIGN_SYSTEM_AVAILABLE
+    DESIGN_SYSTEM_AVAILABLE,
+    LINE_MEDIUM_THICK  # Linewidth constants
 )
 
 # Import premium design system if available
@@ -224,7 +226,7 @@ class BoxplotMixin:
                     ax, x1, x2, y_position,
                     text=annotation_text,
                     color='black',
-                    fontsize=11
+                    fontsize=ANNOTATION_SIZE
                 )
 
                 logger.info(
@@ -249,7 +251,7 @@ class BoxplotMixin:
         n_cancer = (boxplot_data['Group'] == 'Cancer').sum() // len(existing_types)
         n_normal = (boxplot_data['Group'] == 'Normal').sum() // len(existing_types)
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='upper left', fontsize=10)
+                                   location='upper left', fontsize=ANNOTATION_SIZE)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)
@@ -400,7 +402,7 @@ class BoxplotMixin:
 
                 # Draw line connecting the two groups
                 ax.plot([x1, x2], [y_position, y_position],
-                        color='black', linewidth=1.5, zorder=10)
+                        color='black', linewidth=LINE_MEDIUM_THICK, zorder=10)
 
                 # Add significance marker WITH effect size (Phase 1.1)
                 if not np.isnan(cohens_d):
@@ -414,7 +416,7 @@ class BoxplotMixin:
                     annotation_text,
                     ha='center',
                     va='bottom',
-                    fontsize=11,  # Slightly smaller for two-line text
+                    fontsize=ANNOTATION_SIZE,  # Slightly smaller for two-line text
                     fontweight='bold',
                     color='black',
                     zorder=11
@@ -442,7 +444,7 @@ class BoxplotMixin:
         n_cancer = (boxplot_data['Group'] == 'Cancer').sum() // len(existing_categories)
         n_normal = (boxplot_data['Group'] == 'Normal').sum() // len(existing_categories)
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='upper left', fontsize=10)
+                                   location='upper left', fontsize=ANNOTATION_SIZE)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)
@@ -492,7 +494,7 @@ class BoxplotMixin:
             else:
                 intensity_col = replace_empty_with_zero(df[sample])
 
-            group = 'Cancer' if sample.startswith('C') else 'Normal'
+            group = 'Cancer' if sample in cancer_samples else 'Normal'
 
             for idx, row in df.iterrows():
                 if row['PrimaryClassification'] in primary_categories:
@@ -552,7 +554,7 @@ class BoxplotMixin:
         n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
         n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='upper left', fontsize=10)
+                                   location='upper left', fontsize=ANNOTATION_SIZE)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)
@@ -598,7 +600,7 @@ class BoxplotMixin:
             else:
                 intensity_col = replace_empty_with_zero(df[sample])
 
-            group = 'Cancer' if sample.startswith('C') else 'Normal'
+            group = 'Cancer' if sample in cancer_samples else 'Normal'
 
             for idx, row in df.iterrows():
                 if row['SecondaryClassification'] in secondary_categories:
@@ -658,7 +660,7 @@ class BoxplotMixin:
         n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
         n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='upper left', fontsize=10)
+                                   location='upper left', fontsize=ANNOTATION_SIZE)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)
@@ -713,7 +715,7 @@ class BoxplotMixin:
                 subset_df = df_normalized[df_normalized['PrimaryClassification'] == classification]
 
                 for sample in sample_cols:
-                    group = 'Cancer' if sample.startswith('C') else 'Normal'
+                    group = 'Cancer' if sample in cancer_samples else 'Normal'
 
                     # Calculate mean directly (for single sample column)
                     if len(subset_df) > 0:
@@ -784,7 +786,7 @@ class BoxplotMixin:
             n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
             n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
             add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                       location='upper left', fontsize=10)
+                                       location='upper left', fontsize=ANNOTATION_SIZE)
 
             # ✨ ENHANCED: Apply publication theme
             apply_publication_theme(fig)
@@ -843,7 +845,7 @@ class BoxplotMixin:
                 subset_df = df_normalized[df_normalized['SecondaryClassification'] == classification]
 
                 for sample in sample_cols:
-                    group = 'Cancer' if sample.startswith('C') else 'Normal'
+                    group = 'Cancer' if sample in cancer_samples else 'Normal'
 
                     # Calculate mean directly (for single sample column)
                     if len(subset_df) > 0:
@@ -925,7 +927,7 @@ class BoxplotMixin:
             n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
             n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
             add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                       location='upper left', fontsize=10)
+                                       location='upper left', fontsize=ANNOTATION_SIZE)
 
             # ✨ ENHANCED: Apply publication theme
             apply_publication_theme(fig)

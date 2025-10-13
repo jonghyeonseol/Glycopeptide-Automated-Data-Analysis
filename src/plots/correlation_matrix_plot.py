@@ -25,7 +25,11 @@ from .plot_config import (
     CORR_FIGSIZE, CORR_VMIN, CORR_VMAX, CORR_CENTER_AUTO, CORR_CENTER_FIXED,
     CORR_CMAP, CORR_LINEWIDTH, CORR_LINECOLOR, CORR_ANNOT_FONTSIZE,
     CORR_SQUARE, CORR_DPI, HEATMAP_CMAP_CORRELATION,
-    save_publication_figure, apply_publication_theme, enhance_heatmap_colorbar
+    save_publication_figure, apply_publication_theme, enhance_heatmap_colorbar,
+    COLOR_CANCER, COLOR_NORMAL,
+    TITLE_SIZE, AXIS_LABEL_SIZE, ANNOTATION_SIZE,  # Font constants
+    PLOT_LINE_LINEWIDTH,  # Phase 10.3.3: Linewidth unification
+    ALPHA_MEDIUM_HIGH, ALPHA_MEDIUM_LIGHT  # Phase 10.3.4: Alpha unification
 )
 
 logger = logging.getLogger(__name__)
@@ -47,8 +51,8 @@ class CorrelationMatrixPlotMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
 
         # Create two separate correlation matrices
-        self._plot_single_correlation_matrix(df, cancer_samples, 'Cancer', '#E74C3C')
-        self._plot_single_correlation_matrix(df, normal_samples, 'Normal', '#3498DB')
+        self._plot_single_correlation_matrix(df, cancer_samples, 'Cancer', COLOR_CANCER)
+        self._plot_single_correlation_matrix(df, normal_samples, 'Normal', COLOR_NORMAL)
 
         logger.info("✓ Correlation matrices created")
 
@@ -139,7 +143,7 @@ class CorrelationMatrixPlotMixin:
         center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
         ax.set_title(f'Sample Correlation Matrix: {group_name} Samples\n'
                      f'(Upper: values, Lower: heatmap, center={center_text})',
-                     fontsize=14, fontweight='bold', pad=20)
+                     fontsize=TITLE_SIZE, fontweight='bold', pad=20)
 
         # Apply publication theme
         apply_publication_theme(fig)
@@ -231,7 +235,7 @@ class CorrelationMatrixPlotMixin:
         center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
         g.fig.suptitle(f'Hierarchical Clustering: {group_name} Sample Correlation\n'
                        f'(center={center_text})',
-                       fontsize=14, fontweight='bold', y=0.98)
+                       fontsize=TITLE_SIZE, fontweight='bold', y=0.98)
 
         # Save plot
         output_file = self.output_dir / f'correlation_clustermap_{group_name.lower()}.png'
@@ -316,35 +320,35 @@ class CorrelationMatrixPlotMixin:
                     annot=False)  # Too many samples for annotations
 
         # Add quadrant boundary lines
-        ax.axhline(y=n_cancer, color='black', linewidth=2, linestyle='--', alpha=0.5)
-        ax.axvline(x=n_cancer, color='black', linewidth=2, linestyle='--', alpha=0.5)
+        ax.axhline(y=n_cancer, color='black', linewidth=PLOT_LINE_LINEWIDTH, linestyle='--', alpha=ALPHA_MEDIUM_HIGH)
+        ax.axvline(x=n_cancer, color='black', linewidth=PLOT_LINE_LINEWIDTH, linestyle='--', alpha=ALPHA_MEDIUM_HIGH)
 
         # Add group labels
         cancer_center = n_cancer / 2
         normal_center = n_cancer + len(normal_samples) / 2
 
         ax.text(cancer_center, -1, 'Cancer', ha='center', va='top',
-               fontsize=14, fontweight='bold', color='#E41A1C')
+               fontsize=AXIS_LABEL_SIZE, fontweight='bold', color='#E41A1C')
         ax.text(normal_center, -1, 'Normal', ha='center', va='top',
-               fontsize=14, fontweight='bold', color='#377EB8')
+               fontsize=AXIS_LABEL_SIZE, fontweight='bold', color='#377EB8')
         ax.text(-1, cancer_center, 'Cancer', ha='right', va='center',
-               fontsize=14, fontweight='bold', color='#E41A1C', rotation=90)
+               fontsize=AXIS_LABEL_SIZE, fontweight='bold', color='#E41A1C', rotation=90)
         ax.text(-1, normal_center, 'Normal', ha='right', va='center',
-               fontsize=14, fontweight='bold', color='#377EB8', rotation=90)
+               fontsize=AXIS_LABEL_SIZE, fontweight='bold', color='#377EB8', rotation=90)
 
         # Add quadrant annotations
         ax.text(cancer_center, cancer_center, 'Cancer-Cancer\n(Within-Group)',
-                ha='center', va='center', fontsize=10, alpha=0.3, fontweight='bold')
+                ha='center', va='center', fontsize=ANNOTATION_SIZE, alpha=ALPHA_MEDIUM_LIGHT, fontweight='bold')
         ax.text(normal_center, normal_center, 'Normal-Normal\n(Within-Group)',
-                ha='center', va='center', fontsize=10, alpha=0.3, fontweight='bold')
+                ha='center', va='center', fontsize=ANNOTATION_SIZE, alpha=ALPHA_MEDIUM_LIGHT, fontweight='bold')
         ax.text(normal_center, cancer_center, 'Cancer-Normal\n(Cross-Group)',
-                ha='center', va='center', fontsize=10, alpha=0.3, fontweight='bold')
+                ha='center', va='center', fontsize=ANNOTATION_SIZE, alpha=ALPHA_MEDIUM_LIGHT, fontweight='bold')
 
         center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
         ax.set_title(f'Sample Correlation Matrix: Combined Analysis (Cancer + Normal)\n'
                      f'Cross-group correlations reveal biological vs technical variation\n'
                      f'(center={center_text})',
-                     fontsize=14, fontweight='bold', pad=20)
+                     fontsize=TITLE_SIZE, fontweight='bold', pad=20)
 
         # Apply publication theme
         apply_publication_theme(fig)
@@ -429,9 +433,9 @@ class CorrelationMatrixPlotMixin:
         ax.set_title(f'Cancer vs Normal Cross-Group Correlation\n'
                      f'Higher values indicate similar glycosylation patterns\n'
                      f'(center={center_text})',
-                     fontsize=14, fontweight='bold', pad=20)
-        ax.set_xlabel('Normal Samples', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Cancer Samples', fontsize=12, fontweight='bold')
+                     fontsize=TITLE_SIZE, fontweight='bold', pad=20)
+        ax.set_xlabel('Normal Samples', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax.set_ylabel('Cancer Samples', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
 
         # Apply publication theme
         apply_publication_theme(fig)
@@ -527,7 +531,7 @@ class CorrelationMatrixPlotMixin:
         center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
         g.fig.suptitle(f'Hierarchical Clustering: All Samples (Cancer + Normal)\n'
                        f'Color bar: Red=Cancer, Blue=Normal (center={center_text})',
-                       fontsize=14, fontweight='bold', y=0.98)
+                       fontsize=TITLE_SIZE, fontweight='bold', y=0.98)
 
         # Save plot
         output_file = self.output_dir / 'correlation_clustermap_combined.png'

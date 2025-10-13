@@ -19,7 +19,10 @@ from .plot_config import (
     EXTENDED_CATEGORY_COLORS,
     DEFAULT_FALLBACK_COLOR,
     save_publication_figure,
-    DPI_COMPLEX
+    DPI_COMPLEX,
+    TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,  # Font constants
+    ALPHA_VERY_HIGH,  # Alpha constants
+    EDGE_COLOR_BLACK  # Edge color standardization
 )
 
 logger = logging.getLogger(__name__)
@@ -136,20 +139,20 @@ class SiteSpecificHeatmapMixin:
                     xticklabels=row_labels,
                     linewidths=0.5, linecolor='white')
 
-        ax_main.set_xlabel('Glycopeptide (Peptide_GlycanComposition)', fontsize=11, fontweight='bold')
+        ax_main.set_xlabel('Glycopeptide (Peptide_GlycanComposition)', fontsize=ANNOTATION_SIZE, fontweight='bold')
         ax_main.set_ylabel('')
         ax_main.set_title(f'Site-Specific Glycosylation: Top {top_n_peptides} Peptides by VIP Score',
-                          fontsize=14, fontweight='bold', pad=20)
+                          fontsize=TITLE_SIZE, fontweight='bold', pad=20)
 
         # Rotate x-axis labels
-        ax_main.set_xticklabels(ax_main.get_xticklabels(), rotation=90, ha='right', fontsize=7)
+        ax_main.set_xticklabels(ax_main.get_xticklabels(), rotation=90, ha='right', fontsize=TICK_LABEL_SIZE)
 
         # Plot annotation bar
         ax_anno.imshow(anno_indices, aspect='auto', cmap=cmap_anno, vmin=0, vmax=len(unique_types) - 1)
         ax_anno.set_xticks([])
         ax_anno.set_yticks([0])
-        ax_anno.set_yticklabels(['Glycan Type'], fontsize=10)
-        ax_anno.set_title('Type', fontsize=10, fontweight='bold')
+        ax_anno.set_yticklabels(['Glycan Type'], fontsize=ANNOTATION_SIZE)
+        ax_anno.set_title('Type', fontsize=ANNOTATION_SIZE, fontweight='bold')
 
         # Create custom legend for glycan types (use centralized fallback)
         from matplotlib.patches import Patch
@@ -160,8 +163,8 @@ class SiteSpecificHeatmapMixin:
         # Position legend on the RIGHT side (outside plot area, non-interruptive)
         ax_main.legend(handles=legend_elements, loc='center left',
                        bbox_to_anchor=(1.12, 0.5), ncol=1,
-                       frameon=True, fontsize=10, title='Glycan Type',
-                       title_fontsize=11, framealpha=1.0, edgecolor='black')
+                       frameon=True, fontsize=LEGEND_SIZE, title='Glycan Type',
+                       title_fontsize=ANNOTATION_SIZE, framealpha=ALPHA_VERY_HIGH, edgecolor=EDGE_COLOR_BLACK)
 
         plt.tight_layout()
 

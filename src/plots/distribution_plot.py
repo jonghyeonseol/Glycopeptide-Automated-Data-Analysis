@@ -16,7 +16,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import logging
 from ..utils import save_trace_data
-from .plot_config import save_publication_figure
+from .plot_config import save_publication_figure, DPI_MAIN
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +65,8 @@ class DistributionPlotMixin:
 
         # Save plot using standardized function
         output_file = self.output_dir / 'glycan_type_distribution.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved glycan type distribution to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved glycan type distribution to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({'GlycanType': type_counts.index, 'Count': type_counts.values})

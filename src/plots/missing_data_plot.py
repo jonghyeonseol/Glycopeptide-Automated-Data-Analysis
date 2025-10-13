@@ -21,7 +21,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from ..utils import save_trace_data, get_sample_columns
-from .plot_config import save_publication_figure
+from .plot_config import (
+    save_publication_figure, COLOR_CANCER, COLOR_NORMAL, DPI_MAIN,
+    TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,
+    LINE_THIN, LINE_THICK,  # Linewidth constants
+    ALPHA_MEDIUM_LIGHT, ALPHA_VERY_HIGH,  # Alpha constants,
+    EDGE_COLOR_NONE,
+    EDGE_COLOR_BLACK  # Edge color standardization
+)
 
 logger = logging.getLogger(__name__)
 
@@ -115,19 +122,19 @@ class MissingDataPlotMixin:
                             interpolation='nearest', vmin=0, vmax=1)
 
         # Sample group colors (Cancer vs Normal)
-        sample_colors = ['#E74C3C' if s.startswith('C') else '#3498DB' for s in all_samples]
+        sample_colors = [COLOR_CANCER if s in cancer_samples else COLOR_NORMAL for s in all_samples]
 
         # Add sample group color bar at top
         for i, (sample, color) in enumerate(zip(all_samples, sample_colors)):
             ax_main.add_patch(plt.Rectangle((i - 0.5, -0.5), 1, 0.3,
-                                            facecolor=color, edgecolor='none',
+                                            facecolor=color, edgecolor=EDGE_COLOR_NONE,
                                             clip_on=False, transform=ax_main.transData))
 
         # Labels and styling
-        ax_main.set_xlabel('Sample', fontsize=12, fontweight='bold')
-        ax_main.set_ylabel('Glycopeptide (subsampled)', fontsize=12, fontweight='bold')
+        ax_main.set_xlabel('Sample', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax_main.set_ylabel('Glycopeptide (subsampled)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
         ax_main.set_xticks(range(len(all_samples)))
-        ax_main.set_xticklabels(all_samples, rotation=90, fontsize=8)
+        ax_main.set_xticklabels(all_samples, rotation=90, fontsize=TICK_LABEL_SIZE)
         ax_main.set_yticks([])  # Too many to show
         ax_main.tick_params(axis='x', which='both', bottom=False, top=False)
 
@@ -135,18 +142,18 @@ class MissingDataPlotMixin:
         # TOP BAR CHART - Sample detection rates
         # =====================================================================
         _ = ax_top.bar(range(len(all_samples)), sample_detection.values,
-                       color=sample_colors, edgecolor='black', linewidth=0.5)
+                       color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=LINE_THIN)
 
         # Add threshold line at 30%
-        ax_top.axhline(30, color='red', linestyle='--', linewidth=2,
+        ax_top.axhline(30, color='red', linestyle='--', linewidth=LINE_THICK,
                        label='30% filter threshold', zorder=10)
 
         ax_top.set_ylim(0, 100)
-        ax_top.set_ylabel('Detection\nRate (%)', fontsize=10, fontweight='bold')
+        ax_top.set_ylabel('Detection\nRate (%)', fontsize=ANNOTATION_SIZE, fontweight='bold')
         ax_top.set_title('Missing Data Matrix: Detection Completeness',
-                         fontsize=14, fontweight='bold', pad=15)
-        ax_top.legend(loc='upper right', fontsize=8)
-        ax_top.grid(axis='y', alpha=0.3)
+                         fontsize=TITLE_SIZE, fontweight='bold', pad=15)
+        ax_top.legend(loc='upper right', fontsize=LEGEND_SIZE)
+        ax_top.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
         plt.setp(ax_top.get_xticklabels(), visible=False)
         ax_top.tick_params(axis='x', which='both', bottom=False)
 
@@ -154,14 +161,14 @@ class MissingDataPlotMixin:
         # RIGHT BAR CHART - Glycopeptide detection rates
         # =====================================================================
         ax_right.barh(range(len(display_detection)), display_detection.values,
-                      color='#27AE60', edgecolor='black', linewidth=0.5)
+                      color='#27AE60', edgecolor=EDGE_COLOR_BLACK, linewidth=LINE_THIN)
 
         # Add threshold line at 30%
-        ax_right.axvline(30, color='red', linestyle='--', linewidth=2, zorder=10)
+        ax_right.axvline(30, color='red', linestyle='--', linewidth=LINE_THICK, zorder=10)
 
         ax_right.set_xlim(0, 100)
-        ax_right.set_xlabel('Detection\nRate (%)', fontsize=10, fontweight='bold')
-        ax_right.grid(axis='x', alpha=0.3)
+        ax_right.set_xlabel('Detection\nRate (%)', fontsize=ANNOTATION_SIZE, fontweight='bold')
+        ax_right.grid(axis='x', alpha=ALPHA_MEDIUM_LIGHT)
         plt.setp(ax_right.get_yticklabels(), visible=False)
         ax_right.tick_params(axis='y', which='both', left=False)
 
@@ -182,8 +189,8 @@ class MissingDataPlotMixin:
         stats_text += f"Samples: {n_samples} ({len(cancer_samples)}C, {len(normal_samples)}N)"
 
         ax_main.text(0.02, 0.98, stats_text, transform=ax_main.transAxes,
-                     fontsize=9, verticalalignment='top',
-                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8),
+                     fontsize=ANNOTATION_SIZE, verticalalignment='top',
+                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=ALPHA_VERY_HIGH),
                      family='monospace', zorder=1000)
 
         # =====================================================================
@@ -206,19 +213,19 @@ class MissingDataPlotMixin:
         else:
             integrity_text += f"✓ Balanced detection: C={cancer_mean:.1f}%, N={normal_mean:.1f}%"
 
-        fig.text(0.02, 0.02, integrity_text, fontsize=8, family='monospace',
+        fig.text(0.02, 0.02, integrity_text, fontsize=ANNOTATION_SIZE, family='monospace',
                  verticalalignment='bottom',
-                 bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+                 bbox=dict(boxstyle='round', facecolor='lightblue', alpha=ALPHA_MEDIUM_HIGH))
 
         # Save plot using standardized function
         output_file = self.output_dir / 'missing_data_matrix.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved missing data matrix to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved missing data matrix to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data - detection rates per sample
         trace_data = pd.DataFrame({
             'Sample': all_samples,
-            'Group': ['Cancer' if s.startswith('C') else 'Normal' for s in all_samples],
+            'Group': ['Cancer' if s in cancer_samples else 'Normal' for s in all_samples],
             'Detection_Rate_Percent': sample_detection.values,
             'Detected_Count': detection_matrix.sum(axis=0).values,
             'Total_Possible': n_glycopeptides

@@ -14,7 +14,9 @@ from .plot_config import (
     apply_standard_legend,
     save_publication_figure, HISTOGRAM_DPI,
     apply_publication_theme,  # ✨ Enhanced styling
-    DESIGN_SYSTEM_AVAILABLE
+    DESIGN_SYSTEM_AVAILABLE,
+    EDGE_LINEWIDTH_THIN, EDGE_LINEWIDTH_NORMAL,  # Centralized linewidth constants
+    EDGE_COLOR_BLACK  # Edge color standardization
 )
 
 # Import premium design system if available
@@ -105,8 +107,8 @@ class HistogramMixin:
             ax=ax,
             color=[colors[col] for col in column_order],
             width=0.8,
-            edgecolor='black',
-            linewidth=0.5
+            edgecolor=EDGE_COLOR_BLACK,
+            linewidth=EDGE_LINEWIDTH_THIN
         )
 
         # Apply standardized styling
@@ -216,8 +218,8 @@ class HistogramMixin:
             ax=ax,
             color=[colors_primary[cat] for cat in primary_categories],
             width=0.8,
-            edgecolor='black',
-            linewidth=0.5
+            edgecolor=EDGE_COLOR_BLACK,
+            linewidth=EDGE_LINEWIDTH_THIN
         )
 
         if normalization == 'aggregated':
@@ -327,8 +329,8 @@ class HistogramMixin:
             ax=ax,
             color=[colors_secondary[cat] for cat in secondary_categories],
             width=0.8,
-            edgecolor='black',
-            linewidth=0.5
+            edgecolor=EDGE_COLOR_BLACK,
+            linewidth=EDGE_LINEWIDTH_THIN
         )
 
         if normalization == 'aggregated':
@@ -419,8 +421,8 @@ class HistogramMixin:
             ax=ax,
             color=[GROUP_PALETTE[g] for g in plot_df_t.columns],
             width=0.7,
-            edgecolor='black',
-            linewidth=1
+            edgecolor=EDGE_COLOR_BLACK,
+            linewidth=EDGE_LINEWIDTH_NORMAL
         )
 
         # Apply standardized styling
@@ -503,8 +505,8 @@ class HistogramMixin:
             ax=ax,
             color=[GROUP_PALETTE[g] for g in plot_df_t.columns],
             width=0.7,
-            edgecolor='black',
-            linewidth=1
+            edgecolor=EDGE_COLOR_BLACK,
+            linewidth=EDGE_LINEWIDTH_NORMAL
         )
 
         # Apply standardized styling

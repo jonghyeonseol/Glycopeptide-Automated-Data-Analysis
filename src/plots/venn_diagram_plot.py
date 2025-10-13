@@ -23,7 +23,10 @@ from .plot_config import (
     VENN_FIGSIZE, VENN_COLORS, VENN_ALPHA, VENN_LINEWIDTH, VENN_LINESTYLE,
     VENN_LABEL_FONTSIZE, VENN_SUBSET_FONTSIZE, VENN_TITLE_FONTSIZE,
     VENN_STATS_FONTSIZE, VENN_SUBSET_LABEL_THRESHOLD, VENN_DPI,
-    save_publication_figure
+    save_publication_figure,
+    ALPHA_HIGH, ALPHA_VERY_HIGH,  # Alpha constants
+    EDGE_COLOR_NONE,
+    SEPARATOR_EDGE_COLOR  # Edge color standardization
 )
 
 logger = logging.getLogger(__name__)
@@ -173,8 +176,8 @@ class VennDiagramPlotMixin:
                     # Add subtle background box for readability
                     text.set_bbox(dict(boxstyle='round,pad=0.3',
                                       facecolor='white',
-                                      alpha=0.7,
-                                      edgecolor='none'))
+                                      alpha=ALPHA_HIGH,
+                                      edgecolor=EDGE_COLOR_NONE))
 
                     logger.debug(f"  Subset label: {current_value} → '{formatted_label}'")
 
@@ -212,7 +215,7 @@ class VennDiagramPlotMixin:
                 fontsize=VENN_STATS_FONTSIZE,
                 verticalalignment='center',
                 bbox=dict(boxstyle='round', facecolor='white',
-                         alpha=0.8, edgecolor='gray', linewidth=1.5))
+                         alpha=ALPHA_VERY_HIGH, edgecolor=SEPARATOR_EDGE_COLOR, linewidth=VENN_LINEWIDTH))
 
         logger.info(f"Venn diagram statistics: Total={total_glycopeptides}, "
                    f"Sial_only={sial_only}, Fuc_only={fuc_only}, HM_only={hm_only}, "

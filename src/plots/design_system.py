@@ -324,13 +324,14 @@ class VisualEffects:
         cmap = mcolors.LinearSegmentedColormap.from_list('bg_gradient', [color_start, color_end])
 
         # Apply as background with higher alpha for better visibility
+        from .plot_config import ALPHA_MODERATE, EDGE_COLOR_NONE
         ax.imshow(gradient, aspect='auto', cmap=cmap,
                  extent=ax.get_xlim() + ax.get_ylim(),
-                 zorder=0, alpha=0.6)
+                 zorder=0, alpha=ALPHA_MODERATE)
 
     @staticmethod
     def create_glassmorphism_box(ax, x: float, y: float, width: float, height: float,
-                                 blur_alpha: float = 0.15, border_color: str = '#FFFFFF'):
+                                 blur_alpha: float = None, border_color: str = '#FFFFFF'):
         """
         Create glassmorphism (frosted glass) effect box
 
@@ -338,9 +339,13 @@ class VisualEffects:
             ax: Matplotlib axes
             x, y: Box position (data coordinates)
             width, height: Box dimensions
-            blur_alpha: Background blur simulation (via alpha)
+            blur_alpha: Background blur simulation (via alpha), defaults to ALPHA_TRANSPARENT
             border_color: Border glow color
         """
+        from .plot_config import ALPHA_TRANSPARENT, ALPHA_MEDIUM_LIGHT
+        if blur_alpha is None:
+            blur_alpha = ALPHA_TRANSPARENT
+
         # Semi-transparent background
         box = Rectangle((x, y), width, height,
                        facecolor='white',
@@ -350,7 +355,7 @@ class VisualEffects:
                        zorder=100)
 
         # Add subtle glow to border
-        VisualEffects.create_glow_effect(ax, box, glow_color=border_color, intensity=0.3)
+        VisualEffects.create_glow_effect(ax, box, glow_color=border_color, intensity=ALPHA_MEDIUM_LIGHT)
 
         ax.add_patch(box)
         return box
@@ -474,12 +479,13 @@ class SmartAnnotation:
         x_offset, y_offset = ax.transLimits.transform((x, y))
 
         # Create fancy annotation
+        from .plot_config import ALPHA_MOSTLY_OPAQUE, ALPHA_VERY_HIGH
         bbox_props = dict(
             boxstyle=f'{style},pad=0.6' if style == 'rounded' else style,
             facecolor='white',
             edgecolor=ColorSystem.GRAY_400,
             linewidth=2,
-            alpha=0.95
+            alpha=ALPHA_MOSTLY_OPAQUE
         )
 
         # Add callout with curved arrow
@@ -496,7 +502,7 @@ class SmartAnnotation:
                 connectionstyle='arc3,rad=0.3',  # Curved
                 color=ColorSystem.GRAY_600,
                 linewidth=1.5,
-                alpha=0.8
+                alpha=ALPHA_VERY_HIGH
             ),
             zorder=200
         )
@@ -543,7 +549,7 @@ class PanelSystem:
         # Create circular background
         circle = Circle((x, y), 0.04, transform=ax.transAxes,
                        facecolor=ColorSystem.GRAY_800,
-                       edgecolor='none',
+                       edgecolor=EDGE_COLOR_NONE,
                        zorder=1000,
                        clip_on=False)
         ax.add_patch(circle)

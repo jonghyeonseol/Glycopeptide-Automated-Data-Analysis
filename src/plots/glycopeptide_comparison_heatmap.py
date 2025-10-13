@@ -10,13 +10,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import logging
-from ..utils import save_trace_data, calculate_fold_change
+from ..utils import save_trace_data, calculate_fold_change, get_sample_columns
 from ..data_preparation import (
     DataPreparationConfig,
     prepare_visualization_data,
     calculate_group_statistics_standardized
 )
-from .plot_config import EXTENDED_CATEGORY_COLORS, save_publication_figure, DPI_COMPLEX
+from .plot_config import (
+    EXTENDED_CATEGORY_COLORS, save_publication_figure, DPI_COMPLEX, COLOR_CANCER, COLOR_NORMAL,
+    TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,
+    PLOT_LINE_LINEWIDTH, PLOT_LINE_LINEWIDTH_THICK,
+    LINE_MEDIUM, LINE_MEDIUM_THIN, LINE_NORMAL,
+    GRID_LINEWIDTH, GRID_LINEWIDTH_THIN, GRID_LINEWIDTH_THICK,
+    EDGE_LINEWIDTH_THICK,
+    ALPHA_VERY_LIGHT, ALPHA_LIGHT, ALPHA_MEDIUM_LIGHT, ALPHA_MEDIUM, ALPHA_MEDIUM_HIGH,
+    ALPHA_MODERATE, ALPHA_HIGH, ALPHA_VERY_HIGH, ALPHA_NEAR_OPAQUE, ALPHA_ALMOST_OPAQUE,
+    POINT_ALPHA, OVERLAY_ALPHA, FRAME_ALPHA, ANNOTATION_ALPHA,
+    SCATTER_SIZE_SMALL, SCATTER_SIZE_LARGE, MARKER_SIZE_SMALL,
+    LINE_MARKER_SIZE, LEGEND_MARKER_SIZE, LEGEND_MARKER_SIZE_LARGE,
+    EDGE_COLOR_WHITE, FRAME_EDGE_COLOR, SEPARATOR_EDGE_COLOR, MARKER_EDGE_COLOR_LIGHT
+)
 
 logger = logging.getLogger(__name__)
 
@@ -194,23 +207,23 @@ class GlycopeptideComparisonHeatmapMixin:
             normal_intensities.append(normal_int)
 
         x_pos = np.arange(len(glycan_order))
-        ax_top.plot(x_pos, cancer_intensities, color='#E74C3C', linewidth=2.5,
-                    marker='o', markersize=6, label='Cancer', alpha=0.85,
-                    markeredgecolor='white', markeredgewidth=0.5)
-        ax_top.plot(x_pos, normal_intensities, color='#3498DB', linewidth=2.5,
-                    marker='s', markersize=6, label='Normal', alpha=0.85,
-                    markeredgecolor='white', markeredgewidth=0.5)
+        ax_top.plot(x_pos, cancer_intensities, color=COLOR_CANCER, linewidth=PLOT_LINE_LINEWIDTH_THICK,
+                    marker='o', markersize=LINE_MARKER_SIZE, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
+                    markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH)
+        ax_top.plot(x_pos, normal_intensities, color=COLOR_NORMAL, linewidth=PLOT_LINE_LINEWIDTH_THICK,
+                    marker='s', markersize=LINE_MARKER_SIZE, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
+                    markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
-        ax_top.set_ylabel('Average\nIntensity', fontsize=12, fontweight='bold')
+        ax_top.set_ylabel('Average\nIntensity', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
 
         # Add vertical grid lines at glycan positions for PERFECT alignment with heatmap below
         ax_top.set_xticks(range(len(glycan_order)), minor=False)
         ax_top.set_xticklabels([])  # Hide labels but keep ticks for grid
-        ax_top.grid(axis='y', alpha=0.4, linestyle='--', linewidth=0.8)
-        ax_top.grid(axis='x', alpha=0.25, linestyle='-', linewidth=0.6, color='#BBBBBB')
+        ax_top.grid(axis='y', alpha=ALPHA_MEDIUM, linestyle='--', linewidth=LINE_MEDIUM_THIN)
+        ax_top.grid(axis='x', alpha=ALPHA_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH_THICK, color='#BBBBBB')
 
-        ax_top.legend(loc='upper right', fontsize=11, framealpha=0.9, edgecolor='#333')
+        ax_top.legend(loc='upper right', fontsize=ANNOTATION_SIZE, framealpha=FRAME_ALPHA, edgecolor=FRAME_EDGE_COLOR)
         ax_top.spines['bottom'].set_visible(False)
         ax_top.spines['top'].set_visible(False)
         ax_top.spines['right'].set_visible(False)
@@ -224,15 +237,15 @@ class GlycopeptideComparisonHeatmapMixin:
             width = pos_info['end'] - pos_info['start']
             rect = Rectangle((pos_info['start'] - 0.5, 0), width, 1,
                              facecolor=glycan_type_colors[glycan_type],
-                             edgecolor='#333', linewidth=1.5, alpha=0.85)
+                             edgecolor=FRAME_EDGE_COLOR, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_NEAR_OPAQUE)
             ax_colorbar.add_patch(rect)
 
             # Add glycan type label in center - larger and more visible
             center_x = (pos_info['start'] + pos_info['end']) / 2 - 0.5
             ax_colorbar.text(center_x, 0.5, glycan_type, ha='center', va='center',
-                             fontsize=16, fontweight='bold', color='white',
-                             bbox=dict(boxstyle='round,pad=0.4', facecolor='black', alpha=0.6,
-                                       edgecolor='white', linewidth=1.5))
+                             fontsize=TITLE_SIZE, fontweight='bold', color='white',
+                             bbox=dict(boxstyle='round,pad=0.4', facecolor='black', alpha=OVERLAY_ALPHA,
+                                       edgecolor=EDGE_COLOR_WHITE, linewidth=EDGE_LINEWIDTH_THICK))
 
         # Hide axes
         ax_colorbar.set_xticks([])
@@ -269,27 +282,27 @@ class GlycopeptideComparisonHeatmapMixin:
 
             # Set linewidth based on qualitative difference
             if is_qualitatively_different:
-                linewidth = 5.0  # Bold for qualitative difference
+                linewidth = 5.0  # Bold for qualitative difference (NOTE: Using literal 5.0 - custom heavy emphasis for standard heatmap)
             else:
-                linewidth = 2.5  # Normal for both groups present
+                linewidth = PLOT_LINE_LINEWIDTH_THICK  # Normal for both groups present
 
             # Plot Cancer marker (× symbol)
             if has_cancer:
-                ax_main.scatter(x_pos, y_pos, s=400,
+                ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_LARGE,
                                marker='x',
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
-                               alpha=0.8,
+                               alpha=POINT_ALPHA,
                                zorder=4,
                                label='_nolegend_')
 
             # Plot Normal marker (+ symbol)
             if has_normal:
-                ax_main.scatter(x_pos, y_pos, s=400,
+                ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_LARGE,
                                marker='+',
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
-                               alpha=0.8,
+                               alpha=POINT_ALPHA,
                                zorder=3,
                                label='_nolegend_')
 
@@ -297,7 +310,7 @@ class GlycopeptideComparisonHeatmapMixin:
         for glycan_type, pos_info in glycan_type_positions.items():
             if pos_info['end'] < len(glycan_order):  # Don't draw after last group
                 ax_main.axvline(pos_info['end'] - 0.5, color='gray',
-                                linestyle='--', linewidth=1.5, alpha=0.4, zorder=1)
+                                linestyle='--', linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MEDIUM, zorder=1)
 
         # Set axis properties with equal aspect ratio for square cells
         ax_main.set_aspect('equal', adjustable='box')
@@ -306,25 +319,25 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # Add x-axis glycan composition labels (rotated 45 degrees clockwise)
         ax_main.set_xticks(range(len(glycan_order)))
-        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=11, ha='right')
-        ax_main.set_xlabel('Glycan Composition', fontsize=12, fontweight='bold', labelpad=10)
+        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=TICK_LABEL_SIZE, ha='right')
+        ax_main.set_xlabel('Glycan Composition', fontsize=AXIS_LABEL_SIZE, fontweight='bold', labelpad=10)
 
         # Set y-axis labels (peptides) - larger font
         ax_main.set_yticks(range(len(peptide_order)))
-        ax_main.set_yticklabels(peptide_order, fontsize=10)
-        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=13, fontweight='bold')
+        ax_main.set_yticklabels(peptide_order, fontsize=TICK_LABEL_SIZE)
+        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
 
         # Invert y-axis to have highest VIP at top
         ax_main.invert_yaxis()
 
         # Grid - enhanced visibility
-        ax_main.grid(True, alpha=0.5, linestyle='-', linewidth=1.0, color='#BBBBBB', zorder=0)
+        ax_main.grid(True, alpha=ALPHA_MEDIUM_HIGH, linestyle='-', linewidth=LINE_NORMAL, color='#BBBBBB', zorder=0)
         ax_main.set_axisbelow(True)
 
         # Add minor grid for better cell separation
         ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
         ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
-        ax_main.grid(which='minor', alpha=0.3, linestyle='-', linewidth=0.5, color='#DDDDDD', zorder=0)
+        ax_main.grid(which='minor', alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#DDDDDD', zorder=0)
 
         # === LEGEND ===
         from matplotlib.patches import Patch
@@ -336,35 +349,35 @@ class GlycopeptideComparisonHeatmapMixin:
         for gt in glycan_type_order:
             if gt in glycan_type_positions:
                 legend_elements.append(Patch(facecolor=glycan_type_colors[gt],
-                                             label=f'{gt}', alpha=0.85, edgecolor='#333'))
+                                             label=f'{gt}', alpha=ALPHA_NEAR_OPAQUE, edgecolor=FRAME_EDGE_COLOR))
 
         # Symbol indicators - linewidth shows qualitative difference
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                      markerfacecolor='gray', markersize=12,
-                                      markeredgewidth=2.5, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
+                                      markeredgewidth=PLOT_LINE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer (both groups)'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                      markerfacecolor='gray', markersize=12,
-                                      markeredgewidth=2.5, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
+                                      markeredgewidth=PLOT_LINE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal (both groups)'))
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                      markerfacecolor='gray', markersize=12,
-                                      markeredgewidth=5.0, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
+                                      markeredgewidth=5.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer only (bold)'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                      markerfacecolor='gray', markersize=12,
-                                      markeredgewidth=5.0, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
+                                      markeredgewidth=5.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal only (bold)'))
 
         ax_main.legend(handles=legend_elements, loc='upper left',
-                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=12,
-                       title='Legend', title_fontsize=14, framealpha=0.95,
-                       edgecolor='#333', fancybox=True, shadow=True)
+                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=LEGEND_SIZE,
+                       title='Legend', title_fontsize=AXIS_LABEL_SIZE, framealpha=ALPHA_ALMOST_OPAQUE,
+                       edgecolor=FRAME_EDGE_COLOR, fancybox=True, shadow=True)
 
         # === TITLE ===
         fig.suptitle('Glycopeptide Comparison Heatmap: Cancer vs Normal\n'
                      f'(Top {len(peptide_order)} peptides by VIP score)',
-                     fontsize=18, fontweight='bold', y=0.995)
+                     fontsize=TITLE_SIZE, fontweight='bold', y=0.995)
 
         # Save plot
         output_file = self.output_dir / 'glycopeptide_comparison_heatmap.png'
@@ -386,8 +399,7 @@ class GlycopeptideComparisonHeatmapMixin:
         trace_data['Plot_Y_Position'] = trace_data['Peptide'].map(peptide_to_idx)
 
         # Add statistical information
-        cancer_samples = [col for col in df_plot.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df_plot.columns if col.startswith('N') and col[1:].isdigit()]
+        cancer_samples, normal_samples = get_sample_columns(df_plot)
 
         # Calculate individual sample statistics using proper missing data handling
         # SCIENTIFIC VALIDITY: Uses skipna=True to avoid zero-bias
@@ -426,9 +438,9 @@ class GlycopeptideComparisonHeatmapMixin:
             is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
 
             if is_qualitatively_different:
-                linewidth = 5.0  # Bold for qualitative difference
+                linewidth = 5.0  # Bold for qualitative difference (NOTE: Using literal 5.0 - custom heavy emphasis)
             else:
-                linewidth = 2.5  # Normal for both groups present
+                linewidth = PLOT_LINE_LINEWIDTH_THICK  # Normal for both groups present
 
             if has_cancer and has_normal:
                 return 'x', '+', linewidth, 'Both groups'
@@ -446,7 +458,7 @@ class GlycopeptideComparisonHeatmapMixin:
         trace_data['Group_Presence'] = [x[3] for x in symbol_info]
 
         # Add uniform alpha for all symbols
-        trace_data['Symbol_Alpha'] = 0.8
+        trace_data['Symbol_Alpha'] = POINT_ALPHA
 
         # Add flags for presence in plot
         trace_data['Cancer_Plotted'] = trace_data['Cancer_Symbol'].notna()
@@ -619,23 +631,23 @@ class GlycopeptideComparisonHeatmapMixin:
             normal_intensities.append(normal_int)
 
         x_pos = np.arange(len(glycan_order))
-        ax_top.plot(x_pos, cancer_intensities, color='#E74C3C', linewidth=2.0,
-                    marker='o', markersize=4, label='Cancer', alpha=0.85,
-                    markeredgecolor='white', markeredgewidth=0.3)
-        ax_top.plot(x_pos, normal_intensities, color='#3498DB', linewidth=2.0,
-                    marker='s', markersize=4, label='Normal', alpha=0.85,
-                    markeredgecolor='white', markeredgewidth=0.3)
+        ax_top.plot(x_pos, cancer_intensities, color=COLOR_CANCER, linewidth=PLOT_LINE_LINEWIDTH,
+                    marker='o', markersize=MARKER_SIZE_SMALL, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
+                    markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
+        ax_top.plot(x_pos, normal_intensities, color=COLOR_NORMAL, linewidth=PLOT_LINE_LINEWIDTH,
+                    marker='s', markersize=MARKER_SIZE_SMALL, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
+                    markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
-        ax_top.set_ylabel('Average\nIntensity', fontsize=10, fontweight='bold')
+        ax_top.set_ylabel('Average\nIntensity', fontsize=ANNOTATION_SIZE, fontweight='bold')
 
         # Add vertical grid lines at glycan positions for PERFECT alignment with heatmap below
         ax_top.set_xticks(range(len(glycan_order)), minor=False)
         ax_top.set_xticklabels([])  # Hide labels but keep ticks for grid
-        ax_top.grid(axis='y', alpha=0.4, linestyle='--', linewidth=0.6)
-        ax_top.grid(axis='x', alpha=0.25, linestyle='-', linewidth=0.5, color='#BBBBBB')
+        ax_top.grid(axis='y', alpha=ALPHA_MEDIUM, linestyle='--', linewidth=GRID_LINEWIDTH_THICK)
+        ax_top.grid(axis='x', alpha=ALPHA_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#BBBBBB')
 
-        ax_top.legend(loc='upper right', fontsize=9, framealpha=0.9, edgecolor='#333')
+        ax_top.legend(loc='upper right', fontsize=ANNOTATION_SIZE, framealpha=FRAME_ALPHA, edgecolor=FRAME_EDGE_COLOR)
         ax_top.spines['bottom'].set_visible(False)
         ax_top.spines['top'].set_visible(False)
         ax_top.spines['right'].set_visible(False)
@@ -648,15 +660,15 @@ class GlycopeptideComparisonHeatmapMixin:
             width = pos_info['end'] - pos_info['start']
             rect = Rectangle((pos_info['start'] - 0.5, 0), width, 1,
                              facecolor=glycan_type_colors[glycan_type],
-                             edgecolor='#333', linewidth=1.2, alpha=0.85)
+                             edgecolor=FRAME_EDGE_COLOR, linewidth=LINE_MEDIUM, alpha=ALPHA_NEAR_OPAQUE)
             ax_colorbar.add_patch(rect)
 
             # Add glycan type label in center
             center_x = (pos_info['start'] + pos_info['end']) / 2 - 0.5
             ax_colorbar.text(center_x, 0.5, glycan_type, ha='center', va='center',
-                             fontsize=12, fontweight='bold', color='white',
-                             bbox=dict(boxstyle='round,pad=0.3', facecolor='black', alpha=0.6,
-                                       edgecolor='white', linewidth=1.0))
+                             fontsize=AXIS_LABEL_SIZE, fontweight='bold', color='white',
+                             bbox=dict(boxstyle='round,pad=0.3', facecolor='black', alpha=OVERLAY_ALPHA,
+                                       edgecolor=EDGE_COLOR_WHITE, linewidth=LINE_NORMAL))
 
         ax_colorbar.set_xticks([])
         ax_colorbar.set_yticks([])
@@ -691,27 +703,27 @@ class GlycopeptideComparisonHeatmapMixin:
 
             # Set linewidth based on qualitative difference (reduced for full scale)
             if is_qualitatively_different:
-                linewidth = 3.0  # Bold for qualitative difference (reduced from 5.0)
+                linewidth = 3.0  # Bold for qualitative difference (NOTE: Using literal 3.0 - custom full-scale emphasis)
             else:
-                linewidth = 1.5  # Normal for both groups present (reduced from 2.5)
+                linewidth = EDGE_LINEWIDTH_THICK  # Normal for both groups present (reduced from 2.5)
 
             # Plot Cancer marker (× symbol) - reduced size
             if has_cancer:
-                ax_main.scatter(x_pos, y_pos, s=100,  # Reduced from 400
+                ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,  # Reduced from 400
                                marker='x',
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
-                               alpha=0.8,
+                               alpha=POINT_ALPHA,
                                zorder=4,
                                label='_nolegend_')
 
             # Plot Normal marker (+ symbol) - reduced size
             if has_normal:
-                ax_main.scatter(x_pos, y_pos, s=100,  # Reduced from 400
+                ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,  # Reduced from 400
                                marker='+',
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
-                               alpha=0.8,
+                               alpha=POINT_ALPHA,
                                zorder=3,
                                label='_nolegend_')
 
@@ -719,7 +731,7 @@ class GlycopeptideComparisonHeatmapMixin:
         for glycan_type, pos_info in glycan_type_positions.items():
             if pos_info['end'] < len(glycan_order):
                 ax_main.axvline(pos_info['end'] - 0.5, color='gray',
-                                linestyle='--', linewidth=1.0, alpha=0.4, zorder=1)
+                                linestyle='--', linewidth=LINE_NORMAL, alpha=ALPHA_MEDIUM, zorder=1)
 
         # Set axis properties with equal aspect ratio
         ax_main.set_aspect('equal', adjustable='box')
@@ -728,25 +740,25 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # Add x-axis glycan composition labels (rotated 45°) - smaller font
         ax_main.set_xticks(range(len(glycan_order)))
-        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=7, ha='right')
-        ax_main.set_xlabel('Glycan Composition', fontsize=10, fontweight='bold', labelpad=10)
+        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=ANNOTATION_SIZE, ha='right')
+        ax_main.set_xlabel('Glycan Composition', fontsize=AXIS_LABEL_SIZE, fontweight='bold', labelpad=10)
 
         # Set y-axis labels (peptides) - smaller font
         ax_main.set_yticks(range(len(peptide_order)))
-        ax_main.set_yticklabels(peptide_order, fontsize=6)
-        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=11, fontweight='bold')
+        ax_main.set_yticklabels(peptide_order, fontsize=ANNOTATION_SIZE)
+        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
 
         # Invert y-axis to have highest VIP at top
         ax_main.invert_yaxis()
 
         # Grid - lighter for full scale
-        ax_main.grid(True, alpha=0.3, linestyle='-', linewidth=0.5, color='#CCCCCC', zorder=0)
+        ax_main.grid(True, alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#CCCCCC', zorder=0)
         ax_main.set_axisbelow(True)
 
         # Add minor grid
         ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
         ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
-        ax_main.grid(which='minor', alpha=0.2, linestyle='-', linewidth=0.3, color='#DDDDDD', zorder=0)
+        ax_main.grid(which='minor', alpha=ALPHA_VERY_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH_THIN, color='#DDDDDD', zorder=0)
 
         # === LEGEND ===
         from matplotlib.patches import Patch
@@ -758,35 +770,35 @@ class GlycopeptideComparisonHeatmapMixin:
         for gt in glycan_type_order:
             if gt in glycan_type_positions:
                 legend_elements.append(Patch(facecolor=glycan_type_colors[gt],
-                                             label=f'{gt}', alpha=0.85, edgecolor='#333'))
+                                             label=f'{gt}', alpha=ALPHA_NEAR_OPAQUE, edgecolor=FRAME_EDGE_COLOR))
 
         # Symbol indicators
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                      markerfacecolor='gray', markersize=10,
-                                      markeredgewidth=1.5, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
+                                      markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer (both groups)'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                      markerfacecolor='gray', markersize=10,
-                                      markeredgewidth=1.5, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
+                                      markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal (both groups)'))
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                      markerfacecolor='gray', markersize=10,
-                                      markeredgewidth=3.0, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
+                                      markeredgewidth=3.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer only (bold)'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                      markerfacecolor='gray', markersize=10,
-                                      markeredgewidth=3.0, markeredgecolor='gray',
+                                      markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
+                                      markeredgewidth=3.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal only (bold)'))
 
         ax_main.legend(handles=legend_elements, loc='upper left',
-                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=10,
-                       title='Legend', title_fontsize=12, framealpha=0.95,
-                       edgecolor='#333', fancybox=True, shadow=True)
+                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=LEGEND_SIZE,
+                       title='Legend', title_fontsize=AXIS_LABEL_SIZE, framealpha=ALPHA_ALMOST_OPAQUE,
+                       edgecolor=FRAME_EDGE_COLOR, fancybox=True, shadow=True)
 
         # === TITLE ===
         fig.suptitle('Full-Scale Glycopeptide Comparison Heatmap: Cancer vs Normal\n'
                      f'(ALL {len(peptide_order)} peptides × {len(glycan_order)} glycans = {len(df_plot)} glycopeptides)',
-                     fontsize=14, fontweight='bold', y=0.997)
+                     fontsize=TITLE_SIZE, fontweight='bold', y=0.997)
 
         # Save plot
         output_file = self.output_dir / 'glycopeptide_comparison_heatmap_full.png'
@@ -801,8 +813,7 @@ class GlycopeptideComparisonHeatmapMixin:
         trace_data['Plot_Y_Position'] = trace_data['Peptide'].map(peptide_to_idx)
 
         # Add statistical information
-        cancer_samples = [col for col in df_plot.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df_plot.columns if col.startswith('N') and col[1:].isdigit()]
+        cancer_samples, normal_samples = get_sample_columns(df_plot)
 
         cancer_trace_stats = calculate_group_statistics_standardized(trace_data, cancer_samples, method='skipna')
         normal_trace_stats = calculate_group_statistics_standardized(trace_data, normal_samples, method='skipna')
@@ -835,9 +846,9 @@ class GlycopeptideComparisonHeatmapMixin:
             is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
 
             if is_qualitatively_different:
-                linewidth = 3.0
+                linewidth = 3.0  # Bold (NOTE: Using literal 3.0 - custom full-scale emphasis for trace data)
             else:
-                linewidth = 1.5
+                linewidth = EDGE_LINEWIDTH_THICK
 
             if has_cancer and has_normal:
                 return 'x', '+', linewidth, 'Both groups'
@@ -853,7 +864,7 @@ class GlycopeptideComparisonHeatmapMixin:
         trace_data['Normal_Symbol'] = [x[1] for x in symbol_info]
         trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
         trace_data['Group_Presence'] = [x[3] for x in symbol_info]
-        trace_data['Symbol_Alpha'] = 0.8
+        trace_data['Symbol_Alpha'] = POINT_ALPHA
         trace_data['Cancer_Plotted'] = trace_data['Cancer_Symbol'].notna()
         trace_data['Normal_Plotted'] = trace_data['Normal_Symbol'].notna()
 
@@ -1012,23 +1023,23 @@ class GlycopeptideComparisonHeatmapMixin:
             normal_intensities.append(normal_int)
 
         x_pos = np.arange(len(glycan_order))
-        ax_top.plot(x_pos, cancer_intensities, color='#E74C3C', linewidth=2.0,
-                    marker='o', markersize=4, label='Cancer', alpha=0.85,
-                    markeredgecolor='white', markeredgewidth=0.3)
-        ax_top.plot(x_pos, normal_intensities, color='#3498DB', linewidth=2.0,
-                    marker='s', markersize=4, label='Normal', alpha=0.85,
-                    markeredgecolor='white', markeredgewidth=0.3)
+        ax_top.plot(x_pos, cancer_intensities, color=COLOR_CANCER, linewidth=PLOT_LINE_LINEWIDTH,
+                    marker='o', markersize=MARKER_SIZE_SMALL, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
+                    markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
+        ax_top.plot(x_pos, normal_intensities, color=COLOR_NORMAL, linewidth=PLOT_LINE_LINEWIDTH,
+                    marker='s', markersize=MARKER_SIZE_SMALL, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
+                    markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
-        ax_top.set_ylabel('Average\nIntensity', fontsize=10, fontweight='bold')
+        ax_top.set_ylabel('Average\nIntensity', fontsize=ANNOTATION_SIZE, fontweight='bold')
 
         # Add vertical grid lines at glycan positions for PERFECT alignment with heatmap below
         ax_top.set_xticks(range(len(glycan_order)), minor=False)
         ax_top.set_xticklabels([])  # Hide labels but keep ticks for grid
-        ax_top.grid(axis='y', alpha=0.4, linestyle='--', linewidth=0.6)
-        ax_top.grid(axis='x', alpha=0.25, linestyle='-', linewidth=0.5, color='#BBBBBB')
+        ax_top.grid(axis='y', alpha=ALPHA_MEDIUM, linestyle='--', linewidth=GRID_LINEWIDTH_THICK)
+        ax_top.grid(axis='x', alpha=ALPHA_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#BBBBBB')
 
-        ax_top.legend(loc='upper right', fontsize=9, framealpha=0.9, edgecolor='#333')
+        ax_top.legend(loc='upper right', fontsize=ANNOTATION_SIZE, framealpha=FRAME_ALPHA, edgecolor=FRAME_EDGE_COLOR)
         ax_top.spines['bottom'].set_visible(False)
         ax_top.spines['top'].set_visible(False)
         ax_top.spines['right'].set_visible(False)
@@ -1058,27 +1069,27 @@ class GlycopeptideComparisonHeatmapMixin:
 
             # Set linewidth based on qualitative difference
             if is_qualitatively_different:
-                linewidth = 3.0  # Bold
+                linewidth = 3.0  # Bold (NOTE: Using literal 3.0 - custom by-type emphasis)
             else:
-                linewidth = 1.5  # Normal
+                linewidth = EDGE_LINEWIDTH_THICK  # Normal
 
             # Plot Cancer marker (× symbol) - colored by glycan type
             if has_cancer:
-                ax_main.scatter(x_pos, y_pos, s=100,
+                ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,
                                marker='x',
                                c=glycan_type_color,  # All same color
                                linewidths=linewidth,
-                               alpha=0.8,
+                               alpha=POINT_ALPHA,
                                zorder=4,
                                label='_nolegend_')
 
             # Plot Normal marker (+ symbol) - colored by glycan type
             if has_normal:
-                ax_main.scatter(x_pos, y_pos, s=100,
+                ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,
                                marker='+',
                                c=glycan_type_color,  # All same color
                                linewidths=linewidth,
-                               alpha=0.8,
+                               alpha=POINT_ALPHA,
                                zorder=3,
                                label='_nolegend_')
 
@@ -1089,25 +1100,25 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # Add x-axis glycan composition labels (rotated 45°)
         ax_main.set_xticks(range(len(glycan_order)))
-        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=7, ha='right')
-        ax_main.set_xlabel('Glycan Composition', fontsize=10, fontweight='bold', labelpad=10)
+        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=ANNOTATION_SIZE, ha='right')
+        ax_main.set_xlabel('Glycan Composition', fontsize=AXIS_LABEL_SIZE, fontweight='bold', labelpad=10)
 
         # Set y-axis labels (peptides)
         ax_main.set_yticks(range(len(peptide_order)))
-        ax_main.set_yticklabels(peptide_order, fontsize=6)
-        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=11, fontweight='bold')
+        ax_main.set_yticklabels(peptide_order, fontsize=ANNOTATION_SIZE)
+        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
 
         # Invert y-axis to have highest VIP at top
         ax_main.invert_yaxis()
 
         # Grid
-        ax_main.grid(True, alpha=0.3, linestyle='-', linewidth=0.5, color='#CCCCCC', zorder=0)
+        ax_main.grid(True, alpha=ALPHA_MEDIUM_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH, color='#CCCCCC', zorder=0)
         ax_main.set_axisbelow(True)
 
         # Add minor grid
         ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
         ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
-        ax_main.grid(which='minor', alpha=0.2, linestyle='-', linewidth=0.3, color='#DDDDDD', zorder=0)
+        ax_main.grid(which='minor', alpha=ALPHA_VERY_LIGHT, linestyle='-', linewidth=GRID_LINEWIDTH_THIN, color='#DDDDDD', zorder=0)
 
         # === LEGEND ===
         from matplotlib.lines import Line2D
@@ -1116,26 +1127,26 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # Symbol indicators with glycan type color
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                      markerfacecolor=glycan_type_color, markersize=10,
-                                      markeredgewidth=1.5, markeredgecolor=glycan_type_color,
+                                      markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
+                                      markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=glycan_type_color,
                                       label='× Cancer (both groups)'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                      markerfacecolor=glycan_type_color, markersize=10,
-                                      markeredgewidth=1.5, markeredgecolor=glycan_type_color,
+                                      markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
+                                      markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=glycan_type_color,
                                       label='+ Normal (both groups)'))
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                      markerfacecolor=glycan_type_color, markersize=10,
+                                      markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=3.0, markeredgecolor=glycan_type_color,
                                       label='× Cancer only (bold)'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                      markerfacecolor=glycan_type_color, markersize=10,
+                                      markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=3.0, markeredgecolor=glycan_type_color,
                                       label='+ Normal only (bold)'))
 
         ax_main.legend(handles=legend_elements, loc='upper left',
-                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=10,
-                       title=f'{glycan_type} Type', title_fontsize=12, framealpha=0.95,
-                       edgecolor='#333', fancybox=True, shadow=True)
+                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=LEGEND_SIZE,
+                       title=f'{glycan_type} Type', title_fontsize=AXIS_LABEL_SIZE, framealpha=ALPHA_ALMOST_OPAQUE,
+                       edgecolor=FRAME_EDGE_COLOR, fancybox=True, shadow=True)
 
         # === TITLE ===
         glycan_type_names = {
@@ -1147,7 +1158,7 @@ class GlycopeptideComparisonHeatmapMixin:
         }
         fig.suptitle(f'Glycopeptide Comparison: {glycan_type_names[glycan_type]} Type\n'
                      f'Cancer vs Normal ({len(peptide_order)} peptides × {len(glycan_order)} glycans = {len(df_plot)} glycopeptides)',
-                     fontsize=14, fontweight='bold', y=0.997)
+                     fontsize=TITLE_SIZE, fontweight='bold', y=0.997)
 
         # Save plot with glycan-type-specific filename
         glycan_type_filename = glycan_type.replace('/', '_')  # C/H → C_H
@@ -1163,8 +1174,7 @@ class GlycopeptideComparisonHeatmapMixin:
         trace_data['Plot_Y_Position'] = trace_data['Peptide'].map(peptide_to_idx)
 
         # Add statistical information
-        cancer_samples = [col for col in df_plot.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df_plot.columns if col.startswith('N') and col[1:].isdigit()]
+        cancer_samples, normal_samples = get_sample_columns(df_plot)
 
         cancer_trace_stats = calculate_group_statistics_standardized(trace_data, cancer_samples, method='skipna')
         normal_trace_stats = calculate_group_statistics_standardized(trace_data, normal_samples, method='skipna')
@@ -1197,9 +1207,9 @@ class GlycopeptideComparisonHeatmapMixin:
             is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
 
             if is_qualitatively_different:
-                linewidth = 3.0
+                linewidth = 3.0  # Bold (NOTE: Using literal 3.0 - custom by-type emphasis for trace data)
             else:
-                linewidth = 1.5
+                linewidth = EDGE_LINEWIDTH_THICK
 
             if has_cancer and has_normal:
                 return 'x', '+', linewidth, 'Both groups'
@@ -1216,7 +1226,7 @@ class GlycopeptideComparisonHeatmapMixin:
         trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
         trace_data['Group_Presence'] = [x[3] for x in symbol_info]
         trace_data['Symbol_Color'] = glycan_type_color
-        trace_data['Symbol_Alpha'] = 0.8
+        trace_data['Symbol_Alpha'] = POINT_ALPHA
         trace_data['Cancer_Plotted'] = trace_data['Cancer_Symbol'].notna()
         trace_data['Normal_Plotted'] = trace_data['Normal_Symbol'].notna()
 

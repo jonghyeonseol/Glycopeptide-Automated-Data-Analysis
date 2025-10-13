@@ -20,6 +20,7 @@ from .plot_config import (
     VOLCANO_THRESHOLD_LINEWIDTH, VOLCANO_THRESHOLD_ALPHA,
     VOLCANO_POINT_EDGEWIDTH, VOLCANO_LABEL_FONTSIZE,
     VOLCANO_LABEL_WEIGHT, VOLCANO_LABEL_PADDING, VOLCANO_LABEL_LINEWIDTH,
+    PLOT_LINE_LINEWIDTH,  # Phase 10.3.3: Linewidth unification
     GLYCAN_COLORS,
     GROUP_PALETTE,
     apply_standard_axis_style, apply_standard_legend,
@@ -29,8 +30,10 @@ from .plot_config import (
     create_fancy_bbox, apply_publication_theme,  # ✨ Enhanced styling
     GRADIENT_ALPHA_START, GRADIENT_ALPHA_END,  # ✨ Gradient effects
     COLOR_CANCER, COLOR_NORMAL,  # Premium Material Design colors
-    TITLE_SIZE, AXIS_LABEL_SIZE,  # Enhanced typography
-    DESIGN_SYSTEM_AVAILABLE
+    TITLE_SIZE, AXIS_LABEL_SIZE, ANNOTATION_SIZE,  # Enhanced typography
+    DESIGN_SYSTEM_AVAILABLE,
+    ALPHA_HIGH, ALPHA_VERY_HIGH,  # Alpha constants
+    EDGE_COLOR_BLACK  # Edge color standardization
 )
 
 # Import premium design system if available
@@ -299,7 +302,7 @@ class VolcanoPlotMixin:
 
             ax.scatter(subset['Log2FC'], subset['-Log10FDR'],
                        c=color, s=sizes, alpha=VOLCANO_POINT_ALPHA,
-                       edgecolors='black', linewidths=VOLCANO_POINT_EDGEWIDTH,
+                       edgecolors=EDGE_COLOR_BLACK, linewidths=VOLCANO_POINT_EDGEWIDTH,
                        marker=marker,  # Phase 3: Shape encoding
                        label=f"{regulation} ({shape_symbol}) n={len(subset)}", zorder=3)
 
@@ -325,10 +328,10 @@ class VolcanoPlotMixin:
                     xerr=[[x_err_lower], [x_err_upper]],
                     fmt='none',  # No marker
                     ecolor=err_color,
-                    elinewidth=2,
+                    elinewidth=PLOT_LINE_LINEWIDTH,
                     capsize=4,
                     capthick=2,
-                    alpha=0.7,
+                    alpha=ALPHA_HIGH,
                     zorder=4
                 )
 
@@ -371,14 +374,14 @@ class VolcanoPlotMixin:
             stats_text += f"95% CI shown for top {n_with_ci} features"
 
         ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
-                fontsize=9, verticalalignment='top',
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8), zorder=10)
+                fontsize=ANNOTATION_SIZE, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=ALPHA_VERY_HIGH), zorder=10)
 
         # Add sample size annotation (Phase 2.2 enhancement)
         n_cancer = len(cancer_samples)
         n_normal = len(normal_samples)
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='lower right', fontsize=10)
+                                   location='lower right', fontsize=ANNOTATION_SIZE)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)

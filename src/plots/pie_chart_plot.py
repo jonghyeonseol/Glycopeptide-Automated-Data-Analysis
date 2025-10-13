@@ -22,7 +22,9 @@ from .plot_config import (
     LEGACY_GLYCAN_COLORS,
     EXTENDED_CATEGORY_COLORS,
     DEFAULT_FALLBACK_COLOR,
-    save_publication_figure
+    save_publication_figure,
+    DPI_MAIN,
+    TITLE_SIZE, AXIS_LABEL_SIZE  # Font constants
 )
 
 logger = logging.getLogger(__name__)
@@ -81,7 +83,7 @@ class PieChartPlotMixin:
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
 
-        ax1.set_title('Cancer Group\nGlycan Type Distribution', fontsize=14, weight='bold', pad=20)
+        ax1.set_title('Cancer Group\nGlycan Type Distribution', fontsize=AXIS_LABEL_SIZE, weight='bold', pad=20)
 
         # Normal pie chart
         normal_values = [normal_data[gt] for gt in glycan_types]
@@ -97,18 +99,18 @@ class PieChartPlotMixin:
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
 
-        ax2.set_title('Normal Group\nGlycan Type Distribution', fontsize=14, weight='bold', pad=20)
+        ax2.set_title('Normal Group\nGlycan Type Distribution', fontsize=AXIS_LABEL_SIZE, weight='bold', pad=20)
 
         # Overall title
         fig.suptitle('Glycan Type Distribution by Group (Based on Total Intensity)',
-                     fontsize=16, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE, weight='bold', y=0.98)
 
         plt.tight_layout()
 
         # Save plot using standardized function
         output_file = self.output_dir / 'pie_chart_glycan_types.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved glycan type pie charts to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved glycan type pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data with zero-denominator guards
         trace_data = pd.DataFrame({
@@ -171,7 +173,7 @@ class PieChartPlotMixin:
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
 
-        ax1.set_title('Cancer Group\nPrimary Classification', fontsize=14, weight='bold', pad=20)
+        ax1.set_title('Cancer Group\nPrimary Classification', fontsize=AXIS_LABEL_SIZE, weight='bold', pad=20)
 
         # Normal pie chart
         normal_values = [normal_data[cat] for cat in primary_categories]
@@ -187,18 +189,18 @@ class PieChartPlotMixin:
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
 
-        ax2.set_title('Normal Group\nPrimary Classification', fontsize=14, weight='bold', pad=20)
+        ax2.set_title('Normal Group\nPrimary Classification', fontsize=AXIS_LABEL_SIZE, weight='bold', pad=20)
 
         # Overall title
         fig.suptitle('Primary Classification Distribution by Group (Based on Total Intensity)',
-                     fontsize=16, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE, weight='bold', y=0.98)
 
         plt.tight_layout()
 
         # Save plot using standardized function
         output_file = self.output_dir / 'pie_chart_primary_classification.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved primary classification pie charts to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved primary classification pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({
@@ -261,7 +263,7 @@ class PieChartPlotMixin:
             textprops={'fontsize': 10, 'weight': 'bold'}
         )
 
-        ax1.set_title('Cancer Group\nSecondary Classification', fontsize=14, weight='bold', pad=20)
+        ax1.set_title('Cancer Group\nSecondary Classification', fontsize=AXIS_LABEL_SIZE, weight='bold', pad=20)
 
         # Normal pie chart
         normal_values = [normal_data[cat] for cat in secondary_categories]
@@ -277,18 +279,18 @@ class PieChartPlotMixin:
             textprops={'fontsize': 10, 'weight': 'bold'}
         )
 
-        ax2.set_title('Normal Group\nSecondary Classification', fontsize=14, weight='bold', pad=20)
+        ax2.set_title('Normal Group\nSecondary Classification', fontsize=AXIS_LABEL_SIZE, weight='bold', pad=20)
 
         # Overall title
         fig.suptitle('Secondary Classification Distribution by Group (Based on Total Intensity)',
-                     fontsize=16, weight='bold', y=0.98)
+                     fontsize=TITLE_SIZE, weight='bold', y=0.98)
 
         plt.tight_layout()
 
         # Save plot using standardized function
         output_file = self.output_dir / 'pie_chart_secondary_classification.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved secondary classification pie charts to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved secondary classification pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({

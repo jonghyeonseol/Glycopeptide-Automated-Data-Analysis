@@ -19,9 +19,20 @@ from .plot_config import (
     save_publication_figure, PCA_DPI,
     create_fancy_bbox, apply_publication_theme,  # ✨ Enhanced styling
     GRADIENT_ALPHA_START, GRADIENT_ALPHA_END,  # ✨ Gradient fills
-    TITLE_SIZE, AXIS_LABEL_SIZE,  # Enhanced typography
+    TITLE_SIZE, AXIS_LABEL_SIZE, ANNOTATION_SIZE,  # Enhanced typography
     COLOR_CANCER, COLOR_NORMAL, COLOR_CANCER_LIGHT, COLOR_NORMAL_LIGHT,  # Premium colors
-    DESIGN_SYSTEM_AVAILABLE
+    DESIGN_SYSTEM_AVAILABLE,
+    LINE_NONE, LINE_THICK, LINE_MEDIUM, LINE_NORMAL,  # Linewidth constants
+    ALPHA_VERY_LIGHT,
+    ALPHA_MODERATE,
+    ANNOTATION_ALPHA,
+    ALPHA_LIGHT,
+    ALPHA_MEDIUM,
+    ALPHA_HIGH,
+    ALPHA_MEDIUM_LIGHT,
+    SCATTER_SIZE_SMALL, LEGEND_MARKER_SIZE,  # Marker size constants
+    EDGE_COLOR_NONE,
+    EDGE_COLOR_BLACK  # Edge color standardization
 )
 
 # Import premium design system if available
@@ -34,7 +45,7 @@ logger = logging.getLogger(__name__)
 class PCAPlotMixin:
     """Mixin class for PCA-related plots"""
 
-    def _draw_confidence_ellipse(self, ax, x, y, color, alpha=0.2, n_std=1.96):
+    def _draw_confidence_ellipse(self, ax, x, y, color, alpha=ALPHA_VERY_LIGHT, n_std=1.96):
         """
         Draw 95% confidence ellipse with ENHANCED gradient fill
 
@@ -66,7 +77,7 @@ class PCAPlotMixin:
 
         # ✨ ENHANCED: Draw multiple ellipses with gradient alpha (center→edge fade)
         n_gradient_levels = 5
-        alphas = np.linspace(GRADIENT_ALPHA_START * 0.4, GRADIENT_ALPHA_END * 0.3, n_gradient_levels)
+        alphas = np.linspace(GRADIENT_ALPHA_START * ALPHA_MEDIUM, GRADIENT_ALPHA_END * ALPHA_LIGHT, n_gradient_levels)
 
         for i, alpha_val in enumerate(alphas):
             scale = 1.0 - (i * 0.15)  # Shrink towards center
@@ -76,9 +87,9 @@ class PCAPlotMixin:
                 height=height * scale,
                 angle=angle,
                 facecolor=color,
-                edgecolor='none',  # No edge for gradient layers
+                edgecolor=EDGE_COLOR_NONE,  # No edge for gradient layers
                 alpha=alpha_val,
-                linewidth=0,
+                linewidth=LINE_NONE,
                 zorder=1
             )
             ax.add_patch(ellipse)
@@ -91,8 +102,8 @@ class PCAPlotMixin:
             angle=angle,
             facecolor='none',
             edgecolor=color,
-            alpha=0.6,
-            linewidth=2,
+            alpha=ALPHA_MODERATE,
+            linewidth=LINE_THICK,
             linestyle='--',
             zorder=2
         )
@@ -124,7 +135,7 @@ class PCAPlotMixin:
         cancer_scores = pca_df[cancer_mask]
         ax.scatter(cancer_scores['PC1'], cancer_scores['PC2'],
                    c=cancer_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
-                   edgecolors='black', linewidth=PCA_POINT_LINEWIDTH,
+                   edgecolors=EDGE_COLOR_BLACK, linewidth=PCA_POINT_LINEWIDTH,
                    marker=cancer_marker,  # Phase 3: Circle for Cancer
                    label='Cancer (○)', zorder=3)
 
@@ -132,15 +143,15 @@ class PCAPlotMixin:
         normal_scores = pca_df[normal_mask]
         ax.scatter(normal_scores['PC1'], normal_scores['PC2'],
                    c=normal_color, s=PCA_POINT_SIZE, alpha=PCA_POINT_ALPHA,
-                   edgecolors='black', linewidth=PCA_POINT_LINEWIDTH,
+                   edgecolors=EDGE_COLOR_BLACK, linewidth=PCA_POINT_LINEWIDTH,
                    marker=normal_marker,  # Phase 3: Square for Normal
                    label='Normal (□)', zorder=3)
 
         # ✨ PREMIUM: Draw enhanced confidence ellipses with multi-layer gradient
         self._draw_confidence_ellipse(ax, cancer_scores['PC1'].values, cancer_scores['PC2'].values,
-                                      color=COLOR_CANCER, alpha=0.2)
+                                      color=COLOR_CANCER, alpha=ALPHA_VERY_LIGHT)
         self._draw_confidence_ellipse(ax, normal_scores['PC1'].values, normal_scores['PC2'].values,
-                                      color=COLOR_NORMAL, alpha=0.2)
+                                      color=COLOR_NORMAL, alpha=ALPHA_VERY_LIGHT)
 
         # ✨ PREMIUM: Add subtle glow to ellipse borders for depth
         if DESIGN_SYSTEM_AVAILABLE:
@@ -155,7 +166,7 @@ class PCAPlotMixin:
 
             # ✨ ENHANCED: Add text annotation with fancy bbox
             bbox_props = create_fancy_bbox(facecolor='white', edgecolor=label_color,
-                                           alpha=0.85, linewidth=1.2)
+                                           alpha=ANNOTATION_ALPHA, linewidth=LINE_MEDIUM)
             texts.append(ax.text(row['PC1'], row['PC2'], idx,
                                  fontsize=PCA_LABEL_FONTSIZE, ha='center', va='center',
                                  color=label_color, fontweight='bold',
@@ -165,7 +176,7 @@ class PCAPlotMixin:
         # Adjust text to avoid overlap
         try:
             adjust_text(texts,
-                        arrowprops=dict(arrowstyle='->', color='gray', lw=0.5, alpha=0.6),
+                        arrowprops=dict(arrowstyle='->', color='gray', lw=0.5, alpha=ALPHA_MODERATE),
                         expand_points=(1.5, 1.5),
                         force_text=(0.5, 0.5))
         except Exception:
@@ -192,7 +203,7 @@ class PCAPlotMixin:
         n_cancer = cancer_mask.sum()
         n_normal = normal_mask.sum()
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='lower right', fontsize=10)
+                                   location='lower right', fontsize=ANNOTATION_SIZE)
 
         plt.tight_layout()
 
@@ -231,18 +242,18 @@ class PCAPlotMixin:
         for idx, row in pca_df.iterrows():
             color, marker = get_group_style(row['Group'])
 
-            ax.scatter(row['PC1'], row['PC2'], c=color, s=100,
-                       alpha=0.6, edgecolors='black', linewidth=1,
+            ax.scatter(row['PC1'], row['PC2'], c=color, s=SCATTER_SIZE_SMALL,
+                       alpha=ALPHA_MODERATE, edgecolors=EDGE_COLOR_BLACK, linewidth=LINE_NORMAL,
                        marker=marker, zorder=3)  # Phase 3: Colorblind-safe markers
 
             # Add sample label
             ax.annotate(idx, (row['PC1'], row['PC2']),
                         xytext=(5, 5), textcoords='offset points',
-                        fontsize=8, alpha=0.7)
+                        fontsize=ANNOTATION_SIZE, alpha=ALPHA_HIGH)
 
-        ax.set_xlabel(f'PC1 ({explained_var[0] * 100:.2f}%)', fontsize=12)
-        ax.set_ylabel(f'PC2 ({explained_var[1] * 100:.2f}%)', fontsize=12)
-        ax.set_title('PCA with Sample Labels', fontsize=14, fontweight='bold')
+        ax.set_xlabel(f'PC1 ({explained_var[0] * 100:.2f}%)', fontsize=AXIS_LABEL_SIZE)
+        ax.set_ylabel(f'PC2 ({explained_var[1] * 100:.2f}%)', fontsize=AXIS_LABEL_SIZE)
+        ax.set_title('PCA with Sample Labels', fontsize=TITLE_SIZE, fontweight='bold')
 
         # Phase 3: Custom legend with shape markers
         from matplotlib.lines import Line2D
@@ -251,11 +262,11 @@ class PCAPlotMixin:
 
         legend_elements = [
             Line2D([0], [0], marker=cancer_marker, color='w',
-                   markerfacecolor=cancer_color, markeredgecolor='black',
-                   markersize=10, label='Cancer (○)'),
+                   markerfacecolor=cancer_color, markeredgecolor=EDGE_COLOR_BLACK,
+                   markersize=LEGEND_MARKER_SIZE, label='Cancer (○)'),
             Line2D([0], [0], marker=normal_marker, color='w',
-                   markerfacecolor=normal_color, markeredgecolor='black',
-                   markersize=10, label='Normal (□)')
+                   markerfacecolor=normal_color, markeredgecolor=EDGE_COLOR_BLACK,
+                   markersize=LEGEND_MARKER_SIZE, label='Normal (□)')
         ]
         ax.legend(handles=legend_elements, loc='best', frameon=True)
 
@@ -263,9 +274,9 @@ class PCAPlotMixin:
         n_cancer = (pca_df['Group'] == 'Cancer').sum()
         n_normal = (pca_df['Group'] == 'Normal').sum()
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='lower right', fontsize=10)
+                                   location='lower right', fontsize=ANNOTATION_SIZE)
 
-        ax.grid(True, alpha=0.3)
+        ax.grid(True, alpha=ALPHA_MEDIUM_LIGHT)
         plt.tight_layout()
 
         # ✨ ENHANCED: Apply publication theme

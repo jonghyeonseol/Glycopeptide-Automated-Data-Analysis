@@ -16,7 +16,7 @@ from ..data_preparation import (
     prepare_visualization_data,
     calculate_statistical_significance
 )
-from .plot_config import EXTENDED_CATEGORY_COLORS
+from .plot_config import EXTENDED_CATEGORY_COLORS, COLOR_CANCER, COLOR_NORMAL
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +45,13 @@ GROUP_CANCER = 'Cancer'
 GROUP_NORMAL = 'Normal'
 
 # Color constants - Regulation states
-REGULATION_COLOR_UP = '#E74C3C'  # Red
-REGULATION_COLOR_DOWN = '#3498DB'  # Blue
+REGULATION_COLOR_UP = COLOR_CANCER  # Red
+REGULATION_COLOR_DOWN = COLOR_NORMAL  # Blue
 REGULATION_COLOR_UNCHANGED = '#95A5A6'  # Gray
 
 # Color constants - Groups
-GROUP_COLOR_CANCER = '#E74C3C'  # Red
-GROUP_COLOR_NORMAL = '#3498DB'  # Blue
+GROUP_COLOR_CANCER = COLOR_CANCER  # Red
+GROUP_COLOR_NORMAL = COLOR_NORMAL  # Blue
 
 # Color constants - Significance
 SIGNIFICANCE_COLOR_SIGNIFICANT = '#27AE60'  # Green

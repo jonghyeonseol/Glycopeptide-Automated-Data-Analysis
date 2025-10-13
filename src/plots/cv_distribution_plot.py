@@ -25,7 +25,13 @@ from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
 )
-from .plot_config import save_publication_figure
+from .plot_config import (
+    save_publication_figure, COLOR_CANCER, COLOR_NORMAL, DPI_MAIN,
+    TITLE_SIZE, AXIS_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,  # Font constants
+    EDGE_LINEWIDTH_THIN, PLOT_LINE_LINEWIDTH,  # Linewidth constants
+    ALPHA_HIGH, ALPHA_VERY_HIGH, ALPHA_MEDIUM_LIGHT,  # Alpha constants,
+    EDGE_COLOR_BLACK  # Edge color standardization
+)
 
 logger = logging.getLogger(__name__)
 
@@ -101,24 +107,24 @@ class CVDistributionPlotMixin:
         fig, axes = plt.subplots(1, 2, figsize=figsize)
 
         # Define colors
-        cancer_color = '#E74C3C'
-        normal_color = '#3498DB'
+        cancer_color = COLOR_CANCER
+        normal_color = COLOR_NORMAL
 
         # Plot Cancer CV distribution
         ax1 = axes[0]
         ax1.hist(cv_df_clean['Cancer_CV'], bins=50, color=cancer_color,
-                 alpha=0.7, edgecolor='black', linewidth=0.5)
+                 alpha=ALPHA_HIGH, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
 
         # Add median line
         cancer_median = cv_df_clean['Cancer_CV'].median()
         ax1.axvline(cancer_median, color='darkred', linestyle='--',
-                    linewidth=2, label=f'Median: {cancer_median:.1f}%')
+                    linewidth=PLOT_LINE_LINEWIDTH, label=f'Median: {cancer_median:.1f}%')
 
-        ax1.set_xlabel('CV (%)', fontsize=12, fontweight='bold')
-        ax1.set_ylabel('Count', fontsize=12, fontweight='bold')
-        ax1.set_title('CV Distribution: Cancer Samples', fontsize=13, fontweight='bold')
-        ax1.legend(loc='upper right', frameon=True, fontsize=10)
-        ax1.grid(True, alpha=0.3)
+        ax1.set_xlabel('CV (%)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax1.set_ylabel('Count', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax1.set_title('CV Distribution: Cancer Samples', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax1.legend(loc='upper right', frameon=True, fontsize=LEGEND_SIZE)
+        ax1.grid(True, alpha=ALPHA_MEDIUM_LIGHT)
 
         # Add statistics text
         stats_text = f"n = {len(cv_df_clean)}\n"
@@ -129,24 +135,24 @@ class CVDistributionPlotMixin:
         stats_text += f"Q1-Q3: {q1:.1f}%-{q3:.1f}%"
 
         ax1.text(0.98, 0.98, stats_text, transform=ax1.transAxes,
-                 fontsize=9, verticalalignment='top', horizontalalignment='right',
-                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+                 fontsize=ANNOTATION_SIZE, verticalalignment='top', horizontalalignment='right',
+                 bbox=dict(boxstyle='round', facecolor='white', alpha=ALPHA_VERY_HIGH))
 
         # Plot Normal CV distribution
         ax2 = axes[1]
         ax2.hist(cv_df_clean['Normal_CV'], bins=50, color=normal_color,
-                 alpha=0.7, edgecolor='black', linewidth=0.5)
+                 alpha=ALPHA_HIGH, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
 
         # Add median line
         normal_median = cv_df_clean['Normal_CV'].median()
         ax2.axvline(normal_median, color='darkblue', linestyle='--',
-                    linewidth=2, label=f'Median: {normal_median:.1f}%')
+                    linewidth=PLOT_LINE_LINEWIDTH, label=f'Median: {normal_median:.1f}%')
 
-        ax2.set_xlabel('CV (%)', fontsize=12, fontweight='bold')
-        ax2.set_ylabel('Count', fontsize=12, fontweight='bold')
-        ax2.set_title('CV Distribution: Normal Samples', fontsize=13, fontweight='bold')
-        ax2.legend(loc='upper right', frameon=True, fontsize=10)
-        ax2.grid(True, alpha=0.3)
+        ax2.set_xlabel('CV (%)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax2.set_ylabel('Count', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax2.set_title('CV Distribution: Normal Samples', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
+        ax2.legend(loc='upper right', frameon=True, fontsize=LEGEND_SIZE)
+        ax2.grid(True, alpha=ALPHA_MEDIUM_LIGHT)
 
         # Add statistics text
         stats_text = f"n = {len(cv_df_clean)}\n"
@@ -157,19 +163,19 @@ class CVDistributionPlotMixin:
         stats_text += f"Q1-Q3: {q1:.1f}%-{q3:.1f}%"
 
         ax2.text(0.98, 0.98, stats_text, transform=ax2.transAxes,
-                 fontsize=9, verticalalignment='top', horizontalalignment='right',
-                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+                 fontsize=ANNOTATION_SIZE, verticalalignment='top', horizontalalignment='right',
+                 bbox=dict(boxstyle='round', facecolor='white', alpha=ALPHA_VERY_HIGH))
 
         # Main title
         fig.suptitle('Coefficient of Variation (CV) Distribution Analysis',
-                     fontsize=15, fontweight='bold', y=1.02)
+                     fontsize=TITLE_SIZE, fontweight='bold', y=1.02)
 
         plt.tight_layout()
 
         # Save plot using standardized function
         output_file = self.output_dir / 'cv_distribution.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved CV distribution plot to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved CV distribution plot to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         # Save trace data
         save_trace_data(cv_df_clean, self.output_dir, 'cv_distribution_data.csv')

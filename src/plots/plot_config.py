@@ -278,6 +278,115 @@ GRID_LINESTYLE = '-'  # Solid, not dashed (Prism style)
 GRID_LINEWIDTH = 0.5
 GRID_COLOR = '#E0E0E0'  # Light gray, not pure gray
 
+# ==============================================================================
+# Linewidth Constants - CENTRALIZED CONFIGURATION
+# Provides consistent line weights across all visualizations
+# ==============================================================================
+
+# General-purpose linewidths
+LINE_NONE = 0           # Invisible lines (no border)
+LINE_VERY_THIN = 0.3    # Very thin lines (minor grids, subtle elements)
+LINE_THIN = 0.5         # Thin lines (grids, subtle borders)
+LINE_MEDIUM_THIN = 0.6  # Medium-thin lines (emphasized grids)
+LINE_NORMAL = 1.0       # Normal/default lines
+LINE_MEDIUM = 1.2       # Medium lines (spines, borders, boxes)
+LINE_MEDIUM_THICK = 1.5 # Medium-thick lines (emphasized elements)
+LINE_THICK = 2.0        # Thick lines (main plot lines, thresholds)
+LINE_VERY_THICK = 2.5   # Very thick lines (emphasis, statistical brackets)
+LINE_BOLD = 3.0         # Bold lines (maximum emphasis)
+
+# Specific use-case linewidths (semantic naming)
+SPINE_LINEWIDTH = 1.2           # Axis spine thickness
+EDGE_LINEWIDTH_THIN = 0.5       # Thin edges (bar charts, scatter plots)
+EDGE_LINEWIDTH_NORMAL = 1.0     # Normal edges
+EDGE_LINEWIDTH_THICK = 1.5      # Thick edges (emphasis)
+PLOT_LINE_LINEWIDTH = 2.0       # Main data plot lines
+PLOT_LINE_LINEWIDTH_THICK = 2.5 # Emphasized plot lines
+THRESHOLD_LINEWIDTH = 2.0       # Reference lines (axhline, axvline)
+GRID_LINEWIDTH_THIN = 0.3       # Minor grid lines
+GRID_LINEWIDTH_NORMAL = 0.5     # Standard grid lines (same as GRID_LINEWIDTH)
+GRID_LINEWIDTH_THICK = 0.6      # Emphasized grid lines
+
+# ==============================================================================
+# Alpha (Transparency) Constants - CENTRALIZED CONFIGURATION
+# Provides consistent transparency levels across all visualizations
+# ==============================================================================
+
+# General-purpose alpha values (0.0 = fully transparent, 1.0 = fully opaque)
+ALPHA_TRANSPARENT = 0.15     # 15% opacity - very transparent (shadows, subtle effects)
+ALPHA_VERY_LIGHT = 0.2       # 20% opacity - confidence regions, shaded areas
+ALPHA_LIGHT = 0.25           # 25% opacity - minor grid lines
+ALPHA_MEDIUM_LIGHT = 0.3     # 30% opacity - background grids, subtle overlays
+ALPHA_MEDIUM = 0.4           # 40% opacity - grid lines, reference lines
+ALPHA_MEDIUM_HIGH = 0.5      # 50% opacity - half transparent, threshold lines
+ALPHA_MODERATE = 0.6         # 60% opacity - text backgrounds, annotations
+ALPHA_HIGH = 0.7             # 70% opacity - plot lines, moderate transparency
+ALPHA_VERY_HIGH = 0.8        # 80% opacity - data points, low transparency
+ALPHA_NEAR_OPAQUE = 0.85     # 85% opacity - markers, emphasized elements
+ALPHA_MOSTLY_OPAQUE = 0.9    # 90% opacity - frames, legend backgrounds
+ALPHA_ALMOST_OPAQUE = 0.95   # 95% opacity - solid overlays
+ALPHA_OPAQUE = 1.0           # 100% opacity - fully opaque (no transparency)
+
+# Semantic alpha constants (specific use cases)
+FILL_ALPHA = 0.2             # Confidence regions, shaded areas (very transparent)
+OVERLAY_ALPHA = 0.6          # Text backgrounds, annotation boxes (moderate)
+POINT_ALPHA = 0.8            # Scatter points, markers (low transparency)
+FRAME_ALPHA = 0.9            # Frame backgrounds, legend overlays (minimal transparency)
+LINE_ALPHA = 0.7             # Plot lines, data lines (moderate transparency)
+THRESHOLD_ALPHA = 0.5        # Reference lines, threshold lines (half transparent)
+ANNOTATION_ALPHA = 0.85      # Annotation elements (low transparency)
+
+# ==============================================================================
+# Marker Size Constants - CENTRALIZED CONFIGURATION
+# Provides consistent marker sizes across all visualizations
+# ==============================================================================
+
+# Scatter plot sizes (s= parameter in ax.scatter())
+# Note: Scatter sizes are in points², so actual visual size is sqrt(s)
+SCATTER_SIZE_TINY = 50           # 50 pts² - very small dots
+SCATTER_SIZE_SMALL = 100         # 100 pts² - small dots (default for small markers)
+SCATTER_SIZE_MEDIUM = 200        # 200 pts² - medium dots (diagnostic/emphasis markers)
+SCATTER_SIZE_LARGE = 400         # 400 pts² - large dots (primary data points)
+SCATTER_SIZE_HUGE = 600          # 600 pts² - very large dots (for emphasis)
+
+# Line plot marker sizes (markersize= parameter in ax.plot())
+# Note: These are in points, directly proportional to visual size
+MARKER_SIZE_TINY = 3             # 3 pts - very small markers
+MARKER_SIZE_SMALL = 4            # 4 pts - small line markers
+MARKER_SIZE_MEDIUM_SMALL = 6     # 6 pts - medium-small line markers
+MARKER_SIZE_MEDIUM = 8           # 8 pts - medium line markers
+MARKER_SIZE_MEDIUM_LARGE = 10    # 10 pts - medium-large markers (legend default)
+MARKER_SIZE_LARGE = 12           # 12 pts - large markers (emphasized legend items)
+MARKER_SIZE_HUGE = 14            # 14 pts - very large markers
+MARKER_SIZE_STAR = 200           # 200 pts² - special emphasis markers (star shape)
+
+# Semantic marker size constants (specific use cases)
+LINE_MARKER_SIZE = 6             # Default line plot markers
+LEGEND_MARKER_SIZE = 10          # Standard legend markers
+LEGEND_MARKER_SIZE_LARGE = 12    # Large legend markers (emphasis)
+DIAGNOSTIC_MARKER_SIZE = 200     # Diagnostic plot emphasis markers (scatter)
+DOT_HEATMAP_SIZE = 200           # Dot heatmap marker size
+
+# ==============================================================================
+# Edge Color Constants - CENTRALIZED CONFIGURATION
+# Provides consistent edge colors across all visualizations
+# ==============================================================================
+
+# Standard edge colors (most common)
+EDGE_COLOR_BLACK = 'black'       # Black borders - strong definition (most common)
+EDGE_COLOR_WHITE = 'white'       # White borders - highlight/contrast on dark backgrounds
+EDGE_COLOR_GRAY = 'gray'         # Gray borders - subtle separation
+EDGE_COLOR_DARK_GRAY = '#333'    # Dark gray - softer than black, professional
+EDGE_COLOR_NONE = 'none'         # No border - clean, borderless look
+
+# Semantic edge color constants (context-specific usage)
+LEGEND_EDGE_COLOR = 'black'      # Legend frame border (same as LEGEND_EDGECOLOR for consistency)
+FRAME_EDGE_COLOR = '#333'        # General frame/box borders (subtle, professional)
+MARKER_EDGE_COLOR = 'black'      # Scatter/marker borders (strong definition)
+MARKER_EDGE_COLOR_LIGHT = 'white'  # Light marker edges (for dark markers)
+SEPARATOR_EDGE_COLOR = 'gray'    # Separator lines between groups
+PANEL_EDGE_COLOR = '#333'        # Multi-panel plot borders
+
 # PNG Compression Settings (File Size Optimization)
 # Matplotlib supports automatic PNG optimization
 SAVE_KWARGS = {

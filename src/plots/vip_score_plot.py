@@ -26,7 +26,12 @@ from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
 )
-from .plot_config import save_publication_figure
+from .plot_config import (
+    save_publication_figure, DPI_MAIN,
+    TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE,
+    ALPHA_MEDIUM_LIGHT,  # Alpha constants
+    EDGE_COLOR_BLACK  # Edge color standardization
+)
 
 logger = logging.getLogger(__name__)
 
@@ -102,14 +107,14 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(top_n_data['VIP_Score'], range(len(top_n_data)),
-                       c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=3)
         ax_vip.set_yticks(range(len(top_n_data)))
-        ax_vip.set_yticklabels(top_n_data['Label'], fontsize=8)
-        ax_vip.set_xlabel('VIP Score', fontsize=12)
-        ax_vip.set_ylabel('Glycopeptide', fontsize=12)
-        ax_vip.set_title(f'Top {top_n} Glycopeptides by VIP Score', fontsize=14, fontweight='bold', pad=20)
+        ax_vip.set_yticklabels(top_n_data['Label'], fontsize=TICK_LABEL_SIZE)
+        ax_vip.set_xlabel('VIP Score', fontsize=AXIS_LABEL_SIZE)
+        ax_vip.set_ylabel('Glycopeptide', fontsize=AXIS_LABEL_SIZE)
+        ax_vip.set_title(f'Top {top_n} Glycopeptides by VIP Score', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
         ax_vip.invert_yaxis()
-        ax_vip.grid(axis='x', alpha=0.3)
+        ax_vip.grid(axis='x', alpha=ALPHA_MEDIUM_LIGHT)
 
         # Plot heatmap (right) with square cells
         sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
@@ -124,15 +129,15 @@ class VIPScorePlotMixin:
         cbar.set_ticklabels(['Low', 'High'])
 
         ax_heatmap.set_xticks([0.5, 1.5])
-        ax_heatmap.set_xticklabels(['Cancer', 'Normal'], rotation=0, fontsize=10)
+        ax_heatmap.set_xticklabels(['Cancer', 'Normal'], rotation=0, fontsize=TICK_LABEL_SIZE)
         ax_heatmap.set_xlabel('')
         ax_heatmap.tick_params(left=False)
 
         plt.tight_layout()
 
         output_file = self.output_dir / 'vip_score_glycopeptide.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved VIP score glycopeptide plot to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved VIP score glycopeptide plot to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         plt.close()
 
@@ -205,14 +210,14 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(glycan_vip['VIP_Score'], range(len(glycan_vip)),
-                       c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=3)
         ax_vip.set_yticks(range(len(glycan_vip)))
-        ax_vip.set_yticklabels(glycan_vip['GlycanComposition'], fontsize=9)
-        ax_vip.set_xlabel('VIP Score', fontsize=12)
-        ax_vip.set_ylabel('Glycan Composition', fontsize=12)
-        ax_vip.set_title(f'Top {top_n} Glycan Compositions by VIP Score', fontsize=14, fontweight='bold', pad=20)
+        ax_vip.set_yticklabels(glycan_vip['GlycanComposition'], fontsize=TICK_LABEL_SIZE)
+        ax_vip.set_xlabel('VIP Score', fontsize=AXIS_LABEL_SIZE)
+        ax_vip.set_ylabel('Glycan Composition', fontsize=AXIS_LABEL_SIZE)
+        ax_vip.set_title(f'Top {top_n} Glycan Compositions by VIP Score', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
         ax_vip.invert_yaxis()
-        ax_vip.grid(axis='x', alpha=0.3)
+        ax_vip.grid(axis='x', alpha=ALPHA_MEDIUM_LIGHT)
 
         # Plot heatmap (right) with square cells
         sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
@@ -227,15 +232,15 @@ class VIPScorePlotMixin:
         cbar.set_ticklabels(['Low', 'High'])
 
         ax_heatmap.set_xticks([0.5, 1.5])
-        ax_heatmap.set_xticklabels(['Cancer', 'Normal'], rotation=0, fontsize=10)
+        ax_heatmap.set_xticklabels(['Cancer', 'Normal'], rotation=0, fontsize=TICK_LABEL_SIZE)
         ax_heatmap.set_xlabel('')
         ax_heatmap.tick_params(left=False)
 
         plt.tight_layout()
 
         output_file = self.output_dir / 'vip_score_glycan_composition.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved VIP score glycan composition plot to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved VIP score glycan composition plot to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         plt.close()
 
@@ -308,14 +313,14 @@ class VIPScorePlotMixin:
 
         # Plot VIP scores (left)
         ax_vip.scatter(peptide_vip['VIP_Score'], range(len(peptide_vip)),
-                       c='#555555', s=100, edgecolors='black', linewidths=1.5, zorder=3)
+                       c='#555555', s=100, edgecolors=EDGE_COLOR_BLACK, linewidths=1.5, zorder=3)
         ax_vip.set_yticks(range(len(peptide_vip)))
-        ax_vip.set_yticklabels(peptide_vip['Peptide'], fontsize=8)
-        ax_vip.set_xlabel('VIP Score', fontsize=12)
-        ax_vip.set_ylabel('Peptide', fontsize=12)
-        ax_vip.set_title(f'Top {top_n} Peptides by VIP Score', fontsize=14, fontweight='bold', pad=20)
+        ax_vip.set_yticklabels(peptide_vip['Peptide'], fontsize=TICK_LABEL_SIZE)
+        ax_vip.set_xlabel('VIP Score', fontsize=AXIS_LABEL_SIZE)
+        ax_vip.set_ylabel('Peptide', fontsize=AXIS_LABEL_SIZE)
+        ax_vip.set_title(f'Top {top_n} Peptides by VIP Score', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
         ax_vip.invert_yaxis()
-        ax_vip.grid(axis='x', alpha=0.3)
+        ax_vip.grid(axis='x', alpha=ALPHA_MEDIUM_LIGHT)
 
         # Plot heatmap (right) with square cells
         sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
@@ -330,14 +335,14 @@ class VIPScorePlotMixin:
         cbar.set_ticklabels(['Low', 'High'])
 
         ax_heatmap.set_xticks([0.5, 1.5])
-        ax_heatmap.set_xticklabels(['Cancer', 'Normal'], rotation=0, fontsize=10)
+        ax_heatmap.set_xticklabels(['Cancer', 'Normal'], rotation=0, fontsize=TICK_LABEL_SIZE)
         ax_heatmap.set_xlabel('')
         ax_heatmap.tick_params(left=False)
 
         plt.tight_layout()
 
         output_file = self.output_dir / 'vip_score_peptide.png'
-        save_publication_figure(fig, output_file, dpi=self.dpi)
-        logger.info(f"Saved VIP score peptide plot to {output_file} (optimized, {self.dpi} DPI)")
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved VIP score peptide plot to {output_file} (optimized, {DPI_MAIN} DPI)")
 
         plt.close()

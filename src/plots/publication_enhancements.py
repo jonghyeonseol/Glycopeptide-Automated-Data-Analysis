@@ -12,6 +12,14 @@ Created: 2025-10-06 (Phase 2.2)
 
 from typing import Dict, List, Optional
 
+# Import centralized linewidth constants
+try:
+    from .plot_config import EDGE_LINEWIDTH_NORMAL, LINE_MEDIUM_THICK
+except ImportError:
+    # Fallback values if import fails
+    EDGE_LINEWIDTH_NORMAL = 1.0
+    LINE_MEDIUM_THICK = 1.5
+
 
 # ==============================================================================
 # COLORBLIND-SAFE PALETTES (Verified with Color Universal Design)
@@ -195,9 +203,10 @@ def annotate_sample_sizes_on_groups(ax, group_names: List[str],
         >>> group_sizes = {'Cancer': 24, 'Normal': 23}
         >>> annotate_sample_sizes_on_groups(ax, ['Cancer', 'Normal'], group_sizes)
     """
+    from .plot_config import ALPHA_VERY_HIGH
     if bbox_style is None:
         bbox_style = dict(boxstyle='round,pad=0.5', facecolor='white',
-                          alpha=0.8, edgecolor='gray', linewidth=1)
+                          alpha=ALPHA_VERY_HIGH, edgecolor=SEPARATOR_EDGE_COLOR, linewidth=EDGE_LINEWIDTH_NORMAL)
 
     annotation_text = ", ".join([f"{name}: n={group_sizes.get(name, 0)}"
                                 for name in group_names if name in group_sizes])
@@ -227,7 +236,8 @@ def add_sample_size_legend(ax, n_cancer: int, n_normal: int,
     sample_text = f"Sample Sizes:\nCancer: n={n_cancer}\nNormal: n={n_normal}\nTotal: n={n_cancer + n_normal}"
 
     # Create a text box
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.3, edgecolor='black', linewidth=1.5)
+    from .plot_config import ALPHA_MEDIUM_LIGHT
+    props = dict(boxstyle='round', facecolor='wheat', alpha=ALPHA_MEDIUM_LIGHT, edgecolor=EDGE_COLOR_BLACK, linewidth=LINE_MEDIUM_THICK)
 
     # Position mapping
     pos_map = {

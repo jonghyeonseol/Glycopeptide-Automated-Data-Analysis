@@ -59,18 +59,20 @@ class GlycanVisualizer(
 ):
     """Create visualizations for glycoproteomics data"""
 
-    def __init__(self, output_dir: str, dpi: int = 300, colors: dict = None):
+    def __init__(self, output_dir: str, dpi: int = None, colors: dict = None):
         """
         Initialize GlycanVisualizer
 
         Args:
             output_dir: Directory to save plots
-            dpi: Resolution for saved figures
+            dpi: Resolution for saved figures (default: uses DPI_MAIN from plot_config)
             colors: Color scheme for glycan types
         """
+        from src.plots.plot_config import DPI_MAIN
+
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.dpi = dpi
+        self.dpi = dpi if dpi is not None else DPI_MAIN
 
         # Default color scheme
         self.colors = colors or {
