@@ -253,14 +253,15 @@ class SankeyPlotMixin:
     ):
         """
         Create Sankey diagram showing flows from Cancer/Normal groups to Glycan types
+        split by regulation status
 
         Flow structure:
-        Group (Cancer/Normal) → Glycan Type (HM, F, S, SF, C/H)
+        Group (Cancer/Normal) → Glycan Type + Regulation (10 nodes: HM_Up, HM_Down, F_Up, F_Down, etc.)
 
         Features:
         - Vertical deployment of both groups on left side
-        - Glycan types on right side
-        - Links colored by regulation status (upregulated/downregulated/unchanged)
+        - 10 glycan type nodes on right side (5 types × 2 regulation states: Up/Down)
+        - Links colored by regulation status (red=upregulated, blue=downregulated)
         - Legend showing regulation categories
 
         Args:
@@ -321,12 +322,18 @@ class SankeyPlotMixin:
         df_with_stats['Has_Cancer'] = df_with_stats['Cancer_Mean'].notna() & (df_with_stats['Cancer_Mean'] > 0)
         df_with_stats['Has_Normal'] = df_with_stats['Normal_Mean'].notna() & (df_with_stats['Normal_Mean'] > 0)
 
-        # Define nodes
+        # Define nodes - 10 glycan type nodes (5 types × 2 regulation states)
         groups = ['Cancer', 'Normal']
         glycan_types = ['HM', 'F', 'S', 'SF', 'C/H']
 
+        # Create glycan type nodes with regulation suffix: HM_Up, HM_Down, F_Up, F_Down, etc.
+        glycan_reg_nodes = []
+        for gt in glycan_types:
+            glycan_reg_nodes.append(f"{gt}_Up")
+            glycan_reg_nodes.append(f"{gt}_Down")
+
         # Create node labels and indices
-        node_labels = groups + glycan_types
+        node_labels = groups + glycan_reg_nodes
         node_dict = {label: idx for idx, label in enumerate(node_labels)}
 
         # Define node colors
@@ -334,104 +341,104 @@ class SankeyPlotMixin:
         # Group colors
         node_colors.append('#E74C3C')  # Cancer - Red
         node_colors.append('#3498DB')  # Normal - Blue
-        # Glycan type colors (from plot_config)
+
+        # Glycan type colors (from plot_config) - pair for Up/Down
         for gt in glycan_types:
-            node_colors.append(EXTENDED_CATEGORY_COLORS.get(gt, '#CCCCCC'))
+            base_color = EXTENDED_CATEGORY_COLORS.get(gt, '#CCCCCC')
+            node_colors.append(base_color)  # Up - same color
+            node_colors.append(base_color)  # Down - same color
 
-        # Build flows from Cancer to Glycan Types
-        cancer_flows = []
-        for gt in glycan_types:
-            gt_data = df_with_stats[(df_with_stats['GlycanTypeCategory'] == gt) & df_with_stats['Has_Cancer']]
-            if len(gt_data) > 0:
-                # Count by regulation status
-                reg_counts = gt_data['Regulation'].value_counts()
-                for reg_status, count in reg_counts.items():
-                    cancer_flows.append({
-                        'source': 'Cancer',
-                        'target': gt,
-                        'regulation': reg_status,
-                        'count': count
-                    })
-
-        # Build flows from Normal to Glycan Types
-        normal_flows = []
-        for gt in glycan_types:
-            gt_data = df_with_stats[(df_with_stats['GlycanTypeCategory'] == gt) & df_with_stats['Has_Normal']]
-            if len(gt_data) > 0:
-                # Count by regulation status
-                reg_counts = gt_data['Regulation'].value_counts()
-                for reg_status, count in reg_counts.items():
-                    normal_flows.append({
-                        'source': 'Normal',
-                        'target': gt,
-                        'regulation': reg_status,
-                        'count': count
-                    })
-
-        # Combine all flows
-        all_flows = cancer_flows + normal_flows
-
-        # Aggregate flows by source-target pairs (sum across regulation statuses)
-        # But keep track of dominant regulation for coloring
-        flow_aggregated = {}
-        flow_regulation = {}
-
-        for flow in all_flows:
-            key = (flow['source'], flow['target'])
-            if key not in flow_aggregated:
-                flow_aggregated[key] = 0
-                flow_regulation[key] = {}
-
-            flow_aggregated[key] += flow['count']
-            reg = flow['regulation']
-            if reg not in flow_regulation[key]:
-                flow_regulation[key][reg] = 0
-            flow_regulation[key][reg] += flow['count']
-
-        # Build Sankey data structures
+        # Build flows from Cancer/Normal to Glycan Types (split by regulation)
         source_indices = []
         target_indices = []
         values = []
         link_colors = []
         link_labels = []
 
-        # Define regulation colors
-        reg_colors = {
-            'Upregulated': 'rgba(231, 76, 60, 0.6)',     # Red with transparency
-            'Downregulated': 'rgba(52, 152, 219, 0.6)',  # Blue with transparency
-            'Unchanged': 'rgba(149, 165, 166, 0.4)'      # Gray with transparency
-        }
+        # Process Cancer flows
+        for gt in glycan_types:
+            # Get base glycan type color
+            base_color = EXTENDED_CATEGORY_COLORS.get(gt, '#CCCCCC')
+            # Convert hex to rgba with transparency
+            rgba = f"rgba({int(base_color[1:3], 16)}, {int(base_color[3:5], 16)}, {int(base_color[5:7], 16)}, 0.4)"
 
-        for (source, target), total_count in flow_aggregated.items():
-            source_idx = node_dict[source]
-            target_idx = node_dict[target]
+            # Upregulated flows
+            gt_data_up = df_with_stats[
+                (df_with_stats['GlycanTypeCategory'] == gt) &
+                df_with_stats['Has_Cancer'] &
+                (df_with_stats['Regulation'] == 'Upregulated')
+            ]
+            if len(gt_data_up) > 0:
+                source_indices.append(node_dict['Cancer'])
+                target_indices.append(node_dict[f'{gt}_Up'])
+                values.append(len(gt_data_up))
+                link_colors.append(rgba)  # Use glycan type color
+                link_labels.append(f"Cancer → {gt} Upregulated<br>Count: {len(gt_data_up)}")
 
-            source_indices.append(source_idx)
-            target_indices.append(target_idx)
-            values.append(total_count)
+            # Downregulated flows
+            gt_data_down = df_with_stats[
+                (df_with_stats['GlycanTypeCategory'] == gt) &
+                df_with_stats['Has_Cancer'] &
+                (df_with_stats['Regulation'] == 'Downregulated')
+            ]
+            if len(gt_data_down) > 0:
+                source_indices.append(node_dict['Cancer'])
+                target_indices.append(node_dict[f'{gt}_Down'])
+                values.append(len(gt_data_down))
+                link_colors.append(rgba)  # Use glycan type color
+                link_labels.append(f"Cancer → {gt} Downregulated<br>Count: {len(gt_data_down)}")
 
-            # Determine dominant regulation status
-            reg_breakdown = flow_regulation[(source, target)]
-            dominant_reg = max(reg_breakdown, key=reg_breakdown.get)
+        # Process Normal flows
+        for gt in glycan_types:
+            # Get base glycan type color
+            base_color = EXTENDED_CATEGORY_COLORS.get(gt, '#CCCCCC')
+            # Convert hex to rgba with transparency
+            rgba = f"rgba({int(base_color[1:3], 16)}, {int(base_color[3:5], 16)}, {int(base_color[5:7], 16)}, 0.4)"
 
-            # Color by dominant regulation
-            link_colors.append(reg_colors[dominant_reg])
+            # Upregulated flows
+            gt_data_up = df_with_stats[
+                (df_with_stats['GlycanTypeCategory'] == gt) &
+                df_with_stats['Has_Normal'] &
+                (df_with_stats['Regulation'] == 'Upregulated')
+            ]
+            if len(gt_data_up) > 0:
+                source_indices.append(node_dict['Normal'])
+                target_indices.append(node_dict[f'{gt}_Up'])
+                values.append(len(gt_data_up))
+                link_colors.append(rgba)  # Use glycan type color
+                link_labels.append(f"Normal → {gt} Upregulated<br>Count: {len(gt_data_up)}")
 
-            # Create hover label with regulation breakdown
-            reg_text = '<br>'.join([f"{reg}: {cnt}" for reg, cnt in reg_breakdown.items()])
-            link_labels.append(f"{source} → {target}<br>Total: {total_count}<br>{reg_text}")
+            # Downregulated flows
+            gt_data_down = df_with_stats[
+                (df_with_stats['GlycanTypeCategory'] == gt) &
+                df_with_stats['Has_Normal'] &
+                (df_with_stats['Regulation'] == 'Downregulated')
+            ]
+            if len(gt_data_down) > 0:
+                source_indices.append(node_dict['Normal'])
+                target_indices.append(node_dict[f'{gt}_Down'])
+                values.append(len(gt_data_down))
+                link_colors.append(rgba)  # Use glycan type color
+                link_labels.append(f"Normal → {gt} Downregulated<br>Count: {len(gt_data_down)}")
 
         # Create Sankey diagram
+        # Position: 2 groups on left + 10 glycan types on right
+        x_coords = [0.01, 0.01] + [0.99] * 10  # Groups left, 10 glycan nodes right
+
+        # Y-coordinates: distribute 10 nodes evenly on right side
+        y_coords = [0.2, 0.8]  # Cancer and Normal
+        y_coords.extend([0.05 + i * 0.09 for i in range(10)])  # 10 glycan nodes evenly spaced
+
         fig = go.Figure(data=[go.Sankey(
             arrangement='snap',  # Snap to grid for vertical alignment
             node=dict(
-                pad=20,
-                thickness=25,
+                pad=15,
+                thickness=20,
                 line=dict(color="black", width=1.0),
                 label=node_labels,
                 color=node_colors,
-                x=[0.01, 0.01, 0.99, 0.99, 0.99, 0.99, 0.99],  # Position: Groups left, Glycan types right
-                y=[0.2, 0.8, 0.1, 0.3, 0.5, 0.7, 0.9],  # Vertical spacing
+                x=x_coords,
+                y=y_coords,
                 hovertemplate='%{label}<br>Total: %{value}<extra></extra>'
             ),
             link=dict(
@@ -455,11 +462,11 @@ class SankeyPlotMixin:
                 font=dict(size=20, family='Arial, sans-serif', color='#2C3E50')
             ),
             font=dict(size=13, family='Arial, sans-serif'),
-            height=1100,  # Increased from 1000 to accommodate legend below
+            height=1400,  # Increased to accommodate 10 glycan nodes (Up/Down split)
             width=1200,
             plot_bgcolor='white',
             paper_bgcolor='#F8F9FA',
-            margin=dict(l=80, r=80, t=150, b=200),  # Increased bottom margin to 200 to create space
+            margin=dict(l=80, r=80, t=150, b=250),  # Increased bottom margin to 250 to create space
             annotations=[
                 # Add group labels at top
                 dict(
@@ -473,20 +480,19 @@ class SankeyPlotMixin:
                 dict(
                     x=0.99, y=1.03,
                     xref='paper', yref='paper',
-                    text='<b>Glycan Types</b>',
+                    text='<b>Glycan Types (Up/Down)</b>',
                     showarrow=False,
                     font=dict(size=14, family='Arial, sans-serif', color='#2C3E50'),
                     xanchor='center'
                 ),
                 # Add legend box underneath main diagram
-                # y=-0.12 places it well below the Sankey flows (which end at y=0)
+                # y=-0.15 places it well below the Sankey flows (which end at y=0)
                 dict(
-                    x=0.5, y=-0.12,
+                    x=0.5, y=-0.15,
                     xref='paper', yref='paper',
                     text='<b>Link Colors (Regulation Status):</b><br>'
                          '<span style="color:#E74C3C">━━━</span> Upregulated (|Log2FC| ≥ 1.0) | '
-                         '<span style="color:#3498DB">━━━</span> Downregulated (|Log2FC| ≤ -1.0) | '
-                         '<span style="color:#95A5A6">━━━</span> Unchanged',
+                         '<span style="color:#3498DB">━━━</span> Downregulated (|Log2FC| ≤ -1.0)',
                     showarrow=False,
                     font=dict(size=13, family='Arial, sans-serif'),
                     align='center',
@@ -505,7 +511,7 @@ class SankeyPlotMixin:
         output_html = self.output_dir / 'sankey_group_to_glycan_type.html'
 
         try:
-            fig.write_image(str(output_png), width=1200, height=1100, scale=2)
+            fig.write_image(str(output_png), width=1200, height=1400, scale=2)
             logger.info(f"Saved Group → Glycan Type Sankey (PNG) to {output_png}")
         except Exception as e:
             logger.warning(f"Could not save PNG (requires kaleido): {e}")
