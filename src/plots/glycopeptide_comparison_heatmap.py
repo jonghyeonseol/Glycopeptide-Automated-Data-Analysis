@@ -16,7 +16,7 @@ from ..data_preparation import (
     prepare_visualization_data,
     calculate_group_statistics_standardized
 )
-from .plot_config import GLYCAN_COLORS, save_publication_figure, DPI_COMPLEX
+from .plot_config import EXTENDED_CATEGORY_COLORS, save_publication_figure, DPI_COMPLEX
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class GlycopeptideComparisonHeatmapMixin:
         Create dot-based heatmap comparing Cancer vs Normal groups
 
         Layout (top to bottom):
-        1. Top Panel: Aggregated intensity line plots (Cancer vs Normal)
+        1. Top Panel: Average intensity line plots (Cancer vs Normal)
         2. Middle Panel: Gradient colored bar showing glycan type regions
         3. Main Panel: Dot heatmap with side-by-side comparison
         4. Bottom: Glycan composition labels (rotated 90° vertically)
@@ -67,9 +67,9 @@ class GlycopeptideComparisonHeatmapMixin:
                 missing_data_method='skipna'
             )
 
-        # Define glycan type order and use standardized colors from plot_config
+        # Define glycan type order and use user-specified color rule from plot_config
         glycan_type_order = ['HM', 'F', 'S', 'SF', 'C/H']
-        glycan_type_colors = GLYCAN_COLORS  # Standardized colors (no conflicts with Cancer/Normal)
+        glycan_type_colors = EXTENDED_CATEGORY_COLORS  # User-specified color rule
 
         # STANDARDIZED DATA PREPARATION (eliminates double-filtering)
         # Data is already filtered by DataPipeline in main.py - no need to refilter
@@ -182,14 +182,14 @@ class GlycopeptideComparisonHeatmapMixin:
         ax_colorbar = fig.add_subplot(gs[1])  # Color bar (was bottom, now middle)
         ax_main = fig.add_subplot(gs[2])     # Main heatmap
 
-        # === TOP PANEL: Aggregated intensity comparison ===
+        # === TOP PANEL: Average intensity comparison ===
         cancer_intensities = []
         normal_intensities = []
 
         for glycan in glycan_order:
             glycan_data = df_plot[df_plot['GlycanComposition'] == glycan]
-            cancer_int = glycan_data['Cancer_Mean'].sum()
-            normal_int = glycan_data['Normal_Mean'].sum()
+            cancer_int = glycan_data['Cancer_Mean'].mean()
+            normal_int = glycan_data['Normal_Mean'].mean()
             cancer_intensities.append(cancer_int)
             normal_intensities.append(normal_int)
 
@@ -202,9 +202,14 @@ class GlycopeptideComparisonHeatmapMixin:
                     markeredgecolor='white', markeredgewidth=0.5)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
-        ax_top.set_ylabel('Aggregated\nIntensity', fontsize=12, fontweight='bold')
-        ax_top.set_xticks([])
+        ax_top.set_ylabel('Average\nIntensity', fontsize=12, fontweight='bold')
+
+        # Add vertical grid lines at glycan positions for PERFECT alignment with heatmap below
+        ax_top.set_xticks(range(len(glycan_order)), minor=False)
+        ax_top.set_xticklabels([])  # Hide labels but keep ticks for grid
         ax_top.grid(axis='y', alpha=0.4, linestyle='--', linewidth=0.8)
+        ax_top.grid(axis='x', alpha=0.25, linestyle='-', linewidth=0.6, color='#BBBBBB')
+
         ax_top.legend(loc='upper right', fontsize=11, framealpha=0.9, edgecolor='#333')
         ax_top.spines['bottom'].set_visible(False)
         ax_top.spines['top'].set_visible(False)
@@ -237,30 +242,11 @@ class GlycopeptideComparisonHeatmapMixin:
         ax_colorbar.spines['left'].set_visible(False)
         ax_colorbar.spines['right'].set_visible(False)
 
-        # === MAIN PANEL: Dot heatmap ===
+        # === MAIN PANEL: Symbol-based heatmap with qualitative highlighting ===
+        logger.info("Creating symbol markers (× for Cancer, + for Normal) with bold highlighting for qualitative differences...")
 
-        # Calculate max intensity PER GLYCAN TYPE for relative transparency
-        # Use nanmax to handle NaN values from missing data (scientifically correct)
-        max_intensity_by_type = {}
-        for glycan_type in glycan_type_order:
-            type_data = df_plot[df_plot['GlycanTypeCategory'] == glycan_type]
-            if len(type_data) > 0:
-                type_intensities = np.concatenate([
-                    type_data['Cancer_Mean'].values,
-                    type_data['Normal_Mean'].values
-                ])
-                # Use nanmax to skip NaN values from missing data
-                max_val = np.nanmax(type_intensities)
-                # If all values are NaN, use 1 as default
-                max_intensity_by_type[glycan_type] = max_val if not np.isnan(max_val) else 1
-            else:
-                max_intensity_by_type[glycan_type] = 1
-
-        logger.info("Max intensities by glycan type (for transparency):")
-        for gtype, max_int in max_intensity_by_type.items():
-            logger.info(f"  {gtype}: {max_int:.2e}")
-
-        # Plot dots for both Cancer and Normal
+        # Plot symbols for each glycopeptide
+        # Design: × (Cancer) and + (Normal) with bold linewidth when qualitatively different
         for idx, row in df_plot.iterrows():
             peptide = row['Peptide']
             glycan = row['GlycanComposition']
@@ -272,29 +258,40 @@ class GlycopeptideComparisonHeatmapMixin:
             y_pos = peptide_to_idx[peptide]
             x_pos = glycan_to_idx[glycan]
 
-            # Get max intensity for THIS glycan type (relative transparency)
-            type_max_intensity = max_intensity_by_type[glycan_type]
-
-            # Symbol visualization: × for Cancer (red), + for Normal (blue)
-            # Symbols placed directly on grid intersections
-
-            # Cancer symbol (× cross) - Red
+            # Check presence in each group
             cancer_intensity = row['Cancer_Mean']
-            # Check for valid (non-NaN and > 0) intensity
-            if not np.isnan(cancer_intensity) and cancer_intensity > 0:
-                alpha = min(0.3 + (cancer_intensity / type_max_intensity) * 0.7, 1.0)
-                ax_main.scatter(x_pos, y_pos, s=400, c='#E74C3C', alpha=alpha,
-                                marker='x', linewidths=5.0, zorder=4,
-                                label='_nolegend_')
-
-            # Normal symbol (+ plus) - Blue
             normal_intensity = row['Normal_Mean']
-            # Check for valid (non-NaN and > 0) intensity
-            if not np.isnan(normal_intensity) and normal_intensity > 0:
-                alpha = min(0.3 + (normal_intensity / type_max_intensity) * 0.7, 1.0)
-                ax_main.scatter(x_pos, y_pos, s=400, c='#3498DB', alpha=alpha,
-                                marker='+', linewidths=5.0, zorder=3,
-                                label='_nolegend_')
+            has_cancer = not np.isnan(cancer_intensity) and cancer_intensity > 0
+            has_normal = not np.isnan(normal_intensity) and normal_intensity > 0
+
+            # Qualitative difference: only one group present
+            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
+
+            # Set linewidth based on qualitative difference
+            if is_qualitatively_different:
+                linewidth = 5.0  # Bold for qualitative difference
+            else:
+                linewidth = 2.5  # Normal for both groups present
+
+            # Plot Cancer marker (× symbol)
+            if has_cancer:
+                ax_main.scatter(x_pos, y_pos, s=400,
+                               marker='x',
+                               c=glycan_type_colors[glycan_type],
+                               linewidths=linewidth,
+                               alpha=0.8,
+                               zorder=4,
+                               label='_nolegend_')
+
+            # Plot Normal marker (+ symbol)
+            if has_normal:
+                ax_main.scatter(x_pos, y_pos, s=400,
+                               marker='+',
+                               c=glycan_type_colors[glycan_type],
+                               linewidths=linewidth,
+                               alpha=0.8,
+                               zorder=3,
+                               label='_nolegend_')
 
         # Add light vertical separators between glycan types
         for glycan_type, pos_info in glycan_type_positions.items():
@@ -302,7 +299,8 @@ class GlycopeptideComparisonHeatmapMixin:
                 ax_main.axvline(pos_info['end'] - 0.5, color='gray',
                                 linestyle='--', linewidth=1.5, alpha=0.4, zorder=1)
 
-        # Set axis properties
+        # Set axis properties with equal aspect ratio for square cells
+        ax_main.set_aspect('equal', adjustable='box')
         ax_main.set_xlim(-0.5, len(glycan_order) - 0.5)
         ax_main.set_ylim(-0.5, len(peptide_order) - 0.5)
 
@@ -340,17 +338,23 @@ class GlycopeptideComparisonHeatmapMixin:
                 legend_elements.append(Patch(facecolor=glycan_type_colors[gt],
                                              label=f'{gt}', alpha=0.85, edgecolor='#333'))
 
-        # Group indicators - explain symbol visualization (larger, more visible)
+        # Symbol indicators - linewidth shows qualitative difference
         legend_elements.append(Line2D([0], [0], marker='x', color='w',
-                                      markerfacecolor='#E74C3C', markersize=14,
-                                      markeredgewidth=5.0,
-                                      label='× Cancer', markeredgecolor='#E74C3C'))
+                                      markerfacecolor='gray', markersize=12,
+                                      markeredgewidth=2.5, markeredgecolor='gray',
+                                      label='× Cancer (both groups)'))
         legend_elements.append(Line2D([0], [0], marker='+', color='w',
-                                      markerfacecolor='#3498DB', markersize=14,
-                                      markeredgewidth=5.0,
-                                      label='+ Normal (Control)', markeredgecolor='#3498DB'))
-        legend_elements.append(Patch(facecolor='gray', label='Darkness = Intensity (relative to type)',
-                                     alpha=0.5, edgecolor='#333', linewidth=1))
+                                      markerfacecolor='gray', markersize=12,
+                                      markeredgewidth=2.5, markeredgecolor='gray',
+                                      label='+ Normal (both groups)'))
+        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+                                      markerfacecolor='gray', markersize=12,
+                                      markeredgewidth=5.0, markeredgecolor='gray',
+                                      label='× Cancer only (bold)'))
+        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+                                      markerfacecolor='gray', markersize=12,
+                                      markeredgewidth=5.0, markeredgecolor='gray',
+                                      label='+ Normal only (bold)'))
 
         ax_main.legend(handles=legend_elements, loc='upper left',
                        bbox_to_anchor=(1.01, 1), frameon=True, fontsize=12,
@@ -369,8 +373,9 @@ class GlycopeptideComparisonHeatmapMixin:
 
         # === SAVE COMPREHENSIVE TRACE DATA ===
 
-        # NOTE: The Cancer_Mean and Normal_Mean are AGGREGATED values
-        # (averaged across samples) used for plotting.
+        # NOTE: The Cancer_Mean and Normal_Mean are MEAN values
+        # (averaged across samples within each glycopeptide).
+        # The top panel shows the AVERAGE of these means per glycan composition.
         # Individual sample columns contain ORIGINAL raw intensities from integrated.csv
 
         # Prepare enhanced trace data with all individual sample values
@@ -411,22 +416,41 @@ class GlycopeptideComparisonHeatmapMixin:
             axis=1
         )
 
-        # Add intensity transparency values used in plot (relative to glycan type max)
-        def calculate_alpha(row, group_col):
-            """Calculate alpha transparency relative to glycan type max"""
-            intensity = row[group_col]
-            if intensity <= 0:
-                return 0
-            glycan_type = row['GlycanTypeCategory']
-            type_max = max_intensity_by_type.get(glycan_type, 1)
-            return min(0.3 + (intensity / type_max) * 0.7, 1.0)
+        # Add symbol information based on group presence
+        def get_symbol_info(row):
+            """Determine symbol markers and linewidth based on group presence"""
+            has_cancer = not np.isnan(row['Cancer_Mean']) and row['Cancer_Mean'] > 0
+            has_normal = not np.isnan(row['Normal_Mean']) and row['Normal_Mean'] > 0
 
-        trace_data['Cancer_Alpha'] = trace_data.apply(lambda row: calculate_alpha(row, 'Cancer_Mean'), axis=1)
-        trace_data['Normal_Alpha'] = trace_data.apply(lambda row: calculate_alpha(row, 'Normal_Mean'), axis=1)
+            # Qualitative difference: only one group present
+            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
+
+            if is_qualitatively_different:
+                linewidth = 5.0  # Bold for qualitative difference
+            else:
+                linewidth = 2.5  # Normal for both groups present
+
+            if has_cancer and has_normal:
+                return 'x', '+', linewidth, 'Both groups'
+            elif has_cancer:
+                return 'x', None, linewidth, 'Cancer only'
+            elif has_normal:
+                return None, '+', linewidth, 'Normal only'
+            else:
+                return None, None, 0, 'Neither'
+
+        symbol_info = trace_data.apply(get_symbol_info, axis=1)
+        trace_data['Cancer_Symbol'] = [x[0] for x in symbol_info]
+        trace_data['Normal_Symbol'] = [x[1] for x in symbol_info]
+        trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
+        trace_data['Group_Presence'] = [x[3] for x in symbol_info]
+
+        # Add uniform alpha for all symbols
+        trace_data['Symbol_Alpha'] = 0.8
 
         # Add flags for presence in plot
-        trace_data['Cancer_Dot_Plotted'] = trace_data['Cancer_Mean'] > 0
-        trace_data['Normal_Dot_Plotted'] = trace_data['Normal_Mean'] > 0
+        trace_data['Cancer_Plotted'] = trace_data['Cancer_Symbol'].notna()
+        trace_data['Normal_Plotted'] = trace_data['Normal_Symbol'].notna()
 
         # Reorder columns for readability
         key_columns = [
@@ -436,8 +460,8 @@ class GlycopeptideComparisonHeatmapMixin:
             'Cancer_Mean', 'Cancer_StdDev', 'Cancer_SampleCount', 'Cancer_Detection_Pct', 'Cancer_Min', 'Cancer_Max',
             'Normal_Mean', 'Normal_StdDev', 'Normal_SampleCount', 'Normal_Detection_Pct', 'Normal_Min', 'Normal_Max',
             'Fold_Change', 'Log2_Fold_Change',
-            'Cancer_Alpha', 'Normal_Alpha',
-            'Cancer_Dot_Plotted', 'Normal_Dot_Plotted'
+            'Cancer_Symbol', 'Normal_Symbol', 'Symbol_Linewidth', 'Symbol_Alpha', 'Group_Presence',
+            'Cancer_Plotted', 'Normal_Plotted'
         ]
 
         # All individual sample columns
@@ -464,3 +488,765 @@ class GlycopeptideComparisonHeatmapMixin:
         logger.info(f"  - Glycans shown: {len(glycan_order)}")
         for gt, pos in glycan_type_positions.items():
             logger.info(f"    - {gt}: {pos['end'] - pos['start']} glycans")
+
+    def plot_glycopeptide_comparison_heatmap_full(
+        self,
+        df: pd.DataFrame,
+        vip_scores: pd.DataFrame,
+        config: DataPreparationConfig = None
+    ):
+        """
+        Create FULL-SCALE dot-based heatmap comparing Cancer vs Normal groups
+        Shows ALL glycopeptides without VIP filtering (complete landscape view)
+
+        Layout (top to bottom):
+        1. Top Panel: Average intensity line plots (Cancer vs Normal)
+        2. Middle Panel: Gradient colored bar showing glycan type regions
+        3. Main Panel: Dot heatmap with side-by-side comparison (ALL glycopeptides)
+        4. Bottom: Glycan composition labels (rotated 45°)
+
+        Features:
+        - Y-axis: ALL peptides sorted by VIP score (descending)
+        - X-axis: ALL glycan compositions grouped by type (HM, F, S, SF, C/H)
+        - Dots: Side-by-side - × (Cancer), + (Normal)
+        - Bold symbols (thick linewidth) when qualitatively different
+        - Color: By glycan type with uniform transparency
+        - Complete landscape: 374 peptides × 238 glycans = 2,314 glycopeptides
+
+        Args:
+            df: Annotated DataFrame with all samples
+            vip_scores: VIP scores DataFrame from PLS-DA
+            config: Data preparation configuration
+        """
+        logger.info("Creating FULL-SCALE glycopeptide comparison heatmap (ALL glycopeptides)...")
+
+        # Use default config if not provided
+        if config is None:
+            config = DataPreparationConfig(
+                min_detection_pct=0.30,
+                min_samples=5,
+                missing_data_method='skipna'
+            )
+
+        # Define glycan type order and use user-specified color rule
+        glycan_type_order = ['HM', 'F', 'S', 'SF', 'C/H']
+        glycan_type_colors = EXTENDED_CATEGORY_COLORS
+
+        # STANDARDIZED DATA PREPARATION (no filtering)
+        df_with_vip = prepare_visualization_data(
+            df=df,
+            config=config,
+            vip_scores=vip_scores,
+            merge_method='left',
+            apply_detection_filter=False,  # Data already filtered in main.py
+            log_prefix="[Full Comparison Heatmap] "
+        )
+
+        if len(df_with_vip) == 0:
+            logger.error("No glycopeptides available!")
+            return
+
+        logger.info(f"Processing {len(df_with_vip)} total glycopeptides (complete dataset)")
+
+        # Use ALL glycopeptides without filtering
+        df_plot = df_with_vip.copy()
+
+        # Create peptide order (by max VIP score per peptide, descending)
+        peptide_max_vip = df_plot.groupby('Peptide')['VIP_Score'].max().sort_values(ascending=False)
+        peptide_order = peptide_max_vip.index.tolist()
+
+        # Create glycan order (grouped by type)
+        glycan_order = []
+        glycan_type_positions = {}
+        current_pos = 0
+
+        # Helper function for natural/numeric sorting of glycan compositions
+        def glycan_sort_key(glycan_comp):
+            """Extract numbers from glycan composition for natural sorting"""
+            import re
+            parts = re.findall(r'([A-Z]+)\((\d+)\)', glycan_comp)
+            monosaccharide_order = {'H': 0, 'N': 1, 'A': 2, 'F': 3, 'G': 4}
+            sort_tuple = []
+            for mono, count in parts:
+                order = monosaccharide_order.get(mono, 99)
+                sort_tuple.append((order, int(count)))
+            return tuple(sort_tuple)
+
+        for glycan_type in glycan_type_order:
+            type_glycans = df_plot[df_plot['GlycanTypeCategory'] == glycan_type]['GlycanComposition'].unique()
+            if len(type_glycans) > 0:
+                # Sort glycan compositions by numeric values
+                type_glycans_sorted = sorted(type_glycans, key=glycan_sort_key)
+
+                glycan_type_positions[glycan_type] = {
+                    'start': current_pos,
+                    'end': current_pos + len(type_glycans_sorted)
+                }
+                glycan_order.extend(type_glycans_sorted)
+                current_pos += len(type_glycans_sorted)
+
+        # Prepare indices
+        peptide_to_idx = {p: i for i, p in enumerate(peptide_order)}
+        glycan_to_idx = {g: i for i, g in enumerate(glycan_order)}
+
+        # Dynamic figure sizing based on data dimensions
+        # Base size: 0.2 inches per peptide/glycan
+        n_peptides = len(peptide_order)
+        n_glycans = len(glycan_order)
+
+        fig_height = max(30, n_peptides * 0.2 + 5)  # Min 30", +5" for top panels/title
+        fig_width = max(30, n_glycans * 0.23 + 10)  # Min 30", +10" for labels/legend
+
+        logger.info(f"Figure dimensions: {fig_width:.1f}\" × {fig_height:.1f}\" ({n_peptides} peptides × {n_glycans} glycans)")
+
+        # Create figure with three panels
+        fig = plt.figure(figsize=(fig_width, fig_height))
+        gs = fig.add_gridspec(3, 1, height_ratios=[1, 0.3, 5.5], hspace=0.05)
+
+        ax_top = fig.add_subplot(gs[0])
+        ax_colorbar = fig.add_subplot(gs[1])
+        ax_main = fig.add_subplot(gs[2])
+
+        # === TOP PANEL: Average intensity comparison ===
+        cancer_intensities = []
+        normal_intensities = []
+
+        for glycan in glycan_order:
+            glycan_data = df_plot[df_plot['GlycanComposition'] == glycan]
+            cancer_int = glycan_data['Cancer_Mean'].mean()
+            normal_int = glycan_data['Normal_Mean'].mean()
+            cancer_intensities.append(cancer_int)
+            normal_intensities.append(normal_int)
+
+        x_pos = np.arange(len(glycan_order))
+        ax_top.plot(x_pos, cancer_intensities, color='#E74C3C', linewidth=2.0,
+                    marker='o', markersize=4, label='Cancer', alpha=0.85,
+                    markeredgecolor='white', markeredgewidth=0.3)
+        ax_top.plot(x_pos, normal_intensities, color='#3498DB', linewidth=2.0,
+                    marker='s', markersize=4, label='Normal', alpha=0.85,
+                    markeredgecolor='white', markeredgewidth=0.3)
+
+        ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
+        ax_top.set_ylabel('Average\nIntensity', fontsize=10, fontweight='bold')
+
+        # Add vertical grid lines at glycan positions for PERFECT alignment with heatmap below
+        ax_top.set_xticks(range(len(glycan_order)), minor=False)
+        ax_top.set_xticklabels([])  # Hide labels but keep ticks for grid
+        ax_top.grid(axis='y', alpha=0.4, linestyle='--', linewidth=0.6)
+        ax_top.grid(axis='x', alpha=0.25, linestyle='-', linewidth=0.5, color='#BBBBBB')
+
+        ax_top.legend(loc='upper right', fontsize=9, framealpha=0.9, edgecolor='#333')
+        ax_top.spines['bottom'].set_visible(False)
+        ax_top.spines['top'].set_visible(False)
+        ax_top.spines['right'].set_visible(False)
+
+        # === MIDDLE PANEL: Colored bar for glycan types ===
+        ax_colorbar.set_xlim(-0.5, len(glycan_order) - 0.5)
+        ax_colorbar.set_ylim(0, 1)
+
+        for glycan_type, pos_info in glycan_type_positions.items():
+            width = pos_info['end'] - pos_info['start']
+            rect = Rectangle((pos_info['start'] - 0.5, 0), width, 1,
+                             facecolor=glycan_type_colors[glycan_type],
+                             edgecolor='#333', linewidth=1.2, alpha=0.85)
+            ax_colorbar.add_patch(rect)
+
+            # Add glycan type label in center
+            center_x = (pos_info['start'] + pos_info['end']) / 2 - 0.5
+            ax_colorbar.text(center_x, 0.5, glycan_type, ha='center', va='center',
+                             fontsize=12, fontweight='bold', color='white',
+                             bbox=dict(boxstyle='round,pad=0.3', facecolor='black', alpha=0.6,
+                                       edgecolor='white', linewidth=1.0))
+
+        ax_colorbar.set_xticks([])
+        ax_colorbar.set_yticks([])
+        ax_colorbar.spines['top'].set_visible(False)
+        ax_colorbar.spines['bottom'].set_visible(False)
+        ax_colorbar.spines['left'].set_visible(False)
+        ax_colorbar.spines['right'].set_visible(False)
+
+        # === MAIN PANEL: Symbol-based heatmap ===
+        logger.info("Plotting symbols for all glycopeptides...")
+
+        # Plot symbols for each glycopeptide
+        for idx, row in df_plot.iterrows():
+            peptide = row['Peptide']
+            glycan = row['GlycanComposition']
+            glycan_type = row['GlycanTypeCategory']
+
+            if peptide not in peptide_to_idx or glycan not in glycan_to_idx:
+                continue
+
+            y_pos = peptide_to_idx[peptide]
+            x_pos = glycan_to_idx[glycan]
+
+            # Check presence in each group
+            cancer_intensity = row['Cancer_Mean']
+            normal_intensity = row['Normal_Mean']
+            has_cancer = not np.isnan(cancer_intensity) and cancer_intensity > 0
+            has_normal = not np.isnan(normal_intensity) and normal_intensity > 0
+
+            # Qualitative difference: only one group present
+            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
+
+            # Set linewidth based on qualitative difference (reduced for full scale)
+            if is_qualitatively_different:
+                linewidth = 3.0  # Bold for qualitative difference (reduced from 5.0)
+            else:
+                linewidth = 1.5  # Normal for both groups present (reduced from 2.5)
+
+            # Plot Cancer marker (× symbol) - reduced size
+            if has_cancer:
+                ax_main.scatter(x_pos, y_pos, s=100,  # Reduced from 400
+                               marker='x',
+                               c=glycan_type_colors[glycan_type],
+                               linewidths=linewidth,
+                               alpha=0.8,
+                               zorder=4,
+                               label='_nolegend_')
+
+            # Plot Normal marker (+ symbol) - reduced size
+            if has_normal:
+                ax_main.scatter(x_pos, y_pos, s=100,  # Reduced from 400
+                               marker='+',
+                               c=glycan_type_colors[glycan_type],
+                               linewidths=linewidth,
+                               alpha=0.8,
+                               zorder=3,
+                               label='_nolegend_')
+
+        # Add light vertical separators between glycan types
+        for glycan_type, pos_info in glycan_type_positions.items():
+            if pos_info['end'] < len(glycan_order):
+                ax_main.axvline(pos_info['end'] - 0.5, color='gray',
+                                linestyle='--', linewidth=1.0, alpha=0.4, zorder=1)
+
+        # Set axis properties with equal aspect ratio
+        ax_main.set_aspect('equal', adjustable='box')
+        ax_main.set_xlim(-0.5, len(glycan_order) - 0.5)
+        ax_main.set_ylim(-0.5, len(peptide_order) - 0.5)
+
+        # Add x-axis glycan composition labels (rotated 45°) - smaller font
+        ax_main.set_xticks(range(len(glycan_order)))
+        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=7, ha='right')
+        ax_main.set_xlabel('Glycan Composition', fontsize=10, fontweight='bold', labelpad=10)
+
+        # Set y-axis labels (peptides) - smaller font
+        ax_main.set_yticks(range(len(peptide_order)))
+        ax_main.set_yticklabels(peptide_order, fontsize=6)
+        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=11, fontweight='bold')
+
+        # Invert y-axis to have highest VIP at top
+        ax_main.invert_yaxis()
+
+        # Grid - lighter for full scale
+        ax_main.grid(True, alpha=0.3, linestyle='-', linewidth=0.5, color='#CCCCCC', zorder=0)
+        ax_main.set_axisbelow(True)
+
+        # Add minor grid
+        ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
+        ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
+        ax_main.grid(which='minor', alpha=0.2, linestyle='-', linewidth=0.3, color='#DDDDDD', zorder=0)
+
+        # === LEGEND ===
+        from matplotlib.patches import Patch
+        from matplotlib.lines import Line2D
+
+        legend_elements = []
+
+        # Glycan type colors
+        for gt in glycan_type_order:
+            if gt in glycan_type_positions:
+                legend_elements.append(Patch(facecolor=glycan_type_colors[gt],
+                                             label=f'{gt}', alpha=0.85, edgecolor='#333'))
+
+        # Symbol indicators
+        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+                                      markerfacecolor='gray', markersize=10,
+                                      markeredgewidth=1.5, markeredgecolor='gray',
+                                      label='× Cancer (both groups)'))
+        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+                                      markerfacecolor='gray', markersize=10,
+                                      markeredgewidth=1.5, markeredgecolor='gray',
+                                      label='+ Normal (both groups)'))
+        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+                                      markerfacecolor='gray', markersize=10,
+                                      markeredgewidth=3.0, markeredgecolor='gray',
+                                      label='× Cancer only (bold)'))
+        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+                                      markerfacecolor='gray', markersize=10,
+                                      markeredgewidth=3.0, markeredgecolor='gray',
+                                      label='+ Normal only (bold)'))
+
+        ax_main.legend(handles=legend_elements, loc='upper left',
+                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=10,
+                       title='Legend', title_fontsize=12, framealpha=0.95,
+                       edgecolor='#333', fancybox=True, shadow=True)
+
+        # === TITLE ===
+        fig.suptitle('Full-Scale Glycopeptide Comparison Heatmap: Cancer vs Normal\n'
+                     f'(ALL {len(peptide_order)} peptides × {len(glycan_order)} glycans = {len(df_plot)} glycopeptides)',
+                     fontsize=14, fontweight='bold', y=0.997)
+
+        # Save plot
+        output_file = self.output_dir / 'glycopeptide_comparison_heatmap_full.png'
+        save_publication_figure(fig, output_file, dpi=DPI_COMPLEX)
+        logger.info(f"Saved full-scale heatmap to {output_file} (optimized, {DPI_COMPLEX} DPI)")
+
+        # === SAVE COMPREHENSIVE TRACE DATA ===
+        trace_data = df_plot.copy()
+
+        # Add plot position information
+        trace_data['Plot_X_Position'] = trace_data['GlycanComposition'].map(glycan_to_idx)
+        trace_data['Plot_Y_Position'] = trace_data['Peptide'].map(peptide_to_idx)
+
+        # Add statistical information
+        cancer_samples = [col for col in df_plot.columns if col.startswith('C') and col[1:].isdigit()]
+        normal_samples = [col for col in df_plot.columns if col.startswith('N') and col[1:].isdigit()]
+
+        cancer_trace_stats = calculate_group_statistics_standardized(trace_data, cancer_samples, method='skipna')
+        normal_trace_stats = calculate_group_statistics_standardized(trace_data, normal_samples, method='skipna')
+
+        trace_data['Cancer_StdDev'] = cancer_trace_stats['std']
+        trace_data['Normal_StdDev'] = normal_trace_stats['std']
+        trace_data['Cancer_SampleCount'] = cancer_trace_stats['count']
+        trace_data['Normal_SampleCount'] = normal_trace_stats['count']
+        trace_data['Cancer_Detection_Pct'] = cancer_trace_stats['count'] / len(cancer_samples)
+        trace_data['Normal_Detection_Pct'] = normal_trace_stats['count'] / len(normal_samples)
+        trace_data['Cancer_Min'] = cancer_trace_stats['min']
+        trace_data['Cancer_Max'] = cancer_trace_stats['max']
+        trace_data['Normal_Min'] = normal_trace_stats['min']
+        trace_data['Normal_Max'] = normal_trace_stats['max']
+
+        # Calculate fold change
+        trace_data['Fold_Change'] = trace_data.apply(
+            lambda row: calculate_fold_change(row['Cancer_Mean'], row['Normal_Mean'], log_scale=False),
+            axis=1
+        )
+        trace_data['Log2_Fold_Change'] = trace_data.apply(
+            lambda row: calculate_fold_change(row['Cancer_Mean'], row['Normal_Mean'], log_scale=True),
+            axis=1
+        )
+
+        # Add symbol information
+        def get_symbol_info(row):
+            has_cancer = not np.isnan(row['Cancer_Mean']) and row['Cancer_Mean'] > 0
+            has_normal = not np.isnan(row['Normal_Mean']) and row['Normal_Mean'] > 0
+            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
+
+            if is_qualitatively_different:
+                linewidth = 3.0
+            else:
+                linewidth = 1.5
+
+            if has_cancer and has_normal:
+                return 'x', '+', linewidth, 'Both groups'
+            elif has_cancer:
+                return 'x', None, linewidth, 'Cancer only'
+            elif has_normal:
+                return None, '+', linewidth, 'Normal only'
+            else:
+                return None, None, 0, 'Neither'
+
+        symbol_info = trace_data.apply(get_symbol_info, axis=1)
+        trace_data['Cancer_Symbol'] = [x[0] for x in symbol_info]
+        trace_data['Normal_Symbol'] = [x[1] for x in symbol_info]
+        trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
+        trace_data['Group_Presence'] = [x[3] for x in symbol_info]
+        trace_data['Symbol_Alpha'] = 0.8
+        trace_data['Cancer_Plotted'] = trace_data['Cancer_Symbol'].notna()
+        trace_data['Normal_Plotted'] = trace_data['Normal_Symbol'].notna()
+
+        # Reorder columns
+        key_columns = [
+            'Peptide', 'GlycanComposition', 'GlycanTypeCategory',
+            'Plot_X_Position', 'Plot_Y_Position',
+            'VIP_Score',
+            'Cancer_Mean', 'Cancer_StdDev', 'Cancer_SampleCount', 'Cancer_Detection_Pct', 'Cancer_Min', 'Cancer_Max',
+            'Normal_Mean', 'Normal_StdDev', 'Normal_SampleCount', 'Normal_Detection_Pct', 'Normal_Min', 'Normal_Max',
+            'Fold_Change', 'Log2_Fold_Change',
+            'Cancer_Symbol', 'Normal_Symbol', 'Symbol_Linewidth', 'Symbol_Alpha', 'Group_Presence',
+            'Cancer_Plotted', 'Normal_Plotted'
+        ]
+
+        sample_columns = cancer_samples + normal_samples
+        final_columns = key_columns + sample_columns
+
+        # Save comprehensive trace data
+        save_trace_data(trace_data[final_columns], self.output_dir,
+                        'glycopeptide_comparison_heatmap_full_data.csv')
+
+        # Save summary
+        summary_data = trace_data[key_columns].copy()
+        save_trace_data(summary_data, self.output_dir,
+                        'glycopeptide_comparison_heatmap_full_summary.csv')
+
+        plt.close()
+
+        logger.info("Full-scale comparison heatmap complete:")
+        logger.info(f"  - Cancer samples: {len(cancer_samples)}")
+        logger.info(f"  - Normal samples: {len(normal_samples)}")
+        logger.info(f"  - Peptides shown: {len(peptide_order)} (ALL unique peptides)")
+        logger.info(f"  - Glycans shown: {len(glycan_order)} (ALL unique glycans)")
+        logger.info(f"  - Total glycopeptides: {len(df_plot)}")
+        for gt, pos in glycan_type_positions.items():
+            logger.info(f"    - {gt}: {pos['end'] - pos['start']} glycans")
+
+    def plot_glycopeptide_comparison_heatmap_by_type(
+        self,
+        df: pd.DataFrame,
+        vip_scores: pd.DataFrame,
+        glycan_type: str,
+        config: DataPreparationConfig = None
+    ):
+        """
+        Create glycopeptide comparison heatmap for a SPECIFIC glycan type
+        Shows ALL glycopeptides of the specified type (complete landscape view)
+
+        Layout (top to bottom):
+        1. Top Panel: Average intensity line plots (Cancer vs Normal)
+        2. Main Panel: Dot heatmap with side-by-side comparison
+        3. Bottom: Glycan composition labels (rotated 45°)
+
+        Features:
+        - Filtered to single glycan type (HM, F, S, SF, or C/H)
+        - Y-axis: ALL peptides with this glycan type, sorted by VIP score
+        - X-axis: ALL glycan compositions of this type, naturally sorted
+        - Symbols: × (Cancer), + (Normal) colored by glycan type
+        - Bold symbols (thick linewidth) when qualitatively different
+        - NO color bar (redundant since all glycans are same type)
+
+        Args:
+            df: Annotated DataFrame with all samples
+            vip_scores: VIP scores DataFrame from PLS-DA
+            glycan_type: Glycan type to filter ('HM', 'F', 'S', 'SF', or 'C/H')
+            config: Data preparation configuration
+        """
+        logger.info(f"Creating glycopeptide comparison heatmap for {glycan_type} type...")
+
+        # Use default config if not provided
+        if config is None:
+            config = DataPreparationConfig(
+                min_detection_pct=0.30,
+                min_samples=5,
+                missing_data_method='skipna'
+            )
+
+        # Get glycan type color
+        glycan_type_color = EXTENDED_CATEGORY_COLORS[glycan_type]
+
+        # STANDARDIZED DATA PREPARATION
+        df_with_vip = prepare_visualization_data(
+            df=df,
+            config=config,
+            vip_scores=vip_scores,
+            merge_method='left',
+            apply_detection_filter=False,
+            log_prefix=f"[{glycan_type} Heatmap] "
+        )
+
+        if len(df_with_vip) == 0:
+            logger.error("No glycopeptides available!")
+            return
+
+        # Filter to specific glycan type
+        df_filtered = df_with_vip[df_with_vip['GlycanTypeCategory'] == glycan_type].copy()
+
+        if len(df_filtered) == 0:
+            logger.warning(f"No glycopeptides found for type {glycan_type}")
+            return
+
+        logger.info(f"Processing {len(df_filtered)} glycopeptides of type {glycan_type}")
+
+        # Use ALL glycopeptides of this type
+        df_plot = df_filtered.copy()
+
+        # Create peptide order (by max VIP score per peptide, descending)
+        peptide_max_vip = df_plot.groupby('Peptide')['VIP_Score'].max().sort_values(ascending=False)
+        peptide_order = peptide_max_vip.index.tolist()
+
+        # Create glycan order (naturally sorted)
+        def glycan_sort_key(glycan_comp):
+            """Extract numbers from glycan composition for natural sorting"""
+            import re
+            parts = re.findall(r'([A-Z]+)\((\d+)\)', glycan_comp)
+            monosaccharide_order = {'H': 0, 'N': 1, 'A': 2, 'F': 3, 'G': 4}
+            sort_tuple = []
+            for mono, count in parts:
+                order = monosaccharide_order.get(mono, 99)
+                sort_tuple.append((order, int(count)))
+            return tuple(sort_tuple)
+
+        glycan_compositions = df_plot['GlycanComposition'].unique()
+        glycan_order = sorted(glycan_compositions, key=glycan_sort_key)
+
+        # Prepare indices
+        peptide_to_idx = {p: i for i, p in enumerate(peptide_order)}
+        glycan_to_idx = {g: i for i, g in enumerate(glycan_order)}
+
+        # Dynamic figure sizing
+        n_peptides = len(peptide_order)
+        n_glycans = len(glycan_order)
+
+        fig_height = max(20, n_peptides * 0.2 + 5)
+        fig_width = max(20, n_glycans * 0.23 + 10)
+
+        logger.info(f"Figure dimensions: {fig_width:.1f}\" × {fig_height:.1f}\" ({n_peptides} peptides × {n_glycans} glycans)")
+
+        # Create figure with TWO panels (no color bar)
+        fig = plt.figure(figsize=(fig_width, fig_height))
+        gs = fig.add_gridspec(2, 1, height_ratios=[1, 6], hspace=0.08)
+
+        ax_top = fig.add_subplot(gs[0])
+        ax_main = fig.add_subplot(gs[1])
+
+        # === TOP PANEL: Average intensity comparison ===
+        cancer_intensities = []
+        normal_intensities = []
+
+        for glycan in glycan_order:
+            glycan_data = df_plot[df_plot['GlycanComposition'] == glycan]
+            cancer_int = glycan_data['Cancer_Mean'].mean()
+            normal_int = glycan_data['Normal_Mean'].mean()
+            cancer_intensities.append(cancer_int)
+            normal_intensities.append(normal_int)
+
+        x_pos = np.arange(len(glycan_order))
+        ax_top.plot(x_pos, cancer_intensities, color='#E74C3C', linewidth=2.0,
+                    marker='o', markersize=4, label='Cancer', alpha=0.85,
+                    markeredgecolor='white', markeredgewidth=0.3)
+        ax_top.plot(x_pos, normal_intensities, color='#3498DB', linewidth=2.0,
+                    marker='s', markersize=4, label='Normal', alpha=0.85,
+                    markeredgecolor='white', markeredgewidth=0.3)
+
+        ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
+        ax_top.set_ylabel('Average\nIntensity', fontsize=10, fontweight='bold')
+
+        # Add vertical grid lines at glycan positions for PERFECT alignment with heatmap below
+        ax_top.set_xticks(range(len(glycan_order)), minor=False)
+        ax_top.set_xticklabels([])  # Hide labels but keep ticks for grid
+        ax_top.grid(axis='y', alpha=0.4, linestyle='--', linewidth=0.6)
+        ax_top.grid(axis='x', alpha=0.25, linestyle='-', linewidth=0.5, color='#BBBBBB')
+
+        ax_top.legend(loc='upper right', fontsize=9, framealpha=0.9, edgecolor='#333')
+        ax_top.spines['bottom'].set_visible(False)
+        ax_top.spines['top'].set_visible(False)
+        ax_top.spines['right'].set_visible(False)
+
+        # === MAIN PANEL: Symbol-based heatmap ===
+        logger.info(f"Plotting symbols (all colored {glycan_type_color})...")
+
+        # Plot symbols for each glycopeptide - ALL SAME COLOR
+        for idx, row in df_plot.iterrows():
+            peptide = row['Peptide']
+            glycan = row['GlycanComposition']
+
+            if peptide not in peptide_to_idx or glycan not in glycan_to_idx:
+                continue
+
+            y_pos = peptide_to_idx[peptide]
+            x_pos = glycan_to_idx[glycan]
+
+            # Check presence in each group
+            cancer_intensity = row['Cancer_Mean']
+            normal_intensity = row['Normal_Mean']
+            has_cancer = not np.isnan(cancer_intensity) and cancer_intensity > 0
+            has_normal = not np.isnan(normal_intensity) and normal_intensity > 0
+
+            # Qualitative difference: only one group present
+            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
+
+            # Set linewidth based on qualitative difference
+            if is_qualitatively_different:
+                linewidth = 3.0  # Bold
+            else:
+                linewidth = 1.5  # Normal
+
+            # Plot Cancer marker (× symbol) - colored by glycan type
+            if has_cancer:
+                ax_main.scatter(x_pos, y_pos, s=100,
+                               marker='x',
+                               c=glycan_type_color,  # All same color
+                               linewidths=linewidth,
+                               alpha=0.8,
+                               zorder=4,
+                               label='_nolegend_')
+
+            # Plot Normal marker (+ symbol) - colored by glycan type
+            if has_normal:
+                ax_main.scatter(x_pos, y_pos, s=100,
+                               marker='+',
+                               c=glycan_type_color,  # All same color
+                               linewidths=linewidth,
+                               alpha=0.8,
+                               zorder=3,
+                               label='_nolegend_')
+
+        # Set axis properties with equal aspect ratio
+        ax_main.set_aspect('equal', adjustable='box')
+        ax_main.set_xlim(-0.5, len(glycan_order) - 0.5)
+        ax_main.set_ylim(-0.5, len(peptide_order) - 0.5)
+
+        # Add x-axis glycan composition labels (rotated 45°)
+        ax_main.set_xticks(range(len(glycan_order)))
+        ax_main.set_xticklabels(glycan_order, rotation=45, fontsize=7, ha='right')
+        ax_main.set_xlabel('Glycan Composition', fontsize=10, fontweight='bold', labelpad=10)
+
+        # Set y-axis labels (peptides)
+        ax_main.set_yticks(range(len(peptide_order)))
+        ax_main.set_yticklabels(peptide_order, fontsize=6)
+        ax_main.set_ylabel('Peptide (sorted by VIP score)', fontsize=11, fontweight='bold')
+
+        # Invert y-axis to have highest VIP at top
+        ax_main.invert_yaxis()
+
+        # Grid
+        ax_main.grid(True, alpha=0.3, linestyle='-', linewidth=0.5, color='#CCCCCC', zorder=0)
+        ax_main.set_axisbelow(True)
+
+        # Add minor grid
+        ax_main.set_xticks([i - 0.5 for i in range(1, len(glycan_order))], minor=True)
+        ax_main.set_yticks([i - 0.5 for i in range(1, len(peptide_order))], minor=True)
+        ax_main.grid(which='minor', alpha=0.2, linestyle='-', linewidth=0.3, color='#DDDDDD', zorder=0)
+
+        # === LEGEND ===
+        from matplotlib.lines import Line2D
+
+        legend_elements = []
+
+        # Symbol indicators with glycan type color
+        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+                                      markerfacecolor=glycan_type_color, markersize=10,
+                                      markeredgewidth=1.5, markeredgecolor=glycan_type_color,
+                                      label='× Cancer (both groups)'))
+        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+                                      markerfacecolor=glycan_type_color, markersize=10,
+                                      markeredgewidth=1.5, markeredgecolor=glycan_type_color,
+                                      label='+ Normal (both groups)'))
+        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+                                      markerfacecolor=glycan_type_color, markersize=10,
+                                      markeredgewidth=3.0, markeredgecolor=glycan_type_color,
+                                      label='× Cancer only (bold)'))
+        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+                                      markerfacecolor=glycan_type_color, markersize=10,
+                                      markeredgewidth=3.0, markeredgecolor=glycan_type_color,
+                                      label='+ Normal only (bold)'))
+
+        ax_main.legend(handles=legend_elements, loc='upper left',
+                       bbox_to_anchor=(1.01, 1), frameon=True, fontsize=10,
+                       title=f'{glycan_type} Type', title_fontsize=12, framealpha=0.95,
+                       edgecolor='#333', fancybox=True, shadow=True)
+
+        # === TITLE ===
+        glycan_type_names = {
+            'HM': 'High-Mannose',
+            'F': 'Fucosylated',
+            'S': 'Sialylated',
+            'SF': 'Sialo-Fucosylated',
+            'C/H': 'Complex/Hybrid'
+        }
+        fig.suptitle(f'Glycopeptide Comparison: {glycan_type_names[glycan_type]} Type\n'
+                     f'Cancer vs Normal ({len(peptide_order)} peptides × {len(glycan_order)} glycans = {len(df_plot)} glycopeptides)',
+                     fontsize=14, fontweight='bold', y=0.997)
+
+        # Save plot with glycan-type-specific filename
+        glycan_type_filename = glycan_type.replace('/', '_')  # C/H → C_H
+        output_file = self.output_dir / f'glycopeptide_comparison_heatmap_{glycan_type_filename}.png'
+        save_publication_figure(fig, output_file, dpi=DPI_COMPLEX)
+        logger.info(f"Saved {glycan_type} heatmap to {output_file} ({DPI_COMPLEX} DPI)")
+
+        # === SAVE TRACE DATA ===
+        trace_data = df_plot.copy()
+
+        # Add plot position information
+        trace_data['Plot_X_Position'] = trace_data['GlycanComposition'].map(glycan_to_idx)
+        trace_data['Plot_Y_Position'] = trace_data['Peptide'].map(peptide_to_idx)
+
+        # Add statistical information
+        cancer_samples = [col for col in df_plot.columns if col.startswith('C') and col[1:].isdigit()]
+        normal_samples = [col for col in df_plot.columns if col.startswith('N') and col[1:].isdigit()]
+
+        cancer_trace_stats = calculate_group_statistics_standardized(trace_data, cancer_samples, method='skipna')
+        normal_trace_stats = calculate_group_statistics_standardized(trace_data, normal_samples, method='skipna')
+
+        trace_data['Cancer_StdDev'] = cancer_trace_stats['std']
+        trace_data['Normal_StdDev'] = normal_trace_stats['std']
+        trace_data['Cancer_SampleCount'] = cancer_trace_stats['count']
+        trace_data['Normal_SampleCount'] = normal_trace_stats['count']
+        trace_data['Cancer_Detection_Pct'] = cancer_trace_stats['count'] / len(cancer_samples)
+        trace_data['Normal_Detection_Pct'] = normal_trace_stats['count'] / len(normal_samples)
+        trace_data['Cancer_Min'] = cancer_trace_stats['min']
+        trace_data['Cancer_Max'] = cancer_trace_stats['max']
+        trace_data['Normal_Min'] = normal_trace_stats['min']
+        trace_data['Normal_Max'] = normal_trace_stats['max']
+
+        # Calculate fold change
+        trace_data['Fold_Change'] = trace_data.apply(
+            lambda row: calculate_fold_change(row['Cancer_Mean'], row['Normal_Mean'], log_scale=False),
+            axis=1
+        )
+        trace_data['Log2_Fold_Change'] = trace_data.apply(
+            lambda row: calculate_fold_change(row['Cancer_Mean'], row['Normal_Mean'], log_scale=True),
+            axis=1
+        )
+
+        # Add symbol information
+        def get_symbol_info(row):
+            has_cancer = not np.isnan(row['Cancer_Mean']) and row['Cancer_Mean'] > 0
+            has_normal = not np.isnan(row['Normal_Mean']) and row['Normal_Mean'] > 0
+            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
+
+            if is_qualitatively_different:
+                linewidth = 3.0
+            else:
+                linewidth = 1.5
+
+            if has_cancer and has_normal:
+                return 'x', '+', linewidth, 'Both groups'
+            elif has_cancer:
+                return 'x', None, linewidth, 'Cancer only'
+            elif has_normal:
+                return None, '+', linewidth, 'Normal only'
+            else:
+                return None, None, 0, 'Neither'
+
+        symbol_info = trace_data.apply(get_symbol_info, axis=1)
+        trace_data['Cancer_Symbol'] = [x[0] for x in symbol_info]
+        trace_data['Normal_Symbol'] = [x[1] for x in symbol_info]
+        trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
+        trace_data['Group_Presence'] = [x[3] for x in symbol_info]
+        trace_data['Symbol_Color'] = glycan_type_color
+        trace_data['Symbol_Alpha'] = 0.8
+        trace_data['Cancer_Plotted'] = trace_data['Cancer_Symbol'].notna()
+        trace_data['Normal_Plotted'] = trace_data['Normal_Symbol'].notna()
+
+        # Reorder columns
+        key_columns = [
+            'Peptide', 'GlycanComposition', 'GlycanTypeCategory',
+            'Plot_X_Position', 'Plot_Y_Position',
+            'VIP_Score',
+            'Cancer_Mean', 'Cancer_StdDev', 'Cancer_SampleCount', 'Cancer_Detection_Pct', 'Cancer_Min', 'Cancer_Max',
+            'Normal_Mean', 'Normal_StdDev', 'Normal_SampleCount', 'Normal_Detection_Pct', 'Normal_Min', 'Normal_Max',
+            'Fold_Change', 'Log2_Fold_Change',
+            'Cancer_Symbol', 'Normal_Symbol', 'Symbol_Linewidth', 'Symbol_Color', 'Symbol_Alpha', 'Group_Presence',
+            'Cancer_Plotted', 'Normal_Plotted'
+        ]
+
+        sample_columns = cancer_samples + normal_samples
+        final_columns = key_columns + sample_columns
+
+        # Save trace data
+        save_trace_data(trace_data[final_columns], self.output_dir,
+                        f'glycopeptide_comparison_heatmap_{glycan_type_filename}_data.csv')
+
+        # Save summary
+        summary_data = trace_data[key_columns].copy()
+        save_trace_data(summary_data, self.output_dir,
+                        f'glycopeptide_comparison_heatmap_{glycan_type_filename}_summary.csv')
+
+        plt.close()
+
+        logger.info(f"{glycan_type} heatmap complete:")
+        logger.info(f"  - Peptides: {len(peptide_order)}")
+        logger.info(f"  - Glycans: {len(glycan_order)}")
+        logger.info(f"  - Total glycopeptides: {len(df_plot)}")

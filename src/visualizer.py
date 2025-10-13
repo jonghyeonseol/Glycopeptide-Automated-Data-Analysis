@@ -29,6 +29,7 @@ from src.plots.enhanced_pie_chart_plot import PieChartPlotMixin  # ENHANCED: Pie
 from src.plots.missing_data_plot import MissingDataPlotMixin  # Phase 4.1: Data integrity
 from src.plots.plsda_diagnostic_plot import PLSDADiagnosticPlotMixin  # Phase 4.2: Model validation
 from src.plots.sample_qc_dashboard import SampleQCDashboardMixin  # Phase 4.3: Sample QC
+from src.plots.sankey_plot import SankeyPlotMixin  # Sankey diagram for glycan type flows
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -53,7 +54,8 @@ class GlycanVisualizer(
     PieChartPlotMixin,  # NEW: Pie chart visualizations
     MissingDataPlotMixin,  # Phase 4.1: Data integrity visualization
     PLSDADiagnosticPlotMixin,  # Phase 4.2: Model validation
-    SampleQCDashboardMixin  # Phase 4.3: Sample QC
+    SampleQCDashboardMixin,  # Phase 4.3: Sample QC
+    SankeyPlotMixin  # Sankey diagram for glycan type flows
 ):
     """Create visualizations for glycoproteomics data"""
 

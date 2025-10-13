@@ -147,10 +147,7 @@ Results/Trace/*.csv
 *.bak
 *.backup
 
-# Cleanup - Added 2025-10-08
+# Cleanup - Updated 2025-10-13 (v3.1.0)
 Logs/
-*.log
-__pycache__/
-*.pyc
-*.pyo
-.DS_Store
+Results/*.jsonl
+Results/*.html

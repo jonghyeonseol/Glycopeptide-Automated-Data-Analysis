@@ -318,8 +318,82 @@ CSV files in `Dataset/` must:
 - **NEW**: Includes filtering report and data consistency guarantees
 - Sample counts, annotation statistics, PCA variance explained
 - Output file listings
+
+## Repository Maintenance (v3.1.0)
+
+### Automated Cleanup Script
+
+Run `scripts/cleanup.sh` to remove temporary files and maintain a clean repository:
+
+```bash
+# From repository root
+./scripts/cleanup.sh
+```
+
+**What it cleans**:
+- Python cache files (`__pycache__/`, `*.pyc`, `*.pyo`)
+- System files (`.DS_Store`, `.AppleDouble`)
+- Archives audit logs from `Results/` to `Logs/audit_logs/`
+
+**When to run**:
+- After development sessions
+- Before committing to git
+- When repository size becomes large
+- Monthly maintenance routine
+
+### File Organization
+
+**Logs**:
+- `Logs/audit_logs/` - Archived audit log files (`.jsonl`)
+- `Logs/archived_logs/` - Older log files
+
+**Results**:
+- PNG files (visualizations) - tracked in git via LFS
+- CSV files (trace data, statistics) - ignored by git (reproducible)
+- HTML files (interactive plots) - ignored by git (large files)
+- JSONL files (audit logs) - should be archived to `Logs/audit_logs/`
+
+**Git Ignore Strategy**:
+- `.gitignore` updated to exclude Results/*.jsonl and Results/*.html
+- Run cleanup script before commits to ensure clean state
+
+### Code Maintenance Notes
+
+**Large Files Identified** (for future refactoring):
+- `src/plots/glycopeptide_comparison_heatmap.py` (1,252 lines)
+  - Contains 3 methods with significant code duplication
+  - Refactoring planned for v3.2.0 to extract common helper functions
+  - Will reduce to ~600 lines by creating unified base method
+- `src/plots/boxplot.py` (862 lines)
+- `src/plots/enhanced_pie_chart_plot.py` (814 lines)
+- `src/plots/plot_config.py` (870 lines - mostly configuration)
+
+**Refactoring Goal** (v3.2.0):
+- Extract common plotting logic to reduce duplication
+- Improve maintainability and readability
+- No breaking changes to public APIs
+
+### Development Guidelines
+
+1. **Before Committing**:
+   ```bash
+   ./scripts/cleanup.sh
+   git status
+   ```
+
+2. **After Major Changes**:
+   - Run full pipeline: `python3 main.py`
+   - Verify all visualizations generated
+   - Check `Results/analysis_summary.txt` for consistency
+
+3. **File Size Policy**:
+   - PNG files: 300 DPI for print, keep < 5MB
+   - HTML files: Archive old versions, keep only latest
+   - CSV trace data: Essential for reproducibility, keep all
+
 - to memorize
 - to memorize
 - Add to memory, "You are a professional post-doctral level of data scientist and developer. You have review every data to be reliable. Reliability is the most valuable point as a scientist."
 - Add to memory, "You should consider the data integrity carefully."
 - to memorize "Stay focus on data integrity and reliability."
+- to memorize "The given colors implies the characteristics of glycan. Green(High-mannose type), Blue(Complex/Hybrid), Pink(Sialylated), Red(Fucosylated) and Orange(Sialo-fucosylated). If the visualization result reflects the glycan information, the color palette should follow this rule."

@@ -154,18 +154,22 @@ LEGACY_GLYCAN_COLORS = {
     'Both': '#EC4899'           # Pink (Material 3.0) - Sialofucosylated (complexity, dual)
 }
 
-# Extended category colors - UPDATED TO MATERIAL DESIGN 3.0
+# Extended category colors - USER-REQUESTED SCHEME (aligned with constants.py)
+# Biological meaning: HM=Green, C/H=Blue, F=Red, S=Pink, SF=Orange
 EXTENDED_CATEGORY_COLORS = {
-    'HM': '#10B981',              # Emerald (Material 3.0) - High Mannose (growth, foundation)
-    'High mannose': '#10B981',    # Alias for consistency
-    'High Mannose': '#10B981',    # Alias (capitalized)
-    'C/H': '#3B82F6',             # Blue (Material 3.0) - Complex/Hybrid (stability, mature)
-    'Complex/Hybrid': '#3B82F6',  # Alias
-    'ComplexHybrid': '#3B82F6',   # Alias (no space/slash)
-    'Fucosylated': '#F59E0B',     # Amber (Material 3.0) - Fucosylated (energy, core modification)
-    'Sialylated': '#8B5CF6',      # Violet (Material 3.0) - Sialylated (transformation, charged)
-    'Sialofucosylated': '#EC4899',  # Pink (Material 3.0) - Sialofucosylated (complexity, dual)
-    'Both': '#EC4899',            # Alias for Sialofucosylated
+    'HM': '#00CC00',              # Green - High Mannose (early/simple glycosylation)
+    'High mannose': '#00CC00',    # Alias for consistency
+    'High Mannose': '#00CC00',    # Alias (capitalized)
+    'C/H': '#0000FF',             # Blue - Complex/Hybrid (mature/complex structures)
+    'Complex/Hybrid': '#0000FF',  # Alias
+    'ComplexHybrid': '#0000FF',   # Alias (no space/slash)
+    'F': '#FF0000',               # Red - Fucosylated (core modifications)
+    'Fucosylated': '#FF0000',     # Alias
+    'S': '#FF69B4',               # Pink - Sialylated (charged, acidic modifications)
+    'Sialylated': '#FF69B4',      # Alias
+    'SF': '#FFA500',              # Orange - Sialofucosylated (dual modifications)
+    'Sialofucosylated': '#FFA500', # Alias
+    'Both': '#FFA500',            # Alias for Sialofucosylated
     'Truncated': '#95A5A6',       # Gray - Truncated/Other (unchanged)
     'Other': '#95A5A6'            # Gray - Other (unchanged)
 }

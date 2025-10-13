@@ -76,7 +76,7 @@ def run_visualizations(state, config):
     logger.info("Creating advanced visualizations...")
     data_prep_config = get_standard_config_from_dict(config)
 
-    visualizer.plot_volcano(state.filtered_data, vip_scores, config=data_prep_config)
+    visualizer.plot_volcano(state.filtered_data, vip_scores, config=data_prep_config, log2fc_threshold=2.0)
     visualizer.plot_site_specific_heatmap(state.filtered_data, vip_scores)
     visualizer.plot_cv_distribution(state.filtered_data)
 
@@ -94,6 +94,16 @@ def run_visualizations(state, config):
     visualizer.plot_pie_chart_primary_classification(state.filtered_data)
     visualizer.plot_pie_chart_secondary_classification(state.filtered_data)
 
+    # Significance-filtered pie chart (|Log2 FC| >= 2)
+    logger.info("Creating significance-filtered pie chart (highly differential features)...")
+    visualizer.plot_pie_chart_significant_glycan_types(
+        df=state.filtered_data,
+        vip_df=vip_scores,
+        config=data_prep_config,
+        log2fc_threshold=2.0,  # 4-fold change
+        fdr_threshold=0.05
+    )
+
     if config['visualization']['glycopeptide_comparison']['enabled']:
         visualizer.plot_glycopeptide_comparison_heatmap(
             df=state.filtered_data,
@@ -103,6 +113,34 @@ def run_visualizations(state, config):
             max_peptides=config['visualization']['glycopeptide_comparison']['max_peptides'],
             max_glycans_per_type=config['visualization']['glycopeptide_comparison']['max_glycans_per_type']
         )
+
+        # Also generate full-scale landscape view (ALL glycopeptides)
+        logger.info("Creating full-scale glycopeptide comparison heatmap (complete landscape)...")
+        visualizer.plot_glycopeptide_comparison_heatmap_full(
+            df=state.filtered_data,
+            vip_scores=vip_scores,
+            config=data_prep_config
+        )
+
+        # Generate glycan-type-specific heatmaps (5 separate heatmaps)
+        logger.info("Creating glycan-type-specific comparison heatmaps...")
+        for glycan_type in ['HM', 'F', 'S', 'SF', 'C/H']:
+            visualizer.plot_glycopeptide_comparison_heatmap_by_type(
+                df=state.filtered_data,
+                vip_scores=vip_scores,
+                glycan_type=glycan_type,
+                config=data_prep_config
+            )
+
+    # Generate Sankey diagram for glycan type flows
+    logger.info("Creating Sankey diagram for glycan type flows...")
+    visualizer.plot_glycan_type_sankey(
+        df=state.filtered_data,
+        vip_scores=vip_scores,
+        config=data_prep_config,
+        log2fc_threshold=1.0,  # 2-fold change
+        fdr_threshold=0.05
+    )
 
 
 def generate_summary_report(state, config):

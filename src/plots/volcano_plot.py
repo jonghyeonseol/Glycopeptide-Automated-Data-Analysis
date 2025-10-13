@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
-from adjustText import adjust_text
 from ..utils import save_trace_data
 from ..data_preparation import (
     DataPreparationConfig,
@@ -96,7 +95,7 @@ class VolcanoPlotMixin:
 
     def plot_volcano(self, df: pd.DataFrame, vip_df: pd.DataFrame,
                      config: DataPreparationConfig = None,
-                     fdr_threshold: float = 0.05, fc_threshold: float = 1.5,
+                     fdr_threshold: float = 0.05, log2fc_threshold: float = 1.0,
                      figsize: tuple = None):
         """
         Create volcano plot showing log2(fold change) vs -log10(FDR)
@@ -108,7 +107,7 @@ class VolcanoPlotMixin:
             vip_df: DataFrame with VIP scores
             config: DataPreparationConfig (uses default if None)
             fdr_threshold: FDR significance threshold (default 0.05)
-            fc_threshold: Fold change threshold (default 1.5)
+            log2fc_threshold: Log2 fold change threshold (default 1.0 = 2-fold, common in literature)
             figsize: Figure size (width, height)
         """
         # Use default config if not provided
@@ -209,11 +208,11 @@ class VolcanoPlotMixin:
         volcano_df['Regulation'] = 'Non-significant'
 
         # Up-regulated: log2FC > threshold AND FDR < threshold
-        up_mask = (volcano_df['Log2FC'] > np.log2(fc_threshold)) & (volcano_df['FDR'] < fdr_threshold)
+        up_mask = (volcano_df['Log2FC'] > log2fc_threshold) & (volcano_df['FDR'] < fdr_threshold)
         volcano_df.loc[up_mask, 'Regulation'] = 'Up in Cancer'
 
         # Down-regulated: log2FC < -threshold AND FDR < threshold
-        down_mask = (volcano_df['Log2FC'] < -np.log2(fc_threshold)) & (volcano_df['FDR'] < fdr_threshold)
+        down_mask = (volcano_df['Log2FC'] < -log2fc_threshold) & (volcano_df['FDR'] < fdr_threshold)
         volcano_df.loc[down_mask, 'Regulation'] = 'Down in Cancer'
 
         # Create plot with optimized figure size
@@ -286,104 +285,10 @@ class VolcanoPlotMixin:
         # Add threshold lines using standardized styling
         ax.axhline(-np.log10(fdr_threshold), color='gray', linestyle='--',
                    linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
-        ax.axvline(np.log2(fc_threshold), color='gray', linestyle='--',
+        ax.axvline(log2fc_threshold, color='gray', linestyle='--',
                    linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
-        ax.axvline(-np.log2(fc_threshold), color='gray', linestyle='--',
+        ax.axvline(-log2fc_threshold, color='gray', linestyle='--',
                    linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=1)
-
-        # Use standardized glycan type colors from plot_config
-        glycan_type_colors = GLYCAN_COLORS
-
-        # =============================================================================
-        # INTELLIGENT LABEL SELECTION - Show only top VOLCANO_MAX_LABELS
-        # =============================================================================
-        # Strategy: Select the most significant AND most different glycopeptides
-        # 1. Must pass FDR < 0.05
-        # 2. Must have substantial effect size (|log2FC| > 0.5)
-        # 3. Ranked by combined score: |log2FC| × -log10(FDR) × (1 + VIP)
-        # 4. Spatially distributed (avoid clustering in one region)
-
-        significant_candidates = volcano_df[
-            (volcano_df['FDR'] < 0.05) & (abs(volcano_df['Log2FC']) > 0.5)
-        ].copy()
-
-        if len(significant_candidates) > 0:
-            # Combined annotation priority score
-            significant_candidates['AnnotationScore'] = (
-                abs(significant_candidates['Log2FC']) *
-                significant_candidates['-Log10FDR'] *
-                (1 + significant_candidates['VIP_Score'])
-            )
-
-            # Select top VOLCANO_MAX_LABELS, ensuring spatial distribution
-            # Pick 1 from left (down-regulated), 1 from top, 1 from right (up-regulated)
-            down_reg = significant_candidates[significant_candidates['Log2FC'] < -1].nlargest(1, 'AnnotationScore')
-            up_reg = significant_candidates[significant_candidates['Log2FC'] > 1].nlargest(1, 'AnnotationScore')
-            top_sig = significant_candidates.nlargest(1, '-Log10FDR')
-
-            # Combine and deduplicate
-            to_annotate = pd.concat([down_reg, up_reg, top_sig]).drop_duplicates()
-        else:
-            to_annotate = pd.DataFrame()
-
-        # =============================================================================
-        # CREATE HIGH-QUALITY LABELS
-        # =============================================================================
-        texts = []
-        for _, row in to_annotate.iterrows():
-            peptide = row['Peptide']
-            glycan = row['GlycanComposition']
-
-            # Smart abbreviation: keep peptide readable
-            if len(peptide) > 10:
-                peptide_display = f"{peptide[:7]}..."
-            else:
-                peptide_display = peptide
-
-            # Two-line label for clarity
-            label = f"{peptide_display}\n{glycan}"
-
-            # Color by glycan type for biological context
-            glycan_type = row.get('GlycanTypeCategory', 'C/H')
-            text_color = glycan_type_colors.get(glycan_type, '#000000')
-
-            # Create label with MAXIMUM VISIBILITY settings
-            texts.append(ax.text(
-                row['Log2FC'], row['-Log10FDR'], label,
-                fontsize=VOLCANO_LABEL_FONTSIZE,      # Extra large (14pt)
-                fontweight=VOLCANO_LABEL_WEIGHT,       # Bold
-                ha='center', va='center',
-                color=text_color,
-                bbox=dict(
-                    boxstyle=f'round,pad={VOLCANO_LABEL_PADDING}',  # Extra padding
-                    facecolor='white',
-                    edgecolor=text_color,
-                    alpha=0.98,                         # Nearly opaque
-                    linewidth=VOLCANO_LABEL_LINEWIDTH   # Extra thick border (2.5)
-                ),
-                zorder=100  # Ensure labels are on top
-            ))
-
-        # =============================================================================
-        # SMART LABEL POSITIONING - Avoid all overlaps
-        # =============================================================================
-        if len(texts) > 0:
-            try:
-                adjust_text(
-                    texts,
-                    arrowprops=dict(arrowstyle='->', color='black', lw=1.5, alpha=0.7),
-                    expand_points=(2.0, 2.0),   # Large exclusion zone around points
-                    expand_text=(2.0, 2.0),     # Large buffer between labels
-                    force_points=0.7,            # Strong repulsion from data
-                    force_text=0.7,              # Strong repulsion between labels
-                    ax=ax,
-                    lim=1000                     # More iterations for better placement
-                )
-            except Exception as e:
-                logger.warning(f"adjustText optimization failed: {e}")
-                # Fallback: simple offset positioning
-                for i, text_obj in enumerate(texts):
-                    text_obj.set_position((text_obj.get_position()[0], text_obj.get_position()[1] + (i * 0.3)))
 
         # Apply standardized styling
         apply_standard_axis_style(
@@ -408,7 +313,7 @@ class VolcanoPlotMixin:
         n_ns = len(volcano_df[volcano_df['Regulation'] == 'Non-significant'])
         n_with_ci = len(features_with_ci) if len(features_with_ci) > 0 else 0
 
-        stats_text = f"FC threshold: {fc_threshold}x | FDR < {fdr_threshold}\n"
+        stats_text = f"Log2 FC threshold: ±{log2fc_threshold} ({2**log2fc_threshold:.1f}-fold) | FDR < {fdr_threshold}\n"
         stats_text += f"Up: {n_up} | Down: {n_down} | NS: {n_ns}\n"
         if n_with_ci > 0:
             stats_text += f"95% CI shown for top {n_with_ci} features"
