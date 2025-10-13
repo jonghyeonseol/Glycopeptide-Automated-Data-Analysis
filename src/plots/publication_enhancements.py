@@ -21,13 +21,23 @@ def verify_colorblind_safe(hex_color: str) -> Dict[str, str]:
     """
     Verify color appearance for different types of colorblindness
 
+    ⚠️ WARNING: APPROXIMATION ONLY
+    This is a simplified LMS color space simulation.
+    For publication-critical validation, use dedicated tools:
+    - Color Oracle (free, cross-platform): https://colororacle.org/
+    - ColorBrewer 2.0 (online): https://colorbrewer2.org/
+    - Coblis (Color Blindness Simulator): https://www.color-blindness.com/coblis-color-blindness-simulator/
+
     Returns simulated appearance for:
     - Deuteranopia (red-green, most common, ~5% males)
     - Protanopia (red-green, ~1% males)
     - Tritanopia (blue-yellow, rare, <1%)
 
-    Note: This is a simplified simulation. For critical applications,
-    use dedicated tools like Color Oracle or ColorBrewer.
+    Returns:
+        Dictionary with:
+        - 'original': Input color
+        - 'deuteranopia', 'protanopia', 'tritanopia': Simulated colors
+        - 'warning': Prominent warning message about limitations
     """
     # Convert hex to RGB
     r = int(hex_color[1:3], 16) / 255.0
@@ -62,7 +72,12 @@ def verify_colorblind_safe(hex_color: str) -> Dict[str, str]:
         'original': hex_color,
         'deuteranopia': rgb_to_hex(deuter_r, deuter_g, deuter_b),
         'protanopia': rgb_to_hex(prota_r, prota_g, prota_b),
-        'tritanopia': rgb_to_hex(trita_r, trita_g, trita_b)
+        'tritanopia': rgb_to_hex(trita_r, trita_g, trita_b),
+        'warning': (
+            "⚠️ APPROXIMATION ONLY: This simulation uses simplified LMS color space transformation. "
+            "For publication, validate colors with Color Oracle (https://colororacle.org/) or "
+            "ColorBrewer 2.0 (https://colorbrewer2.org/)."
+        )
     }
 
 
@@ -364,7 +379,9 @@ def optimize_font_sizes_for_publication(figure_width_inches: float = 10,
         'legend': max(int(10 * base_scale), min_size),
         'annotation': max(int(9 * base_scale), min_size - 1),
         'column_type': 'single' if is_single_column else 'double',
-        'recommended_dpi': 300 if is_single_column else 600  # Higher DPI for double column
+        # DPI for PRINT SUBMISSION (higher than default electronic 200 DPI)
+        # Use plot_config.DPI_MAIN (200) for electronic/web publishing
+        'recommended_dpi': 300 if is_single_column else 600  # Print: 300 (single-col) / 600 (double-col)
     }
 
 
@@ -376,19 +393,34 @@ def validate_plot_accessibility(ax, check_contrast: bool = True,
                                 check_fonts: bool = True,
                                 min_font_size: int = 8) -> Dict:
     """
-    Validate plot meets accessibility standards
+    Validate plot meets accessibility standards (Enhanced - Phase 10.9)
+
+    Checks multiple accessibility criteria:
+    - Font sizes (title, labels, legend, colorbar, annotations)
+    - Color contrast (future enhancement)
 
     Args:
         ax: Matplotlib axes object
-        check_contrast: Check color contrast
-        check_fonts: Check font sizes
+        check_contrast: Check color contrast (not yet implemented)
+        check_fonts: Check font sizes for all text elements
         min_font_size: Minimum acceptable font size (points)
 
     Returns:
-        Dictionary with validation results
+        Dictionary with detailed validation results:
+        - 'font_sizes': Dict of all font sizes found
+        - 'failed_items': List of dicts with details of failed elements
+        - 'warnings': List of warning messages
+        - 'passes': Boolean - True if all checks passed
+
+    Example:
+        >>> results = validate_plot_accessibility(ax, min_font_size=8)
+        >>> if not results['passes']:
+        >>>     for item in results['failed_items']:
+        >>>         print(f"{item['element']}: {item['size']:.1f}pt < {item['min_required']:.1f}pt")
     """
     results = {
         'font_sizes': {},
+        'failed_items': [],  # NEW: Detailed failure information
         'color_contrast': {},
         'warnings': [],
         'passes': True
@@ -401,8 +433,18 @@ def validate_plot_accessibility(ax, check_contrast: bool = True,
             title_obj = ax.title
             title_size = title_obj.get_fontsize()
             results['font_sizes']['title'] = title_size
-            if title_size < min_font_size + 4:
-                results['warnings'].append(f"Title font size ({title_size:.1f}pt) below recommended minimum")
+            min_title_size = min_font_size + 4  # Title should be larger
+
+            if title_size < min_title_size:
+                results['warnings'].append(
+                    f"Title font size ({title_size:.1f}pt) below recommended minimum ({min_title_size}pt)"
+                )
+                results['failed_items'].append({
+                    'element': 'title',
+                    'size': title_size,
+                    'min_required': min_title_size,
+                    'text_preview': title[:50] + ('...' if len(title) > 50 else '')
+                })
                 results['passes'] = False
 
         # Check axis labels
@@ -412,14 +454,119 @@ def validate_plot_accessibility(ax, check_contrast: bool = True,
         results['font_sizes']['ylabel'] = ylabel_size
 
         if xlabel_size < min_font_size:
-            results['warnings'].append(f"X-label font size ({xlabel_size:.1f}pt) below minimum ({min_font_size}pt)")
-            results['passes'] = False
-        if ylabel_size < min_font_size:
-            results['warnings'].append(f"Y-label font size ({ylabel_size:.1f}pt) below minimum ({min_font_size}pt)")
+            results['warnings'].append(
+                f"X-label font size ({xlabel_size:.1f}pt) below minimum ({min_font_size}pt)"
+            )
+            results['failed_items'].append({
+                'element': 'xlabel',
+                'size': xlabel_size,
+                'min_required': min_font_size,
+                'text_preview': ax.xaxis.label.get_text()[:50]
+            })
             results['passes'] = False
 
+        if ylabel_size < min_font_size:
+            results['warnings'].append(
+                f"Y-label font size ({ylabel_size:.1f}pt) below minimum ({min_font_size}pt)"
+            )
+            results['failed_items'].append({
+                'element': 'ylabel',
+                'size': ylabel_size,
+                'min_required': min_font_size,
+                'text_preview': ax.yaxis.label.get_text()[:50]
+            })
+            results['passes'] = False
+
+        # NEW: Check legend font sizes
+        legend = ax.get_legend()
+        if legend:
+            legend_texts = legend.get_texts()
+            if legend_texts:
+                legend_size = legend_texts[0].get_fontsize()  # Check first entry
+                results['font_sizes']['legend'] = legend_size
+
+                if legend_size < min_font_size:
+                    results['warnings'].append(
+                        f"Legend font size ({legend_size:.1f}pt) below minimum ({min_font_size}pt)"
+                    )
+                    results['failed_items'].append({
+                        'element': 'legend',
+                        'size': legend_size,
+                        'min_required': min_font_size,
+                        'text_preview': legend_texts[0].get_text()[:30] + '...'
+                    })
+                    results['passes'] = False
+
+            # Check legend title if present
+            legend_title = legend.get_title()
+            if legend_title and legend_title.get_text():
+                legend_title_size = legend_title.get_fontsize()
+                results['font_sizes']['legend_title'] = legend_title_size
+
+                if legend_title_size < min_font_size:
+                    results['warnings'].append(
+                        f"Legend title font size ({legend_title_size:.1f}pt) below minimum ({min_font_size}pt)"
+                    )
+                    results['failed_items'].append({
+                        'element': 'legend_title',
+                        'size': legend_title_size,
+                        'min_required': min_font_size,
+                        'text_preview': legend_title.get_text()[:30]
+                    })
+                    results['passes'] = False
+
+        # NEW: Check colorbar font sizes (for heatmaps, etc.)
+        # Try to find colorbar associated with this axes
+        fig = ax.get_figure()
+        if fig:
+            for child_ax in fig.get_axes():
+                # Colorbar axes typically have different properties
+                if hasattr(child_ax, 'colorbar'):
+                    cbar = child_ax.colorbar
+                    if cbar:
+                        cbar_label_size = cbar.ax.yaxis.label.get_fontsize()
+                        results['font_sizes']['colorbar_label'] = cbar_label_size
+
+                        if cbar_label_size < min_font_size:
+                            results['warnings'].append(
+                                f"Colorbar label font size ({cbar_label_size:.1f}pt) below minimum ({min_font_size}pt)"
+                            )
+                            results['failed_items'].append({
+                                'element': 'colorbar_label',
+                                'size': cbar_label_size,
+                                'min_required': min_font_size,
+                                'text_preview': cbar.ax.yaxis.label.get_text()[:30]
+                            })
+                            results['passes'] = False
+
+        # NEW: Check text annotations
+        texts = ax.texts
+        if texts:
+            annotation_sizes = []
+            for i, text_obj in enumerate(texts):
+                text_size = text_obj.get_fontsize()
+                annotation_sizes.append(text_size)
+
+                if text_size < min_font_size - 1:  # Annotations can be slightly smaller
+                    text_content = text_obj.get_text()
+                    results['warnings'].append(
+                        f"Annotation #{i+1} font size ({text_size:.1f}pt) below acceptable minimum ({min_font_size-1}pt)"
+                    )
+                    results['failed_items'].append({
+                        'element': f'annotation_{i+1}',
+                        'size': text_size,
+                        'min_required': min_font_size - 1,
+                        'text_preview': text_content[:40] + ('...' if len(text_content) > 40 else '')
+                    })
+                    results['passes'] = False
+
+            if annotation_sizes:
+                results['font_sizes']['annotations_min'] = min(annotation_sizes)
+                results['font_sizes']['annotations_max'] = max(annotation_sizes)
+                results['font_sizes']['annotations_count'] = len(annotation_sizes)
+
     if not results['warnings']:
-        results['warnings'].append("All accessibility checks passed!")
+        results['warnings'].append("✓ All accessibility checks passed!")
 
     return results
 

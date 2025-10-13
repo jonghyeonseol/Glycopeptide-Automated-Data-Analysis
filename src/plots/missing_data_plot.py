@@ -2,6 +2,16 @@
 Missing Data Visualization Module for pGlyco Auto Combine
 Creates missingno-style matrix to show data completeness patterns
 
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - numpy: Numerical computations
+        - matplotlib: Plotting backend, GridSpec layout
+
+    Internal:
+        - src.utils: save_trace_data, get_sample_columns
+        - src.plots.plot_config: save_publication_figure
+
 Phase 4.1: Critical for data integrity and transparency
 Shows where data is missing and validates filtering decisions
 """
@@ -11,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from ..utils import save_trace_data, get_sample_columns
+from .plot_config import save_publication_figure
 
 logger = logging.getLogger(__name__)
 
@@ -199,10 +210,10 @@ class MissingDataPlotMixin:
                  verticalalignment='bottom',
                  bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
 
-        # Save plot
+        # Save plot using standardized function
         output_file = self.output_dir / 'missing_data_matrix.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved missing data matrix to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved missing data matrix to {output_file} (optimized, {self.dpi} DPI)")
 
         # Save trace data - detection rates per sample
         trace_data = pd.DataFrame({

@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
-from ..utils import replace_empty_with_zero, save_trace_data
+from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import save_publication_figure, DPI_MAIN
 
 logger = logging.getLogger(__name__)
@@ -26,9 +26,8 @@ class RadarChartPlotMixin:
             df: Annotated DataFrame with intensity data and GlycanTypeCategory
             figsize: Figure size (width, height)
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Check if GlycanTypeCategory exists
         if 'GlycanTypeCategory' not in df.columns:

@@ -2,6 +2,17 @@
 Sample QC Dashboard Module for pGlyco Auto Combine
 Creates comprehensive per-sample quality control visualization
 
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - numpy: Numerical computations
+        - matplotlib: Plotting backend
+        - scipy.stats: Statistical functions (chi2 distribution for outlier detection)
+
+    Internal:
+        - src.utils: save_trace_data, get_sample_columns
+        - src.plots.plot_config: QC_* constants, save_publication_figure
+
 Phase 4.3: Critical for identifying problematic samples
 Shows quality metrics, outliers, and technical variability per sample
 """
@@ -11,7 +22,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import logging
+
 from ..utils import save_trace_data, get_sample_columns
+from .plot_config import (
+    QC_FIGSIZE, QC_THRESHOLD_DETECTION_RATE, QC_THRESHOLD_CV_GOOD,
+    QC_THRESHOLD_CV_ACCEPTABLE, QC_THRESHOLD_OUTLIER_P,
+    QC_LABEL_FONTSIZE, QC_TITLE_FONTSIZE, QC_LEGEND_FONTSIZE, QC_XTICKLABEL_FONTSIZE,
+    QC_DPI, save_publication_figure
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +37,7 @@ logger = logging.getLogger(__name__)
 class SampleQCDashboardMixin:
     """Mixin class for per-sample QC dashboard"""
 
-    def plot_sample_qc_dashboard(self, df: pd.DataFrame, figsize: tuple = (20, 12)):
+    def plot_sample_qc_dashboard(self, df: pd.DataFrame, figsize: tuple = None):
         """
         Create comprehensive per-sample QC dashboard
 
@@ -33,13 +51,18 @@ class SampleQCDashboardMixin:
 
         Args:
             df: Annotated DataFrame with intensity data
-            figsize: Figure size (width, height)
+            figsize: Figure size (width, height), defaults to QC_FIGSIZE
         """
         logger.info("Creating per-sample QC dashboard...")
 
-        # Get sample columns
+        # Use centralized figsize
+        if figsize is None:
+            figsize = QC_FIGSIZE
+
+        # Get sample columns using centralized function
         cancer_samples, normal_samples = get_sample_columns(df)
         all_samples = cancer_samples + normal_samples
+        logger.debug(f"  Analyzing {len(all_samples)} samples ({len(cancer_samples)} Cancer, {len(normal_samples)} Normal)")
 
         # Extract intensity matrix
         intensity_matrix = df[all_samples].copy()
@@ -47,21 +70,21 @@ class SampleQCDashboardMixin:
 
         # Calculate QC metrics for each sample
         qc_metrics = self._calculate_qc_metrics(intensity_matrix, all_samples)
+        logger.debug(f"  QC metrics calculated for {len(qc_metrics)} samples")
 
         # Create 2x3 subplot layout
         fig, axes = plt.subplots(2, 3, figsize=figsize)
         fig.suptitle('Per-Sample QC Dashboard: Data Quality Assessment',
-                     fontsize=16, fontweight='bold', y=0.995)
+                     fontsize=QC_TITLE_FONTSIZE + 5, fontweight='bold', y=0.995)
 
-        # Sample colors (Cancer vs Normal)
+        # Sample colors (Cancer=red, Normal=blue)
         sample_colors = ['#E74C3C' if s.startswith('C') else '#3498DB' for s in all_samples]
-        ['Cancer' if s.startswith('C') else 'Normal' for s in all_samples]
 
         # =====================================================================
         # PANEL 1: Total Intensity (TIC) per sample
         # =====================================================================
         ax1 = axes[0, 0]
-        logger.info("  Panel 1: Total intensity per sample...")
+        logger.debug("  Panel 1: Total intensity (TIC)...")
 
         _ = ax1.bar(range(len(all_samples)), qc_metrics['total_intensity'],
                     color=sample_colors, edgecolor='black', linewidth=0.5)
@@ -75,12 +98,12 @@ class SampleQCDashboardMixin:
         ax1.axhline(normal_mean_tic, color='#3498DB', linestyle='--', linewidth=2,
                     label=f'Normal mean: {normal_mean_tic:.2e}', alpha=0.7)
 
-        ax1.set_xlabel('Sample', fontsize=10, fontweight='bold')
-        ax1.set_ylabel('Total Intensity (TIC)', fontsize=10, fontweight='bold')
-        ax1.set_title('Total Ion Current (TIC)', fontsize=11, fontweight='bold')
+        ax1.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax1.set_ylabel('Total Intensity (TIC)', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax1.set_title('Total Ion Current (TIC)', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
         ax1.set_xticks(range(len(all_samples)))
-        ax1.set_xticklabels(all_samples, rotation=90, fontsize=7)
-        ax1.legend(loc='upper right', fontsize=8)
+        ax1.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
+        ax1.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
         ax1.grid(axis='y', alpha=0.3)
         ax1.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
 
@@ -88,7 +111,7 @@ class SampleQCDashboardMixin:
         # PANEL 2: Detection Count
         # =====================================================================
         ax2 = axes[0, 1]
-        logger.info("  Panel 2: Detection count per sample...")
+        logger.debug("  Panel 2: Detection count...")
 
         _ = ax2.bar(range(len(all_samples)), qc_metrics['detection_count'],
                         color=sample_colors, edgecolor='black', linewidth=0.5)
@@ -102,41 +125,41 @@ class SampleQCDashboardMixin:
         ax2.axhline(normal_mean_det, color='#3498DB', linestyle='--', linewidth=2,
                     label=f'Normal mean: {normal_mean_det:.0f}', alpha=0.7)
 
-        ax2.set_xlabel('Sample', fontsize=10, fontweight='bold')
-        ax2.set_ylabel('Detected Glycopeptides', fontsize=10, fontweight='bold')
-        ax2.set_title('Detection Count', fontsize=11, fontweight='bold')
+        ax2.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax2.set_ylabel('Detected Glycopeptides', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax2.set_title('Detection Count', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
         ax2.set_xticks(range(len(all_samples)))
-        ax2.set_xticklabels(all_samples, rotation=90, fontsize=7)
-        ax2.legend(loc='upper right', fontsize=8)
+        ax2.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
+        ax2.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
         ax2.grid(axis='y', alpha=0.3)
 
         # =====================================================================
-        # PANEL 3: Detection Rate (%)
+        # PANEL 3: Detection Rate (%) with centralized threshold
         # =====================================================================
         ax3 = axes[0, 2]
-        logger.info("  Panel 3: Detection rate per sample...")
+        logger.debug("  Panel 3: Detection rate...")
 
         _ = ax3.bar(range(len(all_samples)), qc_metrics['detection_rate_pct'],
                         color=sample_colors, edgecolor='black', linewidth=0.5)
 
-        # Add threshold line at 50%
-        ax3.axhline(50, color='red', linestyle='--', linewidth=2,
-                    label='50% threshold', alpha=0.7)
+        # Add threshold line using centralized constant
+        ax3.axhline(QC_THRESHOLD_DETECTION_RATE, color='red', linestyle='--', linewidth=2,
+                    label=f'{QC_THRESHOLD_DETECTION_RATE}% threshold', alpha=0.7)
 
-        ax3.set_xlabel('Sample', fontsize=10, fontweight='bold')
-        ax3.set_ylabel('Detection Rate (%)', fontsize=10, fontweight='bold')
-        ax3.set_title('Detection Completeness', fontsize=11, fontweight='bold')
+        ax3.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax3.set_ylabel('Detection Rate (%)', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax3.set_title('Detection Completeness', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
         ax3.set_xticks(range(len(all_samples)))
-        ax3.set_xticklabels(all_samples, rotation=90, fontsize=7)
+        ax3.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
         ax3.set_ylim(0, 100)
-        ax3.legend(loc='upper right', fontsize=8)
+        ax3.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
         ax3.grid(axis='y', alpha=0.3)
 
         # =====================================================================
         # PANEL 4: Median Intensity
         # =====================================================================
         ax4 = axes[1, 0]
-        logger.info("  Panel 4: Median intensity per sample...")
+        logger.debug("  Panel 4: Median intensity...")
 
         _ = ax4.bar(range(len(all_samples)), qc_metrics['median_intensity'],
                         color=sample_colors, edgecolor='black', linewidth=0.5)
@@ -150,43 +173,43 @@ class SampleQCDashboardMixin:
         ax4.axhline(normal_mean_med, color='#3498DB', linestyle='--', linewidth=2,
                     label=f'Normal mean: {normal_mean_med:.2e}', alpha=0.7)
 
-        ax4.set_xlabel('Sample', fontsize=10, fontweight='bold')
-        ax4.set_ylabel('Median Intensity', fontsize=10, fontweight='bold')
-        ax4.set_title('Central Tendency', fontsize=11, fontweight='bold')
+        ax4.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax4.set_ylabel('Median Intensity', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax4.set_title('Central Tendency', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
         ax4.set_xticks(range(len(all_samples)))
-        ax4.set_xticklabels(all_samples, rotation=90, fontsize=7)
-        ax4.legend(loc='upper right', fontsize=8)
+        ax4.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
+        ax4.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
         ax4.grid(axis='y', alpha=0.3)
         ax4.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
 
         # =====================================================================
-        # PANEL 5: CV Distribution (technical variability)
+        # PANEL 5: CV Distribution with centralized thresholds
         # =====================================================================
         ax5 = axes[1, 1]
-        logger.info("  Panel 5: CV distribution per sample...")
+        logger.debug("  Panel 5: CV distribution...")
 
         _ = ax5.bar(range(len(all_samples)), qc_metrics['cv_median_pct'],
                         color=sample_colors, edgecolor='black', linewidth=0.5)
 
-        # Add threshold lines
-        ax5.axhline(20, color='green', linestyle='--', linewidth=2,
-                    label='Good QC (<20%)', alpha=0.7)
-        ax5.axhline(30, color='orange', linestyle='--', linewidth=2,
-                    label='Acceptable (<30%)', alpha=0.7)
+        # Add threshold lines using centralized constants
+        ax5.axhline(QC_THRESHOLD_CV_GOOD, color='green', linestyle='--', linewidth=2,
+                    label=f'Good QC (<{QC_THRESHOLD_CV_GOOD}%)', alpha=0.7)
+        ax5.axhline(QC_THRESHOLD_CV_ACCEPTABLE, color='orange', linestyle='--', linewidth=2,
+                    label=f'Acceptable (<{QC_THRESHOLD_CV_ACCEPTABLE}%)', alpha=0.7)
 
-        ax5.set_xlabel('Sample', fontsize=10, fontweight='bold')
-        ax5.set_ylabel('Median CV (%)', fontsize=10, fontweight='bold')
-        ax5.set_title('Technical Variability', fontsize=11, fontweight='bold')
+        ax5.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax5.set_ylabel('Median CV (%)', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax5.set_title('Technical Variability', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
         ax5.set_xticks(range(len(all_samples)))
-        ax5.set_xticklabels(all_samples, rotation=90, fontsize=7)
-        ax5.legend(loc='upper right', fontsize=8)
+        ax5.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
+        ax5.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
         ax5.grid(axis='y', alpha=0.3)
 
         # =====================================================================
-        # PANEL 6: Outlier Detection (Mahalanobis distance)
+        # PANEL 6: Outlier Detection with dynamic df calculation
         # =====================================================================
         ax6 = axes[1, 2]
-        logger.info("  Panel 6: Outlier detection (Mahalanobis distance)...")
+        logger.debug("  Panel 6: Outlier detection (Mahalanobis distance)...")
 
         # Calculate Mahalanobis distance for outlier detection
         outlier_scores = self._calculate_mahalanobis_distance(qc_metrics)
@@ -195,35 +218,51 @@ class SampleQCDashboardMixin:
         bars6 = ax6.bar(range(len(all_samples)), outlier_scores,
                         color=sample_colors, edgecolor='black', linewidth=0.5)
 
-        # Add threshold line at chi-square critical value (p=0.01, df=5)
-        # 5 metrics: TIC, detection_count, detection_rate, median_intensity, cv_median
-        threshold = stats.chi2.ppf(0.99, df=5)  # 99% confidence
-        ax6.axhline(threshold, color='red', linestyle='--', linewidth=2,
-                    label='Outlier threshold (p<0.01)', alpha=0.7)
+        # ========================================
+        # DYNAMIC DF CALCULATION (NEW)
+        # ========================================
+        # Calculate df from the actual metric columns used in Mahalanobis calculation
+        metric_cols = ['total_intensity', 'detection_count', 'detection_rate_pct',
+                       'median_intensity', 'cv_median_pct']
+        n_metrics = len(metric_cols)
 
-        ax6.set_xlabel('Sample', fontsize=10, fontweight='bold')
-        ax6.set_ylabel('Mahalanobis Distance', fontsize=10, fontweight='bold')
-        ax6.set_title('Outlier Detection', fontsize=11, fontweight='bold')
+        # Use centralized confidence level
+        threshold = stats.chi2.ppf(QC_THRESHOLD_OUTLIER_P, df=n_metrics)
+        logger.debug(f"  Outlier threshold: {threshold:.2f} (chi2, p={QC_THRESHOLD_OUTLIER_P}, df={n_metrics})")
+
+        ax6.axhline(threshold, color='red', linestyle='--', linewidth=2,
+                    label=f'Outlier threshold (p<{1-QC_THRESHOLD_OUTLIER_P:.2f})', alpha=0.7)
+
+        ax6.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax6.set_ylabel('Mahalanobis Distance', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax6.set_title('Outlier Detection', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
         ax6.set_xticks(range(len(all_samples)))
-        ax6.set_xticklabels(all_samples, rotation=90, fontsize=7)
-        ax6.legend(loc='upper right', fontsize=8)
+        ax6.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
+        ax6.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
         ax6.grid(axis='y', alpha=0.3)
 
         # Highlight outliers
         outliers = np.where(outlier_scores > threshold)[0]
         if len(outliers) > 0:
+            logger.debug(f"  Found {len(outliers)} outlier(s)")
             for outlier_idx in outliers:
                 bars6[outlier_idx].set_edgecolor('red')
                 bars6[outlier_idx].set_linewidth(3)
+        else:
+            logger.debug("  No outliers detected")
 
         plt.tight_layout()
 
-        # Save plot
+        # ========================================
+        # SAVE with standardized function
+        # ========================================
         output_file = self.output_dir / 'sample_qc_dashboard.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved sample QC dashboard to {output_file}")
+        save_publication_figure(fig, output_file, dpi=QC_DPI)
+        logger.info(f"Saved sample QC dashboard to {output_file} (optimized, {QC_DPI} DPI)")
 
-        # Save QC metrics as trace data
+        # ========================================
+        # TRACE DATA for reproducibility
+        # ========================================
         save_trace_data(qc_metrics, self.output_dir, 'sample_qc_metrics.csv')
 
         plt.close()
@@ -244,6 +283,13 @@ class SampleQCDashboardMixin:
                               all_samples: list) -> pd.DataFrame:
         """
         Calculate QC metrics for each sample
+
+        Metrics calculated:
+            - total_intensity: Sum of all intensities (TIC)
+            - detection_count: Number of detected glycopeptides
+            - detection_rate_pct: Percentage of detected glycopeptides
+            - median_intensity: Central tendency measure
+            - cv_median_pct: Coefficient of variation (technical variability)
 
         Args:
             intensity_matrix: Intensity matrix (glycopeptides x samples)

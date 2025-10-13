@@ -22,7 +22,7 @@ import logging
 from scipy import stats as scipy_stats
 from statsmodels.stats.multitest import multipletests  # FDR correction
 
-from ..utils import replace_empty_with_zero, save_trace_data
+from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import (
     LEGACY_GLYCAN_COLORS,
     EXTENDED_CATEGORY_COLORS,
@@ -61,9 +61,8 @@ class PieChartPlotMixin:
         """
         logger.info("Creating enhanced glycan type pie charts with fold change...")
 
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Calculate total intensities per glycan type for each group
         glycan_types = ['Non', 'Sialylated', 'Fucosylated', 'Both']
@@ -309,9 +308,8 @@ class PieChartPlotMixin:
         """
         logger.info("Creating enhanced primary classification pie charts with fold change...")
 
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Primary classification categories
         primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid', 'Outlier']
@@ -472,9 +470,8 @@ class PieChartPlotMixin:
         """
         logger.info("Creating enhanced secondary classification pie charts with fold change...")
 
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Secondary classification categories (5 categories)
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']

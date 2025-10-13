@@ -1,12 +1,22 @@
 """
 Distribution Plot Module for pGlyco Auto Combine
 Handles distribution visualizations
+
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - matplotlib: Plotting backend
+
+    Internal:
+        - src.utils: save_trace_data
+        - src.plots.plot_config: save_publication_figure
 """
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import logging
 from ..utils import save_trace_data
+from .plot_config import save_publication_figure
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +63,10 @@ class DistributionPlotMixin:
 
         plt.tight_layout()
 
-        # Save plot
+        # Save plot using standardized function
         output_file = self.output_dir / 'glycan_type_distribution.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved glycan type distribution to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved glycan type distribution to {output_file} (optimized, {self.dpi} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({'GlycanType': type_counts.index, 'Count': type_counts.values})

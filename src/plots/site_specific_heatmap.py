@@ -10,12 +10,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
-from ..utils import save_trace_data
+from ..utils import save_trace_data, get_sample_columns
 from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
 )
-from .plot_config import EXTENDED_CATEGORY_COLORS, save_publication_figure, DPI_COMPLEX
+from .plot_config import (
+    EXTENDED_CATEGORY_COLORS,
+    DEFAULT_FALLBACK_COLOR,
+    save_publication_figure,
+    DPI_COMPLEX
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +40,8 @@ class SiteSpecificHeatmapMixin:
             top_n_peptides: Number of top peptides to show
             figsize: Figure size (width, height)
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Get top peptides by max VIP score
         top_peptides = vip_df.groupby('Peptide')['VIP_Score'].max().nlargest(top_n_peptides).index.tolist()
@@ -102,15 +106,16 @@ class SiteSpecificHeatmapMixin:
         ax_main = fig.add_subplot(gs[0])
         ax_anno = fig.add_subplot(gs[1])
 
-        # Color mapping for glycan types (using scientific color scheme)
+        # Use centralized color scheme from EXTENDED_CATEGORY_COLORS
+        # All colors including fallbacks are now centralized
         glycan_type_colors = {
             'High Mannose': EXTENDED_CATEGORY_COLORS['High Mannose'],  # Green
             'Sialylated': EXTENDED_CATEGORY_COLORS['Sialylated'],  # Pink
             'Fucosylated': EXTENDED_CATEGORY_COLORS['Fucosylated'],  # Red
             'Sialofucosylated': EXTENDED_CATEGORY_COLORS['Sialofucosylated'],  # Orange
             'Complex/Hybrid': EXTENDED_CATEGORY_COLORS['Complex/Hybrid'],  # Blue
-            'Outlier': EXTENDED_CATEGORY_COLORS.get('Outlier', '#95A5A6'),  # Gray
-            'Unknown': '#95A5A6'  # Gray
+            'Outlier': EXTENDED_CATEGORY_COLORS['Outlier'],  # Gray (now centralized)
+            'Unknown': EXTENDED_CATEGORY_COLORS['Unknown']  # Light gray (now centralized)
         }
 
         # Create annotation color map: map each type to a numeric index
@@ -118,8 +123,8 @@ class SiteSpecificHeatmapMixin:
         type_to_idx = {gt: i for i, gt in enumerate(unique_types)}
         anno_indices = np.array([type_to_idx[gt] for gt in glycan_types]).reshape(1, -1)
 
-        # Create colormap from unique colors
-        type_colors = [glycan_type_colors.get(gt, '#BDC3C7') for gt in unique_types]
+        # Create colormap from unique colors (use centralized fallback)
+        type_colors = [glycan_type_colors.get(gt, DEFAULT_FALLBACK_COLOR) for gt in unique_types]
         from matplotlib.colors import ListedColormap
         cmap_anno = ListedColormap(type_colors)
 
@@ -146,10 +151,10 @@ class SiteSpecificHeatmapMixin:
         ax_anno.set_yticklabels(['Glycan Type'], fontsize=10)
         ax_anno.set_title('Type', fontsize=10, fontweight='bold')
 
-        # Create custom legend for glycan types
+        # Create custom legend for glycan types (use centralized fallback)
         from matplotlib.patches import Patch
         unique_types = sorted(set(glycan_types))
-        legend_elements = [Patch(facecolor=glycan_type_colors.get(gt, '#BDC3C7'),
+        legend_elements = [Patch(facecolor=glycan_type_colors.get(gt, DEFAULT_FALLBACK_COLOR),
                                  label=gt) for gt in unique_types]
 
         # Position legend on the RIGHT side (outside plot area, non-interruptive)

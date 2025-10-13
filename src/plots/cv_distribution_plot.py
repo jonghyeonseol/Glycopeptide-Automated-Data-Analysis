@@ -2,6 +2,17 @@
 CV Distribution Plot Module for pGlyco Auto Combine
 Visualizes coefficient of variation for quality control
 
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - numpy: Numerical computations
+        - matplotlib: Plotting backend
+
+    Internal:
+        - src.utils: save_trace_data, get_sample_columns
+        - src.data_preparation: DataPreparationConfig, calculate_group_statistics_standardized
+        - src.plots.plot_config: save_publication_figure
+
 UPDATED: Now uses centralized data preparation for consistency
 """
 
@@ -9,11 +20,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
-from ..utils import save_trace_data
+from ..utils import save_trace_data, get_sample_columns
 from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
 )
+from .plot_config import save_publication_figure
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +41,11 @@ class CVDistributionPlotMixin:
             df: Annotated DataFrame with intensity data
             figsize: Figure size (width, height)
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        logger.info("Creating CV distribution plot...")
+
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
+        logger.debug(f"  Analyzing {len(cancer_samples)} Cancer and {len(normal_samples)} Normal samples")
 
         # STANDARDIZED: Calculate CV using centralized statistics
         config = DataPreparationConfig(missing_data_method='skipna')
@@ -152,14 +166,15 @@ class CVDistributionPlotMixin:
 
         plt.tight_layout()
 
-        # Save plot
+        # Save plot using standardized function
         output_file = self.output_dir / 'cv_distribution.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved CV distribution plot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved CV distribution plot to {output_file} (optimized, {self.dpi} DPI)")
 
         # Save trace data
         save_trace_data(cv_df_clean, self.output_dir, 'cv_distribution_data.csv')
 
         plt.close()
 
+        logger.info(f"✓ CV distribution analysis complete ({len(cv_df_clean)} glycopeptides)")
         return cv_df_clean

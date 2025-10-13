@@ -2,6 +2,17 @@
 VIP Score Plot Module for pGlyco Auto Combine
 Handles VIP score visualizations with heatmap
 
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - matplotlib: Plotting backend
+        - seaborn: Statistical visualization (heatmap)
+
+    Internal:
+        - src.utils: get_sample_columns
+        - src.data_preparation: DataPreparationConfig, calculate_group_statistics_standardized
+        - src.plots.plot_config: save_publication_figure
+
 UPDATED: Now uses centralized data preparation for consistency
 """
 
@@ -15,6 +26,7 @@ from ..data_preparation import (
     DataPreparationConfig,
     calculate_group_statistics_standardized
 )
+from .plot_config import save_publication_figure
 
 logger = logging.getLogger(__name__)
 
@@ -119,8 +131,8 @@ class VIPScorePlotMixin:
         plt.tight_layout()
 
         output_file = self.output_dir / 'vip_score_glycopeptide.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved VIP score glycopeptide plot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved VIP score glycopeptide plot to {output_file} (optimized, {self.dpi} DPI)")
 
         plt.close()
 
@@ -222,8 +234,8 @@ class VIPScorePlotMixin:
         plt.tight_layout()
 
         output_file = self.output_dir / 'vip_score_glycan_composition.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved VIP score glycan composition plot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved VIP score glycan composition plot to {output_file} (optimized, {self.dpi} DPI)")
 
         plt.close()
 
@@ -325,7 +337,7 @@ class VIPScorePlotMixin:
         plt.tight_layout()
 
         output_file = self.output_dir / 'vip_score_peptide.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved VIP score peptide plot to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved VIP score peptide plot to {output_file} (optimized, {self.dpi} DPI)")
 
         plt.close()

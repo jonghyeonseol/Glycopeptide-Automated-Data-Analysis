@@ -122,6 +122,8 @@ GROUP_PALETTE_PREMIUM = {
 # - Orange: Sialofucosylated (dual modifications)
 # - Red: Fucosylated (core modifications)
 
+# ⚠️ DEPRECATED: Use EXTENDED_CATEGORY_COLORS for all new code
+# This palette uses Material Design 3.0 colors but lacks category aliases
 GLYCAN_COLORS = {
     'HM': '#10B981',    # Emerald (Material 3.0) - Enhanced green, more vibrant
     'F': '#F59E0B',     # Amber (Material 3.0) - Warm energy color
@@ -130,6 +132,7 @@ GLYCAN_COLORS = {
     'C/H': '#3B82F6'    # Blue (Material 3.0) - Stability/maturity
 }
 
+# ⚠️ DEPRECATED: Use EXTENDED_CATEGORY_COLORS for all new code
 # PREMIUM: Material Design 3.0 palette (better color harmony + accessibility)
 GLYCAN_COLORS_PREMIUM = {
     'HM': '#10B981',    # Emerald - High Mannose (growth, foundation)
@@ -146,7 +149,9 @@ GLYCAN_COLORS_PREMIUM = {
 # - SF (Orange): Combination color (red + yellow tones)
 # - C/H (Blue): Complex structures, stable/mature
 
+# ⚠️ DEPRECATED: Use EXTENDED_CATEGORY_COLORS for all new code
 # Legacy glycan type colors - UPDATED TO MATERIAL DESIGN 3.0
+# Note: This palette uses old naming convention (e.g., 'Non', 'Sialylated')
 LEGACY_GLYCAN_COLORS = {
     'Non': '#95A5A6',           # Gray - Non-modified (neutral, unchanged)
     'Sialylated': '#8B5CF6',    # Violet (Material 3.0) - Sialylated (charged, transformation)
@@ -154,8 +159,10 @@ LEGACY_GLYCAN_COLORS = {
     'Both': '#EC4899'           # Pink (Material 3.0) - Sialofucosylated (complexity, dual)
 }
 
+# ✅ CURRENT STANDARD: Use this palette for all new code
 # Extended category colors - USER-REQUESTED SCHEME (aligned with constants.py)
 # Biological meaning: HM=Green, C/H=Blue, F=Red, S=Pink, SF=Orange
+# Includes comprehensive aliases for all category name variants
 EXTENDED_CATEGORY_COLORS = {
     'HM': '#00CC00',              # Green - High Mannose (early/simple glycosylation)
     'High mannose': '#00CC00',    # Alias for consistency
@@ -171,8 +178,13 @@ EXTENDED_CATEGORY_COLORS = {
     'Sialofucosylated': '#FFA500', # Alias
     'Both': '#FFA500',            # Alias for Sialofucosylated
     'Truncated': '#95A5A6',       # Gray - Truncated/Other (unchanged)
+    'Outlier': '#95A5A6',         # Gray - Outlier glycans
+    'Unknown': '#BDC3C7',         # Light gray - Unknown/unclassified
     'Other': '#95A5A6'            # Gray - Other (unchanged)
 }
+
+# Default fallback color for missing categories
+DEFAULT_FALLBACK_COLOR = '#CCCCCC'  # Medium gray - for undefined categories
 
 # ==============================================================================
 # Shape Markers - COLORBLIND ACCESSIBILITY (Phase 3)
@@ -226,15 +238,39 @@ MARKER_SIZE_SCALE = {
 # Plot Settings - PUBLICATION OPTIMIZED (Nature/Science Standards)
 # ==============================================================================
 
-# DPI TIERED SYSTEM - Optimizes file size while maintaining quality
-# Based on plot complexity and typical usage:
-# - Main figures: 200 DPI (sufficient for publication, ~60% file size reduction)
-# - Supplementary: 150 DPI (~75% file size reduction)
-# - Complex plots: 150 DPI (prevents multi-MB files)
-DPI_MAIN = 200           # Main publication figures (standard plots)
-DPI_SUPPLEMENTARY = 150  # Supplementary figures (detailed plots)
-DPI_COMPLEX = 150        # Complex visualizations (heatmaps, volcano plots)
+# ==============================================================================
+# DPI TIERED SYSTEM - Usage Context Guidelines
+# ==============================================================================
+#
+# DECISION RULE (Choose based on output destination):
+#
+# 1. ELECTRONIC/WEB PUBLISHING (Default - This Pipeline):
+#    - Main figures: 200 DPI - Excellent screen quality, reasonable file size
+#    - Supplementary: 150 DPI - Good screen quality, smaller files
+#    - Complex plots: 150 DPI - Prevents multi-MB files
+#    - File size: ~60-75% smaller than 300 DPI
+#    - Screen readability: Excellent (retina displays support 220 PPI)
+#
+# 2. JOURNAL/PRINT SUBMISSION (High-resolution requirement):
+#    - Single-column: 300 DPI - Standard journal requirement
+#    - Double-column: 600 DPI - High-detail figures (Nature, Science)
+#    - File size: Larger (1-3 MB per figure)
+#    - Print quality: Maximum clarity at physical size
+#    - Use publication_enhancements.optimize_font_sizes_for_publication()
+#      to get recommended DPI for specific journal
+#
+# RECOMMENDATION: Use 200 DPI (default) unless journal explicitly requires higher.
+# Most journals accept 200-300 DPI for electronic submission.
+# ==============================================================================
+
+DPI_MAIN = 200           # Main publication figures (electronic/web)
+DPI_SUPPLEMENTARY = 150  # Supplementary figures (electronic/web)
+DPI_COMPLEX = 150        # Complex visualizations (prevents large files)
 DPI = DPI_MAIN          # Default DPI for backward compatibility
+
+# Journal-specific DPI (for print submission)
+DPI_JOURNAL_SINGLE_COL = 300   # Single-column journal figures
+DPI_JOURNAL_DOUBLE_COL = 600   # Double-column journal figures
 
 # Grid settings (Prism style: minimal, subtle)
 GRID_ALPHA = 0.15  # Much lighter (was 0.3)
@@ -351,6 +387,264 @@ VOLCANO_DPI = DPI_COMPLEX   # Complex plot (150 DPI) - prevents >1MB files
 HEATMAP_FIGSIZE = (10, 7)   # Compact (was 12x9)
 HEATMAP_CBAR_LABEL_SIZE = 10  # Slightly smaller (was 11)
 HEATMAP_DPI = DPI_COMPLEX   # Complex plot (150 DPI) - major size reduction
+
+# ==============================================================================
+# Venn Diagram Settings - CENTRALIZED CONFIGURATION
+# ==============================================================================
+VENN_FIGSIZE = (12, 10)
+VENN_COLORS = ('#E74C3C', '#3498DB', '#8E44AD')  # Sialylated, Fucosylated, High Mannose
+VENN_ALPHA = 0.6
+VENN_LINEWIDTH = 2
+VENN_LINESTYLE = '--'
+VENN_LABEL_FONTSIZE = 13  # Set labels (Sialylated, Fucosylated, etc.)
+VENN_SUBSET_FONTSIZE = 11  # Subset labels (numbers)
+VENN_TITLE_FONTSIZE = 16
+VENN_STATS_FONTSIZE = 10  # External statistics box
+VENN_SUBSET_LABEL_THRESHOLD = 1000  # Line break threshold for large numbers
+VENN_DPI = DPI_MAIN
+
+# ==============================================================================
+# Correlation Matrix Settings - CENTRALIZED CONFIGURATION
+# ==============================================================================
+CORR_FIGSIZE = (14, 12)
+CORR_VMIN = 0.5
+CORR_VMAX = 1.0
+CORR_CENTER_AUTO = False  # True: dynamic center (mean/median), False: use fixed center
+CORR_CENTER_FIXED = 0.8   # Used only when CORR_CENTER_AUTO=False
+CORR_CMAP = 'RdYlBu_r'
+CORR_LINEWIDTH = 0.5
+CORR_LINECOLOR = 'white'
+CORR_ANNOT_FONTSIZE = 8
+CORR_SQUARE = True
+CORR_DPI = DPI_COMPLEX
+
+# ==============================================================================
+# QC Dashboard Settings - CENTRALIZED CONFIGURATION
+# ==============================================================================
+QC_FIGSIZE = (20, 12)
+QC_THRESHOLD_DETECTION_RATE = 50  # % - samples below this are low quality
+QC_THRESHOLD_CV_GOOD = 20  # % - CV below this is good quality
+QC_THRESHOLD_CV_ACCEPTABLE = 30  # % - CV below this is acceptable
+QC_THRESHOLD_OUTLIER_P = 0.99  # Chi-square confidence level for outlier detection
+QC_LABEL_FONTSIZE = 10
+QC_TITLE_FONTSIZE = 11
+QC_LEGEND_FONTSIZE = 8
+QC_XTICKLABEL_FONTSIZE = 7
+QC_DPI = DPI_MAIN
+
+# ==============================================================================
+# Visualization Thresholds - CENTRALIZED DEFAULTS
+# Default parameter values for plot methods (can be overridden)
+# ==============================================================================
+
+# Top-N feature display limits
+TOP_N_HEATMAP = 20              # Default top N features for heatmaps
+TOP_N_SITE_SPECIFIC = 20        # Default top N peptides for site-specific plots
+TOP_N_VIP_SCORE = 10            # Default top N features for VIP score plots
+
+# Statistical significance thresholds
+LOG2FC_THRESHOLD_DEFAULT = 1.0   # Default log2 fold change threshold (2-fold)
+LOG2FC_THRESHOLD_STRICT = 2.0    # Strict threshold (4-fold) for enhanced pie charts
+FDR_THRESHOLD_DEFAULT = 0.05     # Default FDR threshold (5%)
+P_VALUE_THRESHOLD_DEFAULT = 0.05 # Default p-value threshold
+
+# Sankey diagram thresholds
+MIN_INTENSITY_THRESHOLD = 0      # Minimum intensity to consider glycopeptide as "present"
+
+# ==============================================================================
+# Glycan Type Label Mapping - GLOBAL STANDARD
+# Provides bidirectional mapping between short codes and human-readable labels
+# ==============================================================================
+
+# Short code → Human-readable label
+GLYCAN_TYPE_SHORT_TO_LONG = {
+    'HM': 'High Mannose',
+    'F': 'Fucosylated',
+    'S': 'Sialylated',
+    'SF': 'Sialofucosylated',
+    'C/H': 'Complex/Hybrid',
+    'Non': 'Non-modified'  # Legacy support
+}
+
+# Human-readable label → Short code
+GLYCAN_TYPE_LONG_TO_SHORT = {v: k for k, v in GLYCAN_TYPE_SHORT_TO_LONG.items()}
+
+def get_glycan_type_label(code: str, format: str = 'long') -> str:
+    """
+    Convert between short and long glycan type labels
+
+    Args:
+        code: Short code (e.g., 'HM', 'F') or long label (e.g., 'High Mannose')
+        format: 'long' or 'short'
+
+    Returns:
+        Converted label
+
+    Examples:
+        >>> get_glycan_type_label('HM', 'long')
+        'High Mannose'
+        >>> get_glycan_type_label('High Mannose', 'short')
+        'HM'
+    """
+    if format == 'long':
+        return GLYCAN_TYPE_SHORT_TO_LONG.get(code, code)
+    else:
+        return GLYCAN_TYPE_LONG_TO_SHORT.get(code, code)
+
+
+def normalize_category(name: str) -> str:
+    """
+    Normalize category name variants to canonical short codes
+
+    Provides consistent category names across the entire codebase by mapping
+    all variant spellings/formats to their canonical short codes.
+
+    Args:
+        name: Category name in any format (e.g., 'Complex/Hybrid', 'ComplexHybrid', 'C/H')
+
+    Returns:
+        Canonical short code (e.g., 'C/H', 'HM', 'F', 'S', 'SF')
+
+    Examples:
+        >>> normalize_category('Complex/Hybrid')
+        'C/H'
+        >>> normalize_category('ComplexHybrid')
+        'C/H'
+        >>> normalize_category('High Mannose')
+        'HM'
+        >>> normalize_category('High mannose')
+        'HM'
+        >>> normalize_category('Sialofucosylated')
+        'SF'
+        >>> normalize_category('Both')
+        'SF'
+        >>> normalize_category('C/H')  # Already canonical
+        'C/H'
+
+    Mapping Rules:
+        - High Mannose variants → 'HM'
+          ('High Mannose', 'High mannose', 'HighMannose', 'HM')
+        - Complex/Hybrid variants → 'C/H'
+          ('Complex/Hybrid', 'ComplexHybrid', 'C/H')
+        - Fucosylated variants → 'F'
+          ('Fucosylated', 'F')
+        - Sialylated variants → 'S'
+          ('Sialylated', 'S')
+        - Sialofucosylated variants → 'SF'
+          ('Sialofucosylated', 'Both', 'SF')
+        - Truncated/Outlier/Other/Non → unchanged
+          ('Truncated', 'Outlier', 'Other', 'Non')
+    """
+    # Normalization mapping - all variants to canonical short codes
+    normalization_map = {
+        # High Mannose variants
+        'High Mannose': 'HM',
+        'High mannose': 'HM',
+        'HighMannose': 'HM',
+        'HM': 'HM',
+
+        # Complex/Hybrid variants
+        'Complex/Hybrid': 'C/H',
+        'ComplexHybrid': 'C/H',
+        'C/H': 'C/H',
+
+        # Fucosylated variants
+        'Fucosylated': 'F',
+        'F': 'F',
+
+        # Sialylated variants
+        'Sialylated': 'S',
+        'S': 'S',
+
+        # Sialofucosylated variants (including 'Both' alias)
+        'Sialofucosylated': 'SF',
+        'Both': 'SF',
+        'SF': 'SF',
+
+        # Other categories (preserve as-is)
+        'Truncated': 'Truncated',
+        'Outlier': 'Outlier',
+        'Other': 'Other',
+        'Non': 'Non',
+        'Unknown': 'Unknown'
+    }
+
+    # Return normalized name, or original if not found
+    return normalization_map.get(name, name)
+
+
+def setup_publication_fonts(verbose: bool = False) -> str:
+    """
+    Configure matplotlib font settings with proper fallback chain
+
+    Sets up platform-optimized font preferences with fallback chain:
+    macOS: 'SF Pro Display' → 'Arial' → 'DejaVu Sans' (default)
+    Others: 'Arial' → 'Helvetica' → 'DejaVu Sans' (default)
+
+    This ensures consistent typography across different platforms while
+    maintaining publication-quality appearance.
+
+    Args:
+        verbose: If True, log which font is being used
+
+    Returns:
+        Name of the active font family
+
+    Example:
+        >>> setup_publication_fonts(verbose=True)
+        # Sets up fonts and returns 'Arial' (or 'SF Pro Display' on macOS)
+
+    Font Priority Rationale:
+        1. SF Pro Display (macOS) - Native macOS font, excellent readability
+        2. Arial - Universal availability, journal standard
+        3. Helvetica - Alternative sans-serif, widely available
+        4. DejaVu Sans - Matplotlib default, guaranteed fallback
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib.font_manager as fm
+
+    # Define fallback chain
+    font_candidates = [
+        'SF Pro Display',  # macOS native (similar to Inter)
+        'Arial',           # Universal standard
+        'Helvetica',       # Common alternative
+        'DejaVu Sans'      # Matplotlib default (guaranteed)
+    ]
+
+    # Get list of available font names
+    available_fonts = {f.name for f in fm.fontManager.ttflist}
+
+    # Find first available font
+    selected_font = None
+    for font in font_candidates:
+        if font in available_fonts:
+            selected_font = font
+            break
+
+    # Fallback to sans-serif if none found (should never happen with DejaVu Sans)
+    if selected_font is None:
+        selected_font = 'sans-serif'
+
+    # Configure matplotlib rcParams
+    plt.rcParams['font.family'] = 'sans-serif'
+    plt.rcParams['font.sans-serif'] = font_candidates  # Full fallback chain
+    plt.rcParams['font.size'] = TICK_LABEL_SIZE  # Default size
+
+    # Set specific text element sizes
+    plt.rcParams['axes.titlesize'] = TITLE_SIZE
+    plt.rcParams['axes.labelsize'] = AXIS_LABEL_SIZE
+    plt.rcParams['xtick.labelsize'] = TICK_LABEL_SIZE
+    plt.rcParams['ytick.labelsize'] = TICK_LABEL_SIZE
+    plt.rcParams['legend.fontsize'] = LEGEND_SIZE
+    plt.rcParams['legend.title_fontsize'] = LEGEND_TITLE_SIZE
+
+    if verbose:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"✓ Font configuration: Using '{selected_font}'")
+        logger.info(f"  Fallback chain: {' → '.join(font_candidates)}")
+
+    return selected_font
 
 # ==============================================================================
 # Statistical Annotation Settings (MetaboAnalyst/Prism style)

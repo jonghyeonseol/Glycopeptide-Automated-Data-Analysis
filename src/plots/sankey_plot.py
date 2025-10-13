@@ -10,7 +10,7 @@ import numpy as np
 import plotly.graph_objects as go
 import logging
 from pathlib import Path
-from ..utils import save_trace_data, calculate_fold_change
+from ..utils import save_trace_data, calculate_fold_change, get_sample_columns
 from ..data_preparation import (
     DataPreparationConfig,
     prepare_visualization_data,
@@ -77,15 +77,15 @@ class SankeyPlotMixin:
         """
         Extract cancer and normal sample column names from DataFrame.
 
+        Uses centralized get_sample_columns() utility for consistent sample extraction.
+
         Args:
             df: DataFrame with sample columns
 
         Returns:
             Tuple of (cancer_samples, normal_samples) as lists
         """
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
-        return cancer_samples, normal_samples
+        return get_sample_columns(df)
 
     @staticmethod
     def _validate_samples(cancer_samples: list, normal_samples: list) -> bool:

@@ -1,6 +1,17 @@
 """
 Correlation Matrix Plot Module for pGlyco Auto Combine
-Visualizes sample-to-sample correlations
+Visualizes sample-to-sample correlations with dynamic centering
+
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - numpy: Numerical computations
+        - matplotlib: Plotting backend
+        - seaborn: Statistical visualization (heatmap, clustermap)
+
+    Internal:
+        - src.utils: replace_empty_with_zero, save_trace_data, get_sample_columns
+        - src.plots.plot_config: CORR_* constants, save_publication_figure
 """
 
 import pandas as pd
@@ -8,10 +19,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
-from ..utils import replace_empty_with_zero, save_trace_data
+
+from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import (
-    save_publication_figure, DPI_COMPLEX,
-    HEATMAP_CMAP_CORRELATION, enhance_heatmap_colorbar, apply_publication_theme  # ✨ Enhanced styling
+    CORR_FIGSIZE, CORR_VMIN, CORR_VMAX, CORR_CENTER_AUTO, CORR_CENTER_FIXED,
+    CORR_CMAP, CORR_LINEWIDTH, CORR_LINECOLOR, CORR_ANNOT_FONTSIZE,
+    CORR_SQUARE, CORR_DPI, HEATMAP_CMAP_CORRELATION,
+    save_publication_figure, apply_publication_theme, enhance_heatmap_colorbar
 )
 
 logger = logging.getLogger(__name__)
@@ -20,21 +34,23 @@ logger = logging.getLogger(__name__)
 class CorrelationMatrixPlotMixin:
     """Mixin class for correlation matrix visualization"""
 
-    def plot_correlation_matrix(self, df: pd.DataFrame, figsize: tuple = (20, 18)):
+    def plot_correlation_matrix(self, df: pd.DataFrame):
         """
-        Create correlation matrix heatmap for samples
+        Create correlation matrix heatmaps for Cancer and Normal samples
 
         Args:
             df: Annotated DataFrame with intensity data
-            figsize: Figure size (width, height)
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        logger.info("Creating correlation matrices...")
+
+        # Use centralized sample column extraction
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Create two separate correlation matrices
         self._plot_single_correlation_matrix(df, cancer_samples, 'Cancer', '#E74C3C')
         self._plot_single_correlation_matrix(df, normal_samples, 'Normal', '#3498DB')
+
+        logger.info("✓ Correlation matrices created")
 
     def _plot_single_correlation_matrix(self, df: pd.DataFrame, samples: list,
                                         group_name: str, color: str):
@@ -47,8 +63,10 @@ class CorrelationMatrixPlotMixin:
             df: Annotated DataFrame
             samples: List of sample columns
             group_name: Name of the group (Cancer/Normal)
-            color: Color for the group
+            color: Color for the group (unused, for backward compatibility)
         """
+        logger.info(f"  Creating {group_name} correlation matrix...")
+
         # Prepare intensity matrix
         intensity_data = replace_empty_with_zero(df[samples])
 
@@ -58,51 +76,87 @@ class CorrelationMatrixPlotMixin:
         sample_sums_safe = sample_sums.replace(0, 1)
         intensity_normalized = intensity_data / sample_sums_safe * median_sum
 
+        logger.debug(f"  TIC normalization: median_sum={median_sum:.2e}")
+
         # Step 2: Log2 transform
         intensity_log = np.log2(intensity_normalized + 1)
 
         # Step 3: Calculate correlation matrix
         corr_matrix = intensity_log.corr(method='pearson')
 
+        logger.debug(f"  Correlation range: [{corr_matrix.values.min():.3f}, "
+                    f"{corr_matrix.values.max():.3f}]")
+
+        # ========================================
+        # DYNAMIC CENTER CALCULATION (NEW)
+        # ========================================
+        if CORR_CENTER_AUTO:
+            # Dynamic: use median of correlation values
+            corr_center = np.median(corr_matrix.values)
+            logger.debug(f"  Using dynamic center: {corr_center:.3f} (median)")
+        else:
+            # Fixed: use constant from config
+            corr_center = CORR_CENTER_FIXED
+            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+
         # Create figure
-        fig, ax = plt.subplots(figsize=(14, 12))
+        fig, ax = plt.subplots(figsize=CORR_FIGSIZE)
 
         # Create mask for upper triangle (we'll show values there)
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1)
 
-        # Plot heatmap
+        # ========================================
+        # HEATMAP with centralized constants
+        # ========================================
+        # Plot upper triangle with annotations
         sns.heatmap(corr_matrix, ax=ax,
                     mask=~mask,  # Show upper triangle only
-                    cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                    square=True, linewidths=0.5, linecolor='white',
+                    cmap=CORR_CMAP,
+                    center=corr_center,
+                    vmin=CORR_VMIN,
+                    vmax=CORR_VMAX,
+                    square=CORR_SQUARE,
+                    linewidths=CORR_LINEWIDTH,
+                    linecolor=CORR_LINECOLOR,
                     cbar_kws={'label': 'Pearson Correlation', 'shrink': 0.8},
-                    annot=True, fmt='.2f', annot_kws={'size': 8})
+                    annot=True,
+                    fmt='.2f',
+                    annot_kws={'size': CORR_ANNOT_FONTSIZE})
 
         # Plot lower triangle as colored squares without numbers
         sns.heatmap(corr_matrix, ax=ax,
                     mask=mask,  # Show lower triangle
-                    cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                    square=True, linewidths=0.5, linecolor='white',
-                    cbar=False, annot=False)
+                    cmap=CORR_CMAP,
+                    center=corr_center,
+                    vmin=CORR_VMIN,
+                    vmax=CORR_VMAX,
+                    square=CORR_SQUARE,
+                    linewidths=CORR_LINEWIDTH,
+                    linecolor=CORR_LINECOLOR,
+                    cbar=False,
+                    annot=False)
 
+        center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
         ax.set_title(f'Sample Correlation Matrix: {group_name} Samples\n'
-                     '(Upper triangle: values, Lower triangle: heatmap)',
+                     f'(Upper: values, Lower: heatmap, center={center_text})',
                      fontsize=14, fontweight='bold', pad=20)
 
-        # ✨ ENHANCED: Apply publication theme
+        # Apply publication theme
         apply_publication_theme(fig)
 
         plt.tight_layout()
 
-        # Save plot
+        # Save with standardized function
         output_file = self.output_dir / f'correlation_matrix_{group_name.lower()}.png'
-        save_publication_figure(fig, output_file, dpi=DPI_COMPLEX)
-        logger.info(f"Saved {group_name} correlation matrix to {output_file} (optimized, {DPI_COMPLEX} DPI)")
+        save_publication_figure(fig, output_file, dpi=CORR_DPI)
+        logger.info(f"  Saved {group_name} correlation matrix to {output_file} "
+                   f"(optimized, {CORR_DPI} DPI)")
 
         # Save trace data
         corr_trace = corr_matrix.copy()
         corr_trace['Sample'] = corr_trace.index
-        save_trace_data(corr_trace, self.output_dir, f'correlation_matrix_{group_name.lower()}_data.csv')
+        save_trace_data(corr_trace, self.output_dir,
+                       f'correlation_matrix_{group_name.lower()}_data.csv')
 
         plt.close()
 
@@ -113,13 +167,16 @@ class CorrelationMatrixPlotMixin:
         Args:
             df: Annotated DataFrame with intensity data
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        logger.info("Creating correlation clustermaps...")
+
+        # Use centralized sample column extraction
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Create clustermaps
         self._plot_single_clustermap(df, cancer_samples, 'Cancer')
         self._plot_single_clustermap(df, normal_samples, 'Normal')
+
+        logger.info("✓ Correlation clustermaps created")
 
     def _plot_single_clustermap(self, df: pd.DataFrame, samples: list, group_name: str):
         """
@@ -132,6 +189,8 @@ class CorrelationMatrixPlotMixin:
             samples: List of sample columns
             group_name: Name of the group (Cancer/Normal)
         """
+        logger.info(f"  Creating {group_name} correlation clustermap...")
+
         # Prepare intensity matrix
         intensity_data = replace_empty_with_zero(df[samples])
 
@@ -147,21 +206,38 @@ class CorrelationMatrixPlotMixin:
         # Step 3: Calculate correlation matrix
         corr_matrix = intensity_log.corr(method='pearson')
 
-        # Create clustermap
+        # ========================================
+        # DYNAMIC CENTER CALCULATION
+        # ========================================
+        if CORR_CENTER_AUTO:
+            corr_center = np.median(corr_matrix.values)
+            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
+        else:
+            corr_center = CORR_CENTER_FIXED
+            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+
+        # Create clustermap with centralized constants
         g = sns.clustermap(corr_matrix,
-                           cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                           linewidths=0.5, linecolor='white',
+                           cmap=CORR_CMAP,
+                           center=corr_center,
+                           vmin=CORR_VMIN,
+                           vmax=CORR_VMAX,
+                           linewidths=CORR_LINEWIDTH,
+                           linecolor=CORR_LINECOLOR,
                            cbar_kws={'label': 'Pearson Correlation'},
                            figsize=(12, 10),
                            dendrogram_ratio=0.15)
 
-        g.fig.suptitle(f'Hierarchical Clustering: {group_name} Sample Correlation',
+        center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
+        g.fig.suptitle(f'Hierarchical Clustering: {group_name} Sample Correlation\n'
+                       f'(center={center_text})',
                        fontsize=14, fontweight='bold', y=0.98)
 
         # Save plot
         output_file = self.output_dir / f'correlation_clustermap_{group_name.lower()}.png'
-        save_publication_figure(g.fig, output_file, dpi=DPI_COMPLEX)
-        logger.info(f"Saved {group_name} correlation clustermap to {output_file} (optimized, {DPI_COMPLEX} DPI)")
+        save_publication_figure(g.fig, output_file, dpi=CORR_DPI)
+        logger.info(f"  Saved {group_name} correlation clustermap to {output_file} "
+                   f"(optimized, {CORR_DPI} DPI)")
 
         # Get dendrogram linkage for trace
         linkage_matrix = g.dendrogram_row.linkage
@@ -169,7 +245,8 @@ class CorrelationMatrixPlotMixin:
             linkage_matrix,
             columns=['cluster1', 'cluster2', 'distance', 'n_samples']
         )
-        save_trace_data(linkage_df, self.output_dir, f'correlation_clustermap_{group_name.lower()}_linkage_data.csv')
+        save_trace_data(linkage_df, self.output_dir,
+                       f'correlation_clustermap_{group_name.lower()}_linkage_data.csv')
 
         plt.close()
 
@@ -180,15 +257,19 @@ class CorrelationMatrixPlotMixin:
         Shows 4 quadrants:
         - Top-left: Cancer-Cancer correlations
         - Bottom-right: Normal-Normal correlations
-        - Top-right & Bottom-left: Cancer-Normal cross-correlations (most informative)
+        - Top-right & Bottom-left: Cancer-Normal cross-correlations
 
         Args:
             df: Annotated DataFrame with intensity data
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        logger.info("Creating combined correlation matrix...")
+
+        # Use centralized sample column extraction
+        cancer_samples, normal_samples = get_sample_columns(df)
         all_samples = cancer_samples + normal_samples
+
+        logger.debug(f"  Total samples: {len(all_samples)} "
+                    f"(Cancer: {len(cancer_samples)}, Normal: {len(normal_samples)})")
 
         # Prepare intensity matrix
         intensity_data = replace_empty_with_zero(df[all_samples])
@@ -205,6 +286,16 @@ class CorrelationMatrixPlotMixin:
         # Step 3: Calculate correlation matrix
         corr_matrix = intensity_log.corr(method='pearson')
 
+        # ========================================
+        # DYNAMIC CENTER CALCULATION
+        # ========================================
+        if CORR_CENTER_AUTO:
+            corr_center = np.median(corr_matrix.values)
+            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
+        else:
+            corr_center = CORR_CENTER_FIXED
+            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+
         # Create figure with larger size to accommodate all samples
         fig, ax = plt.subplots(figsize=(18, 16))
 
@@ -212,10 +303,15 @@ class CorrelationMatrixPlotMixin:
         # Add boundary lines to separate Cancer/Normal quadrants
         n_cancer = len(cancer_samples)
 
-        # Plot heatmap
+        # Plot heatmap with centralized constants
         sns.heatmap(corr_matrix, ax=ax,
-                    cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                    square=True, linewidths=0.5, linecolor='white',
+                    cmap=CORR_CMAP,
+                    center=corr_center,
+                    vmin=CORR_VMIN,
+                    vmax=CORR_VMAX,
+                    square=CORR_SQUARE,
+                    linewidths=CORR_LINEWIDTH,
+                    linecolor=CORR_LINECOLOR,
                     cbar_kws={'label': 'Pearson Correlation', 'shrink': 0.6},
                     annot=False)  # Too many samples for annotations
 
@@ -227,10 +323,14 @@ class CorrelationMatrixPlotMixin:
         cancer_center = n_cancer / 2
         normal_center = n_cancer + len(normal_samples) / 2
 
-        ax.text(cancer_center, -1, 'Cancer', ha='center', va='top', fontsize=14, fontweight='bold', color='#E41A1C')
-        ax.text(normal_center, -1, 'Normal', ha='center', va='top', fontsize=14, fontweight='bold', color='#377EB8')
-        ax.text(-1, cancer_center, 'Cancer', ha='right', va='center', fontsize=14, fontweight='bold', color='#E41A1C', rotation=90)
-        ax.text(-1, normal_center, 'Normal', ha='right', va='center', fontsize=14, fontweight='bold', color='#377EB8', rotation=90)
+        ax.text(cancer_center, -1, 'Cancer', ha='center', va='top',
+               fontsize=14, fontweight='bold', color='#E41A1C')
+        ax.text(normal_center, -1, 'Normal', ha='center', va='top',
+               fontsize=14, fontweight='bold', color='#377EB8')
+        ax.text(-1, cancer_center, 'Cancer', ha='right', va='center',
+               fontsize=14, fontweight='bold', color='#E41A1C', rotation=90)
+        ax.text(-1, normal_center, 'Normal', ha='right', va='center',
+               fontsize=14, fontweight='bold', color='#377EB8', rotation=90)
 
         # Add quadrant annotations
         ax.text(cancer_center, cancer_center, 'Cancer-Cancer\n(Within-Group)',
@@ -240,19 +340,22 @@ class CorrelationMatrixPlotMixin:
         ax.text(normal_center, cancer_center, 'Cancer-Normal\n(Cross-Group)',
                 ha='center', va='center', fontsize=10, alpha=0.3, fontweight='bold')
 
-        ax.set_title('Sample Correlation Matrix: Combined Analysis (Cancer + Normal)\n'
-                     'Cross-group correlations reveal biological vs technical variation',
+        center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
+        ax.set_title(f'Sample Correlation Matrix: Combined Analysis (Cancer + Normal)\n'
+                     f'Cross-group correlations reveal biological vs technical variation\n'
+                     f'(center={center_text})',
                      fontsize=14, fontweight='bold', pad=20)
 
-        # ✨ ENHANCED: Apply publication theme
+        # Apply publication theme
         apply_publication_theme(fig)
 
         plt.tight_layout()
 
         # Save plot
         output_file = self.output_dir / 'correlation_matrix_combined.png'
-        save_publication_figure(fig, output_file, dpi=DPI_COMPLEX)
-        logger.info(f"Saved combined correlation matrix to {output_file} (optimized, {DPI_COMPLEX} DPI)")
+        save_publication_figure(fig, output_file, dpi=CORR_DPI)
+        logger.info(f"Saved combined correlation matrix to {output_file} "
+                   f"(optimized, {CORR_DPI} DPI)")
 
         # Save trace data
         corr_trace = corr_matrix.copy()
@@ -271,9 +374,10 @@ class CorrelationMatrixPlotMixin:
         Args:
             df: Annotated DataFrame with intensity data
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        logger.info("Creating cross-group correlation heatmap...")
+
+        # Use centralized sample column extraction
+        cancer_samples, normal_samples = get_sample_columns(df)
         all_samples = cancer_samples + normal_samples
 
         # Prepare intensity matrix
@@ -294,31 +398,51 @@ class CorrelationMatrixPlotMixin:
         # Extract cross-group correlations only
         cross_corr = corr_matrix.loc[cancer_samples, normal_samples]
 
-        # Create figure
-        fig, ax = plt.subplots(figsize=(14, 12))
+        # ========================================
+        # DYNAMIC CENTER CALCULATION
+        # ========================================
+        # For cross-group, typically lower correlation, so adjust center
+        if CORR_CENTER_AUTO:
+            corr_center = np.median(cross_corr.values)
+            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
+        else:
+            # Use slightly lower fixed center for cross-group (0.7 instead of 0.8)
+            corr_center = 0.7
+            logger.debug(f"  Using adjusted fixed center: {corr_center:.3f}")
 
-        # Plot heatmap
+        # Create figure
+        fig, ax = plt.subplots(figsize=CORR_FIGSIZE)
+
+        # Plot heatmap with adjusted vmin for cross-group (typically lower correlation)
         sns.heatmap(cross_corr, ax=ax,
-                    cmap='RdYlBu_r', center=0.7, vmin=0.4, vmax=1.0,
-                    square=False, linewidths=0.5, linecolor='white',
+                    cmap=CORR_CMAP,
+                    center=corr_center,
+                    vmin=0.4,  # Lower vmin for cross-group
+                    vmax=CORR_VMAX,
+                    square=False,  # Rectangular for cross-group
+                    linewidths=CORR_LINEWIDTH,
+                    linecolor=CORR_LINECOLOR,
                     cbar_kws={'label': 'Pearson Correlation', 'shrink': 0.8},
                     annot=False)
 
-        ax.set_title('Cancer vs Normal Cross-Group Correlation\n'
-                     'Higher values indicate similar glycosylation patterns',
+        center_text = "dynamic" if CORR_CENTER_AUTO else f"adjusted={corr_center:.1f}"
+        ax.set_title(f'Cancer vs Normal Cross-Group Correlation\n'
+                     f'Higher values indicate similar glycosylation patterns\n'
+                     f'(center={center_text})',
                      fontsize=14, fontweight='bold', pad=20)
         ax.set_xlabel('Normal Samples', fontsize=12, fontweight='bold')
         ax.set_ylabel('Cancer Samples', fontsize=12, fontweight='bold')
 
-        # ✨ ENHANCED: Apply publication theme
+        # Apply publication theme
         apply_publication_theme(fig)
 
         plt.tight_layout()
 
         # Save plot
         output_file = self.output_dir / 'correlation_cross_group.png'
-        save_publication_figure(fig, output_file, dpi=DPI_COMPLEX)
-        logger.info(f"Saved cross-group correlation heatmap to {output_file} (optimized, {DPI_COMPLEX} DPI)")
+        save_publication_figure(fig, output_file, dpi=CORR_DPI)
+        logger.info(f"Saved cross-group correlation heatmap to {output_file} "
+                   f"(optimized, {CORR_DPI} DPI)")
 
         # Save trace data
         cross_corr_trace = cross_corr.copy()
@@ -332,9 +456,8 @@ class CorrelationMatrixPlotMixin:
         max_corr = cross_corr.values.max()
 
         logger.info(f"Cross-group correlation statistics:")
-        logger.info(f"  Mean: {mean_corr:.3f}")
-        logger.info(f"  Std: {std_corr:.3f}")
-        logger.info(f"  Range: {min_corr:.3f} - {max_corr:.3f}")
+        logger.info(f"  Mean: {mean_corr:.3f}, Std: {std_corr:.3f}, "
+                   f"Range: [{min_corr:.3f}, {max_corr:.3f}]")
 
         plt.close()
 
@@ -348,9 +471,10 @@ class CorrelationMatrixPlotMixin:
         Args:
             df: Annotated DataFrame with intensity data
         """
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        logger.info("Creating combined correlation clustermap...")
+
+        # Use centralized sample column extraction
+        cancer_samples, normal_samples = get_sample_columns(df)
         all_samples = cancer_samples + normal_samples
 
         # Prepare intensity matrix
@@ -368,6 +492,16 @@ class CorrelationMatrixPlotMixin:
         # Step 3: Calculate correlation matrix
         corr_matrix = intensity_log.corr(method='pearson')
 
+        # ========================================
+        # DYNAMIC CENTER CALCULATION
+        # ========================================
+        if CORR_CENTER_AUTO:
+            corr_center = np.median(corr_matrix.values)
+            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
+        else:
+            corr_center = CORR_CENTER_FIXED
+            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+
         # Create color annotation for sample groups
         sample_colors = []
         for sample in all_samples:
@@ -376,24 +510,30 @@ class CorrelationMatrixPlotMixin:
             else:
                 sample_colors.append('#377EB8')  # Normal = Blue
 
-        # Create clustermap
+        # Create clustermap with centralized constants
         g = sns.clustermap(corr_matrix,
-                           cmap='RdYlBu_r', center=0.8, vmin=0.5, vmax=1.0,
-                           linewidths=0.5, linecolor='white',
+                           cmap=CORR_CMAP,
+                           center=corr_center,
+                           vmin=CORR_VMIN,
+                           vmax=CORR_VMAX,
+                           linewidths=CORR_LINEWIDTH,
+                           linecolor=CORR_LINECOLOR,
                            cbar_kws={'label': 'Pearson Correlation'},
                            figsize=(16, 14),
                            dendrogram_ratio=0.1,
                            row_colors=sample_colors,
                            col_colors=sample_colors)
 
-        g.fig.suptitle('Hierarchical Clustering: All Samples (Cancer + Normal)\n'
-                       'Color bar: Red=Cancer, Blue=Normal',
+        center_text = "dynamic" if CORR_CENTER_AUTO else f"fixed={CORR_CENTER_FIXED}"
+        g.fig.suptitle(f'Hierarchical Clustering: All Samples (Cancer + Normal)\n'
+                       f'Color bar: Red=Cancer, Blue=Normal (center={center_text})',
                        fontsize=14, fontweight='bold', y=0.98)
 
         # Save plot
         output_file = self.output_dir / 'correlation_clustermap_combined.png'
-        save_publication_figure(g.fig, output_file, dpi=DPI_COMPLEX)
-        logger.info(f"Saved combined correlation clustermap to {output_file} (optimized, {DPI_COMPLEX} DPI)")
+        save_publication_figure(g.fig, output_file, dpi=CORR_DPI)
+        logger.info(f"Saved combined correlation clustermap to {output_file} "
+                   f"(optimized, {CORR_DPI} DPI)")
 
         # Get dendrogram linkage for trace
         linkage_matrix = g.dendrogram_row.linkage
@@ -401,7 +541,8 @@ class CorrelationMatrixPlotMixin:
             linkage_matrix,
             columns=['cluster1', 'cluster2', 'distance', 'n_samples']
         )
-        save_trace_data(linkage_df, self.output_dir, 'correlation_clustermap_combined_linkage_data.csv')
+        save_trace_data(linkage_df, self.output_dir,
+                       'correlation_clustermap_combined_linkage_data.csv')
 
         # Get reordered sample order for trace
         reordered_indices = g.dendrogram_row.reordered_ind
@@ -412,6 +553,8 @@ class CorrelationMatrixPlotMixin:
             'Clustered_Order': reordered_indices,
             'Clustered_Sample': reordered_samples
         })
-        save_trace_data(reorder_df, self.output_dir, 'correlation_clustermap_combined_sample_order.csv')
+        save_trace_data(reorder_df, self.output_dir,
+                       'correlation_clustermap_combined_sample_order.csv')
 
+        logger.info("✓ Combined correlation clustermap complete")
         plt.close()

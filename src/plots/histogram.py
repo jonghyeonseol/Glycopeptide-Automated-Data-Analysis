@@ -9,6 +9,7 @@ import logging
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import (
     HISTOGRAM_X_ROTATION, HISTOGRAM_X_HA, EXTENDED_CATEGORY_COLORS,
+    GROUP_PALETTE,  # ✨ Centralized group colors
     apply_standard_axis_style,
     apply_standard_legend,
     save_publication_figure, HISTOGRAM_DPI,
@@ -203,11 +204,11 @@ class HistogramMixin:
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
 
-        # Define colors
+        # Use centralized colors from EXTENDED_CATEGORY_COLORS
         colors_primary = {
-            'Outlier': '#95A5A6',  # Gray - Outlier glycans
-            'High Mannose': '#2ECC71',  # Green
-            'ComplexHybrid': '#3498DB'  # Blue
+            'Outlier': EXTENDED_CATEGORY_COLORS['Outlier'],
+            'High Mannose': EXTENDED_CATEGORY_COLORS['High Mannose'],
+            'ComplexHybrid': EXTENDED_CATEGORY_COLORS['ComplexHybrid']
         }
 
         plot_df[primary_categories].plot(
@@ -374,11 +375,7 @@ class HistogramMixin:
         """
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
-
-        # Separate Cancer and Normal samples
-        cancer_samples = [col for col in sample_cols if col.startswith('C')]
-        normal_samples = [col for col in sample_cols if col.startswith('N')]
+        # sample_cols not needed here - cancer_samples and normal_samples already correct
 
         # Primary classification categories
         primary_categories = ['Outlier', 'High Mannose', 'ComplexHybrid']
@@ -416,13 +413,11 @@ class HistogramMixin:
         # Transpose for proper grouping (categories as x-axis)
         plot_df_t = plot_df.T
 
-        # Define colors
-        group_colors = {'Cancer': '#E74C3C', 'Normal': '#3498DB'}
-
+        # Use centralized group colors from GROUP_PALETTE
         plot_df_t.plot(
             kind='bar',
             ax=ax,
-            color=[group_colors[g] for g in plot_df_t.columns],
+            color=[GROUP_PALETTE[g] for g in plot_df_t.columns],
             width=0.7,
             edgecolor='black',
             linewidth=1
@@ -464,11 +459,7 @@ class HistogramMixin:
         """
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
-
-        # Separate Cancer and Normal samples
-        cancer_samples = [col for col in sample_cols if col.startswith('C')]
-        normal_samples = [col for col in sample_cols if col.startswith('N')]
+        # sample_cols not needed here - cancer_samples and normal_samples already correct
 
         # Secondary classification categories (5 categories)
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
@@ -506,13 +497,11 @@ class HistogramMixin:
         # Transpose for proper grouping (categories as x-axis)
         plot_df_t = plot_df.T
 
-        # Define colors
-        group_colors = {'Cancer': '#E74C3C', 'Normal': '#3498DB'}
-
+        # Use centralized group colors from GROUP_PALETTE
         plot_df_t.plot(
             kind='bar',
             ax=ax,
-            color=[group_colors[g] for g in plot_df_t.columns],
+            color=[GROUP_PALETTE[g] for g in plot_df_t.columns],
             width=0.7,
             edgecolor='black',
             linewidth=1

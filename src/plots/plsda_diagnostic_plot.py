@@ -2,6 +2,18 @@
 PLS-DA Diagnostic Plots Module for pGlyco Auto Combine
 Creates 4-panel diagnostic visualization to validate model reliability
 
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - numpy: Numerical computations
+        - matplotlib: Plotting backend
+        - seaborn: Statistical visualization (heatmap)
+        - sklearn: Model validation (cross_val_score, LeaveOneOut, PLSRegression, roc_curve, auc, confusion_matrix)
+
+    Internal:
+        - src.utils: save_trace_data
+        - src.plots.plot_config: save_publication_figure
+
 Phase 4.2: Critical for validating PLS-DA results and VIP scores
 Ensures model is not overfitted and predictions are reliable
 """
@@ -11,10 +23,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
-from sklearn.model_selection import cross_val_score, LeaveOneOut
+from sklearn.model_selection import cross_val_score, cross_val_predict, LeaveOneOut
 from sklearn.cross_decomposition import PLSRegression
+from sklearn.preprocessing import RobustScaler
+from sklearn.pipeline import Pipeline
 from sklearn.metrics import roc_curve, auc, confusion_matrix
 from ..utils import save_trace_data
+from .plot_config import save_publication_figure
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +62,15 @@ class PLSDADiagnosticPlotMixin:
         plsda_results['sample_names']
         vip_df = plsda_results['vip_scores']
 
-        # Reconstruct scaled X matrix
+        # ========================================
+        # FIX: Use unscaled data to avoid leakage
+        # Pipeline will handle scaling inside CV
+        # ========================================
         from ..analyzer import GlycanAnalyzer
         analyzer_temp = GlycanAnalyzer()
         intensity_matrix, _, _ = analyzer_temp.prepare_intensity_matrix(df)
 
-        from sklearn.preprocessing import RobustScaler
-        scaler = RobustScaler()
-        X_scaled = scaler.fit_transform(intensity_matrix)
+        logger.debug(f"  Intensity matrix shape: {intensity_matrix.shape}")
 
         # Create 2x2 subplot layout
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=figsize)
@@ -62,28 +78,38 @@ class PLSDADiagnosticPlotMixin:
                      fontsize=16, fontweight='bold', y=0.995)
 
         # =====================================================================
-        # PANEL 1: R² and Q² across components
+        # PANEL 1: R² and Q² across components (NO LEAKAGE)
         # =====================================================================
-        logger.info("  Panel 1: Calculating R² and Q² scores...")
+        logger.info("  Panel 1: Calculating R² and Q² scores (with Pipeline to prevent leakage)...")
 
-        n_components_range = range(1, min(11, X_scaled.shape[1]))
+        n_components_range = range(1, min(11, intensity_matrix.shape[1]))
         r2_scores = []
         q2_scores = []
+        loo = LeaveOneOut()
 
         for n_comp in n_components_range:
-            # Fit model with n_comp components
-            pls_temp = PLSRegression(n_components=n_comp)
-            pls_temp.fit(X_scaled, y_labels)
+            # ========================================
+            # FIX: Use Pipeline to prevent data leakage
+            # Scaler is fit INSIDE each CV fold
+            # ========================================
+            pipeline = Pipeline([
+                ('scaler', RobustScaler()),
+                ('pls', PLSRegression(n_components=n_comp))
+            ])
 
-            # R² score (explained variance)
-            r2 = pls_temp.score(X_scaled, y_labels)
+            # R² score (training set performance)
+            pipeline.fit(intensity_matrix, y_labels)
+            r2 = pipeline.score(intensity_matrix, y_labels)
             r2_scores.append(r2)
 
-            # Q² score (cross-validated)
-            loo = LeaveOneOut()
-            q2_cv = cross_val_score(pls_temp, X_scaled, y_labels,
+            # Q² score (cross-validated - proper way)
+            # Pipeline ensures scaler is fit on training folds only
+            q2_cv = cross_val_score(pipeline, intensity_matrix, y_labels,
                                     cv=loo, scoring='r2')
             q2_scores.append(q2_cv.mean())
+
+        logger.debug(f"  R² range: {min(r2_scores):.3f} - {max(r2_scores):.3f}")
+        logger.debug(f"  Q² range: {min(q2_scores):.3f} - {max(q2_scores):.3f}")
 
         # Plot R² and Q²
         ax1.plot(n_components_range, r2_scores, 'o-', color='#E74C3C',
@@ -115,16 +141,29 @@ class PLSDADiagnosticPlotMixin:
                      arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
 
         # =====================================================================
-        # PANEL 2: ROC Curve
+        # PANEL 2: ROC Curve (NO LEAKAGE)
         # =====================================================================
-        logger.info("  Panel 2: Generating ROC curve...")
+        logger.info("  Panel 2: Generating ROC curve (using cross-validated predictions)...")
 
-        # Get predicted probabilities
-        y_pred_prob = plsda_model.predict(X_scaled).ravel()
+        # ========================================
+        # FIX: Use cross_val_predict for unbiased ROC
+        # Each prediction is made when sample is in test fold
+        # ========================================
+        selected_comp = plsda_model.n_components
+        pipeline_selected = Pipeline([
+            ('scaler', RobustScaler()),
+            ('pls', PLSRegression(n_components=selected_comp))
+        ])
 
-        # Calculate ROC curve
+        # Get CV predictions (each sample predicted when it's in test set)
+        y_pred_prob = cross_val_predict(pipeline_selected, intensity_matrix, y_labels,
+                                        cv=loo, method='predict').ravel()
+
+        # Calculate ROC curve from CV predictions
         fpr, tpr, thresholds = roc_curve(y_labels, y_pred_prob)
         roc_auc = auc(fpr, tpr)
+
+        logger.debug(f"  ROC AUC (CV): {roc_auc:.3f}")
 
         # Plot ROC curve
         ax2.plot(fpr, tpr, color='#E74C3C', linewidth=3,
@@ -155,15 +194,21 @@ class PLSDADiagnosticPlotMixin:
                  bbox=dict(boxstyle='round', facecolor='lightgreen' if roc_auc > 0.8 else 'yellow', alpha=0.7))
 
         # =====================================================================
-        # PANEL 3: Confusion Matrix
+        # PANEL 3: Confusion Matrix (NO LEAKAGE)
         # =====================================================================
-        logger.info("  Panel 3: Computing confusion matrix...")
+        logger.info("  Panel 3: Computing confusion matrix (from CV predictions)...")
 
+        # ========================================
+        # FIX: Use CV predictions (already computed above)
+        # These are unbiased predictions from LOO-CV
+        # ========================================
         # Predict classes (threshold at 0.5)
         y_pred_class = (y_pred_prob > 0.5).astype(int)
 
-        # Compute confusion matrix
+        # Compute confusion matrix from CV predictions
         cm = confusion_matrix(y_labels, y_pred_class)
+
+        logger.debug(f"  Confusion matrix:\n{cm}")
 
         # Plot confusion matrix
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False,
@@ -238,17 +283,23 @@ class PLSDADiagnosticPlotMixin:
 
         plt.tight_layout()
 
-        # Save plot
+        # Save plot using standardized function
         output_file = self.output_dir / 'plsda_diagnostics.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved PLS-DA diagnostics to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved PLS-DA diagnostics to {output_file} (optimized, {self.dpi} DPI)")
 
         # Save diagnostic metrics as trace data
+        # Enhanced with pipeline metadata (Phase 10.7)
+        n_features = intensity_matrix.shape[1]  # Total number of features
+        cv_method = 'LeaveOneOut'  # Cross-validation method used
+
         diagnostic_metrics = pd.DataFrame({
             'Metric': ['R²', 'Q²', 'ROC_AUC', 'Accuracy', 'Sensitivity', 'Specificity',
-                       'VIP_Mean', 'VIP_Median', 'N_Important_Features'],
+                       'VIP_Mean', 'VIP_Median', 'N_Important_Features',
+                       'Selected_Components', 'N_Features', 'Cross_Validation_Method'],
             'Value': [selected_r2, selected_q2, roc_auc, accuracy, sensitivity, specificity,
-                      mean_vip, median_vip, n_important]
+                      mean_vip, median_vip, n_important,
+                      selected_comp, n_features, cv_method]
         })
         save_trace_data(diagnostic_metrics, self.output_dir, 'plsda_diagnostic_metrics.csv')
 

@@ -2,16 +2,27 @@
 Pie Chart Plot Module for pGlyco Auto Combine
 Visualizes glycan type and classification distributions as pie charts
 
+Dependencies:
+    External:
+        - pandas: Data manipulation
+        - matplotlib: Plotting backend
+
+    Internal:
+        - src.utils: replace_empty_with_zero, save_trace_data, get_sample_columns
+        - src.plots.plot_config: LEGACY_GLYCAN_COLORS, EXTENDED_CATEGORY_COLORS, save_publication_figure
+
 NEW MODULE: Created for comprehensive glycan distribution visualization
 """
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import logging
-from ..utils import replace_empty_with_zero, save_trace_data
+from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from .plot_config import (
     LEGACY_GLYCAN_COLORS,
-    EXTENDED_CATEGORY_COLORS
+    EXTENDED_CATEGORY_COLORS,
+    DEFAULT_FALLBACK_COLOR,
+    save_publication_figure
 )
 
 logger = logging.getLogger(__name__)
@@ -30,9 +41,8 @@ class PieChartPlotMixin:
         """
         logger.info("Creating glycan type distribution pie charts...")
 
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Calculate total intensities per glycan type for each group
         # Using total intensity (sum across all samples) as the metric
@@ -55,17 +65,18 @@ class PieChartPlotMixin:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
 
         # Define colors using standard palette
-        colors = [LEGACY_GLYCAN_COLORS.get(gt, '#CCCCCC') for gt in glycan_types]
+        colors = [LEGACY_GLYCAN_COLORS.get(gt, DEFAULT_FALLBACK_COLOR) for gt in glycan_types]
 
         # Cancer pie chart
         cancer_values = [cancer_data[gt] for gt in glycan_types]
         cancer_total_sum = sum(cancer_values)
 
+        # Safe autopct lambda with zero-denominator guard
         wedges1, texts1, autotexts1 = ax1.pie(
             cancer_values,
             labels=glycan_types,
             colors=colors,
-            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 and cancer_total_sum > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -76,11 +87,12 @@ class PieChartPlotMixin:
         normal_values = [normal_data[gt] for gt in glycan_types]
         normal_total_sum = sum(normal_values)
 
+        # Safe autopct lambda with zero-denominator guard
         wedges2, texts2, autotexts2 = ax2.pie(
             normal_values,
             labels=glycan_types,
             colors=colors,
-            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 and normal_total_sum > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -93,18 +105,18 @@ class PieChartPlotMixin:
 
         plt.tight_layout()
 
-        # Save plot
+        # Save plot using standardized function
         output_file = self.output_dir / 'pie_chart_glycan_types.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved glycan type pie charts to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved glycan type pie charts to {output_file} (optimized, {self.dpi} DPI)")
 
-        # Save trace data
+        # Save trace data with zero-denominator guards
         trace_data = pd.DataFrame({
             'GlycanType': glycan_types,
             'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v / cancer_total_sum * 100 for v in cancer_values],
+            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
             'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v / normal_total_sum * 100 for v in normal_values]
+            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values]
         })
         save_trace_data(trace_data, self.output_dir, 'pie_chart_glycan_types_data.csv')
 
@@ -120,9 +132,8 @@ class PieChartPlotMixin:
         """
         logger.info("Creating primary classification distribution pie charts...")
 
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Primary classification categories
         primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid', 'Outlier']
@@ -143,24 +154,19 @@ class PieChartPlotMixin:
         # Create figure with two subplots
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
 
-        # Define colors
-        colors_primary = {
-            'Truncated': '#CCCCCC',       # Gray
-            'High Mannose': '#2ECC71',    # Green
-            'ComplexHybrid': '#3498DB',   # Blue
-            'Outlier': '#95A5A6'          # Light gray
-        }
-        colors = [colors_primary.get(cat, '#CCCCCC') for cat in primary_categories]
+        # Use centralized colors from EXTENDED_CATEGORY_COLORS
+        colors = [EXTENDED_CATEGORY_COLORS.get(cat, DEFAULT_FALLBACK_COLOR) for cat in primary_categories]
 
         # Cancer pie chart
         cancer_values = [cancer_data[cat] for cat in primary_categories]
         cancer_total_sum = sum(cancer_values)
 
+        # Safe autopct lambda with zero-denominator guard
         wedges1, texts1, autotexts1 = ax1.pie(
             cancer_values,
             labels=primary_categories,
             colors=colors,
-            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 and cancer_total_sum > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -171,11 +177,12 @@ class PieChartPlotMixin:
         normal_values = [normal_data[cat] for cat in primary_categories]
         normal_total_sum = sum(normal_values)
 
+        # Safe autopct lambda with zero-denominator guard
         wedges2, texts2, autotexts2 = ax2.pie(
             normal_values,
             labels=primary_categories,
             colors=colors,
-            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 and normal_total_sum > 0 else '',
             startangle=90,
             textprops={'fontsize': 11, 'weight': 'bold'}
         )
@@ -188,10 +195,10 @@ class PieChartPlotMixin:
 
         plt.tight_layout()
 
-        # Save plot
+        # Save plot using standardized function
         output_file = self.output_dir / 'pie_chart_primary_classification.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved primary classification pie charts to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved primary classification pie charts to {output_file} (optimized, {self.dpi} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({
@@ -215,9 +222,8 @@ class PieChartPlotMixin:
         """
         logger.info("Creating secondary classification distribution pie charts...")
 
-        # Get sample columns
-        cancer_samples = [col for col in df.columns if col.startswith('C') and col[1:].isdigit()]
-        normal_samples = [col for col in df.columns if col.startswith('N') and col[1:].isdigit()]
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
 
         # Secondary classification categories (5 categories)
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
@@ -238,18 +244,19 @@ class PieChartPlotMixin:
         # Create figure with two subplots
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
 
-        # Define colors (using standardized palette)
-        colors = [EXTENDED_CATEGORY_COLORS.get(cat, '#CCCCCC') for cat in secondary_categories]
+        # Use centralized colors from EXTENDED_CATEGORY_COLORS
+        colors = [EXTENDED_CATEGORY_COLORS.get(cat, DEFAULT_FALLBACK_COLOR) for cat in secondary_categories]
 
         # Cancer pie chart
         cancer_values = [cancer_data[cat] for cat in secondary_categories]
         cancer_total_sum = sum(cancer_values)
 
+        # Safe autopct lambda with zero-denominator guard
         wedges1, texts1, autotexts1 = ax1.pie(
             cancer_values,
             labels=secondary_categories,
             colors=colors,
-            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * cancer_total_sum / 100:.2e})' if pct > 0 and cancer_total_sum > 0 else '',
             startangle=90,
             textprops={'fontsize': 10, 'weight': 'bold'}
         )
@@ -260,11 +267,12 @@ class PieChartPlotMixin:
         normal_values = [normal_data[cat] for cat in secondary_categories]
         normal_total_sum = sum(normal_values)
 
+        # Safe autopct lambda with zero-denominator guard
         wedges2, texts2, autotexts2 = ax2.pie(
             normal_values,
             labels=secondary_categories,
             colors=colors,
-            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 else '',
+            autopct =lambda pct: f'{pct:.1f}%\n({pct * normal_total_sum / 100:.2e})' if pct > 0 and normal_total_sum > 0 else '',
             startangle=90,
             textprops={'fontsize': 10, 'weight': 'bold'}
         )
@@ -277,10 +285,10 @@ class PieChartPlotMixin:
 
         plt.tight_layout()
 
-        # Save plot
+        # Save plot using standardized function
         output_file = self.output_dir / 'pie_chart_secondary_classification.png'
-        plt.savefig(output_file, dpi=self.dpi, bbox_inches='tight')
-        logger.info(f"Saved secondary classification pie charts to {output_file}")
+        save_publication_figure(fig, output_file, dpi=self.dpi)
+        logger.info(f"Saved secondary classification pie charts to {output_file} (optimized, {self.dpi} DPI)")
 
         # Save trace data
         trace_data = pd.DataFrame({
