@@ -122,12 +122,16 @@ class GlycopeptideDotHeatmapMixin:
 
         # === MAIN PANEL: Dot heatmap ===
 
+        # ========================================
+        # PHASE 2.4 FIX: Normalization bug - assign result back to variable
+        # ========================================
         # Normalize intensities for transparency (0-1 scale per sample)
         sample_intensities = replace_empty_with_zero(df_plot[[sample_name]]).values.flatten()
         if sample_intensities.max() > 0:
-            sample_intensities / sample_intensities.max()
+            sample_intensities = sample_intensities / sample_intensities.max()  # ← FIX: Assign result!
+            logger.debug(f"Normalized sample intensities: range [{sample_intensities.min():.3f}, {sample_intensities.max():.3f}]")
         else:
-            pass
+            logger.warning(f"{sample_name}: All intensities are zero, skipping normalization")
 
         # Plot dots
         for idx, row in df_plot.iterrows():

@@ -204,16 +204,68 @@ class VolcanoPlotMixin:
             volcano_df['Log2FC_CI_Upper'] = np.nan
             logger.info("No significant features found for CI calculation")
 
+        # ========================================
+        # PHASE 2.1 FIX: Explicit FDR=NaN handling with logging
+        # ========================================
+        # Count glycopeptides with NaN FDR (insufficient samples for test)
+        fdr_nan_mask = volcano_df['FDR'].isna()
+        n_fdr_nan = fdr_nan_mask.sum()
+
+        if n_fdr_nan > 0:
+            logger.warning(f"Found {n_fdr_nan} glycopeptides with FDR=NaN (insufficient samples <3 in one or both groups)")
+            logger.info(f"  These will be classified as 'Non-significant' regardless of fold change")
+
         # Classification
         volcano_df['Regulation'] = 'Non-significant'
 
-        # Up-regulated: log2FC > threshold AND FDR < threshold
-        up_mask = (volcano_df['Log2FC'] > log2fc_threshold) & (volcano_df['FDR'] < fdr_threshold)
+        # CRITICAL: Up-regulated requires VALID FDR (not NaN)
+        # log2FC > threshold AND FDR < threshold AND FDR is not NaN
+        up_mask = (
+            (volcano_df['Log2FC'] > log2fc_threshold) &
+            (volcano_df['FDR'] < fdr_threshold) &
+            volcano_df['FDR'].notna()  # ← EXPLICIT: Exclude FDR=NaN
+        )
         volcano_df.loc[up_mask, 'Regulation'] = 'Up in Cancer'
 
-        # Down-regulated: log2FC < -threshold AND FDR < threshold
-        down_mask = (volcano_df['Log2FC'] < -log2fc_threshold) & (volcano_df['FDR'] < fdr_threshold)
+        # CRITICAL: Down-regulated requires VALID FDR (not NaN)
+        # log2FC < -threshold AND FDR < threshold AND FDR is not NaN
+        down_mask = (
+            (volcano_df['Log2FC'] < -log2fc_threshold) &
+            (volcano_df['FDR'] < fdr_threshold) &
+            volcano_df['FDR'].notna()  # ← EXPLICIT: Exclude FDR=NaN
+        )
         volcano_df.loc[down_mask, 'Regulation'] = 'Down in Cancer'
+
+        # ========================================
+        # PHASE 2.2 FIX: Data validation
+        # ========================================
+        # Validate: Total glycopeptides = sum of all regulation categories
+        n_total = len(volcano_df)
+        n_up = up_mask.sum()
+        n_down = down_mask.sum()
+        n_ns = (volcano_df['Regulation'] == 'Non-significant').sum()
+
+        logger.info(f"Volcano plot regulation breakdown:")
+        logger.info(f"  Total glycopeptides: {n_total}")
+        logger.info(f"  Up-regulated (Cancer > Normal): {n_up}")
+        logger.info(f"  Down-regulated (Cancer < Normal): {n_down}")
+        logger.info(f"  Non-significant: {n_ns}")
+        logger.info(f"  FDR=NaN (insufficient samples): {n_fdr_nan}")
+
+        # VALIDATION: Check for data integrity
+        if n_up + n_down + n_ns != n_total:
+            logger.error(f"❌ DATA VALIDATION FAILED: Category sum ({n_up + n_down + n_ns}) ≠ Total ({n_total})")
+            raise ValueError("Volcano plot data validation failed: categories don't sum to total")
+        else:
+            logger.info(f"✓ Data validation passed: {n_up} + {n_down} + {n_ns} = {n_total}")
+
+        # VALIDATION: Check that all FDR=NaN are classified as Non-significant
+        fdr_nan_but_significant = volcano_df[fdr_nan_mask & (volcano_df['Regulation'] != 'Non-significant')]
+        if len(fdr_nan_but_significant) > 0:
+            logger.error(f"❌ VALIDATION FAILED: {len(fdr_nan_but_significant)} glycopeptides with FDR=NaN incorrectly classified as significant!")
+            raise ValueError("FDR=NaN glycopeptides incorrectly classified")
+        else:
+            logger.info(f"✓ FDR=NaN validation passed: All {n_fdr_nan} FDR=NaN glycopeptides are Non-significant")
 
         # Create plot with optimized figure size
         if figsize is None:

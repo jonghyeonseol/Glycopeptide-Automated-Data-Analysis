@@ -20,6 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from scipy import stats as scipy_stats
+from statsmodels.stats.multitest import multipletests  # FDR correction
 
 from ..utils import replace_empty_with_zero, save_trace_data
 from .plot_config import (
@@ -132,11 +133,24 @@ class PieChartPlotMixin:
             cancer_val = cancer_data[glycan_type]
             normal_val = normal_data[glycan_type]
 
+            # ========================================
+            # PHASE 1.3 FIX: Correct fold change calculation
+            # ========================================
             # Calculate fold change (Cancer / Normal)
-            if normal_val > 0:
+            if normal_val > 0 and cancer_val > 0:
                 fc = cancer_val / normal_val
+            elif normal_val == 0 and cancer_val > 0:
+                # Cancer detected, Normal not detected → Maximum fold change
+                fc = 100.0  # Cap at 100-fold (scientifically reasonable)
+                logger.debug(f"{glycan_type}: Cancer={cancer_val:.2e}, Normal=0 → FC=100 (capped)")
+            elif normal_val > 0 and cancer_val == 0:
+                # Normal detected, Cancer not detected → Minimum fold change
+                fc = 0.01  # Cap at 0.01 (100-fold decrease)
+                logger.debug(f"{glycan_type}: Cancer=0, Normal={normal_val:.2e} → FC=0.01 (capped)")
             else:
-                fc = cancer_val if cancer_val > 0 else 1.0
+                # Both zero → No change
+                fc = 1.0
+                logger.debug(f"{glycan_type}: Both groups zero → FC=1.0")
 
             fold_changes.append(fc)
 
@@ -148,6 +162,9 @@ class PieChartPlotMixin:
             else:
                 fc_colors.append('#95A5A6')  # Gray - similar
 
+            # ========================================
+            # PHASE 2.3 FIX: Explicit handling of insufficient samples
+            # ========================================
             # Calculate statistical significance (Mann-Whitney U test)
             mask = df['GlycanType'] == glycan_type
             if mask.sum() > 0:
@@ -161,13 +178,43 @@ class PieChartPlotMixin:
                 if len(cancer_nonzero) >= 3 and len(normal_nonzero) >= 3:
                     try:
                         _, p_val = scipy_stats.mannwhitneyu(cancer_nonzero, normal_nonzero, alternative='two-sided')
-                        p_values.append(p_val)
-                    except Exception:
+                        if np.isnan(p_val) or np.isinf(p_val):
+                            logger.warning(f"{glycan_type}: Mann-Whitney U test returned invalid p-value ({p_val}), using p=1.0")
+                            p_values.append(1.0)
+                        else:
+                            p_values.append(p_val)
+                    except Exception as e:
+                        logger.warning(f"{glycan_type}: Mann-Whitney U test failed ({str(e)}), using p=1.0")
                         p_values.append(1.0)
                 else:
+                    # Insufficient samples for valid test
+                    logger.debug(f"{glycan_type}: Insufficient samples (Cancer: {len(cancer_nonzero)}, Normal: {len(normal_nonzero)}), p=1.0 (non-significant)")
                     p_values.append(1.0)
             else:
+                # No glycopeptides of this type
+                logger.debug(f"{glycan_type}: No glycopeptides found, p=1.0")
                 p_values.append(1.0)
+
+        # ========================================
+        # PHASE 1.4 FIX: Apply FDR correction for multiple testing
+        # ========================================
+        # Apply Benjamini-Hochberg FDR correction
+        valid_indices = [i for i, p in enumerate(p_values) if p < 1.0]
+        valid_p_values = [p_values[i] for i in valid_indices]
+
+        fdr_values = [1.0] * len(p_values)  # Default to 1.0
+        if len(valid_p_values) > 0:
+            _, fdr_corrected, _, _ = multipletests(valid_p_values, method='fdr_bh')
+            for i, idx in enumerate(valid_indices):
+                fdr_values[idx] = fdr_corrected[i]
+
+            # Log FDR correction results
+            n_significant = sum(fdr < 0.05 for fdr in fdr_corrected)
+            logger.info(f"FDR correction applied (glycan types): {len(valid_p_values)} tests, "
+                       f"{n_significant} significant (FDR < 0.05)")
+            for gt, raw_p, fdr in zip(glycan_types, p_values, fdr_values):
+                if raw_p < 1.0:
+                    logger.info(f"  {gt}: p={raw_p:.4f} → FDR={fdr:.4f}")
 
         # Plot bars
         x_pos = np.arange(len(glycan_types))
@@ -175,7 +222,7 @@ class PieChartPlotMixin:
                        edgecolor='black', linewidth=1.5, alpha=0.9)
 
         # Add fold change values on top of bars
-        for i, (bar, fc, p_val) in enumerate(zip(bars, fold_changes, p_values)):
+        for i, (bar, fc, fdr) in enumerate(zip(bars, fold_changes, fdr_values)):
             height = bar.get_height()
 
             # Fold change text
@@ -186,12 +233,12 @@ class PieChartPlotMixin:
                      fc_text, ha='center', va='bottom',
                      fontsize=ANNOTATION_SIZE, weight='bold')
 
-            # Significance marker (Prism style)
-            if p_val < 0.001:
+            # Significance marker using FDR (not raw p-value) - Prism style
+            if fdr < 0.001:
                 sig = '***'
-            elif p_val < 0.01:
+            elif fdr < 0.01:
                 sig = '**'
-            elif p_val < 0.05:
+            elif fdr < 0.05:
                 sig = '*'
             else:
                 sig = ''
@@ -339,10 +386,20 @@ class PieChartPlotMixin:
             cancer_val = cancer_data[category]
             normal_val = normal_data[category]
 
-            if normal_val > 0:
+            # ========================================
+            # PHASE 1.3 FIX: Correct fold change calculation
+            # ========================================
+            if normal_val > 0 and cancer_val > 0:
                 fc = cancer_val / normal_val
+            elif normal_val == 0 and cancer_val > 0:
+                fc = 100.0  # Cap at 100-fold
+                logger.debug(f"{category}: Cancer={cancer_val:.2e}, Normal=0 → FC=100 (capped)")
+            elif normal_val > 0 and cancer_val == 0:
+                fc = 0.01  # Cap at 0.01 (100-fold decrease)
+                logger.debug(f"{category}: Cancer=0, Normal={normal_val:.2e} → FC=0.01 (capped)")
             else:
-                fc = cancer_val if cancer_val > 0 else 1.0
+                fc = 1.0  # Both zero
+                logger.debug(f"{category}: Both groups zero → FC=1.0")
 
             fold_changes.append(fc)
 
@@ -486,10 +543,20 @@ class PieChartPlotMixin:
             cancer_val = cancer_data[category]
             normal_val = normal_data[category]
 
-            if normal_val > 0:
+            # ========================================
+            # PHASE 1.3 FIX: Correct fold change calculation
+            # ========================================
+            if normal_val > 0 and cancer_val > 0:
                 fc = cancer_val / normal_val
+            elif normal_val == 0 and cancer_val > 0:
+                fc = 100.0  # Cap at 100-fold
+                logger.debug(f"{category}: Cancer={cancer_val:.2e}, Normal=0 → FC=100 (capped)")
+            elif normal_val > 0 and cancer_val == 0:
+                fc = 0.01  # Cap at 0.01 (100-fold decrease)
+                logger.debug(f"{category}: Cancer=0, Normal={normal_val:.2e} → FC=0.01 (capped)")
             else:
-                fc = cancer_val if cancer_val > 0 else 1.0
+                fc = 1.0  # Both zero
+                logger.debug(f"{category}: Both groups zero → FC=1.0")
 
             fold_changes.append(fc)
 

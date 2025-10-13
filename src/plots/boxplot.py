@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
 from scipy import stats
+from statsmodels.stats.multitest import multipletests  # FDR correction
 from ..utils import replace_empty_with_zero, save_trace_data, get_sample_columns
 from ..data_preparation import (
     DataPreparationConfig
@@ -119,13 +120,14 @@ class BoxplotMixin:
             ax=ax
         )
 
-        # Perform statistical tests and add significance markers
-        # Now comparing Cancer vs Normal for each glycan type
-        y_max = boxplot_data['Intensity'].max()
-        y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
+        # ========================================
+        # PHASE 1.1 FIX: Apply FDR correction for multiple testing
+        # ========================================
+        # Step 1: Collect all p-values and effect sizes
+        p_values_dict = {}  # {glycan_type: p_value}
+        cohens_d_dict = {}  # {glycan_type: effect_size}
 
-        # Add significance markers between Cancer and Normal for each glycan type
-        for i, glycan_type in enumerate(existing_types):
+        for glycan_type in existing_types:
             # Get data for each group
             cancer_data = boxplot_data[
                 (boxplot_data['GlycanType'] == glycan_type) &
@@ -139,57 +141,96 @@ class BoxplotMixin:
 
             # Skip if either group has insufficient data
             if len(cancer_data) < 3 or len(normal_data) < 3:
+                p_values_dict[glycan_type] = np.nan
+                cohens_d_dict[glycan_type] = np.nan
+                logger.warning(f"{glycan_type}: Insufficient data (Cancer: {len(cancer_data)}, Normal: {len(normal_data)})")
                 continue
 
             # Perform Mann-Whitney U test (non-parametric)
             try:
                 statistic, p_value = stats.mannwhitneyu(cancer_data, normal_data, alternative='two-sided')
-
-                # Calculate Cohen's d effect size (Phase 1.1 enhancement)
                 cohens_d = calculate_cohens_d(cancer_data, normal_data)
 
-                # Determine significance level
-                if p_value < 0.001:
-                    sig_marker = '***'
-                elif p_value < 0.01:
-                    sig_marker = '**'
-                elif p_value < 0.05:
-                    sig_marker = '*'
-                else:
-                    sig_marker = 'ns'
-
-                # ✨ ENHANCED: Add significance bracket if significant
-                if sig_marker != 'ns':
-                    # Calculate x positions for the connecting line
-                    n_types = len(existing_types)
-                    x_offset = (i - (n_types - 1) / 2) * (BOXPLOT_WIDTH / n_types)
-
-                    x1 = 0 + x_offset  # Cancer position
-                    x2 = 1 + x_offset  # Normal position
-
-                    y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
-
-                    # Format annotation text with effect size
-                    if not np.isnan(cohens_d):
-                        annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
-                    else:
-                        annotation_text = sig_marker
-
-                    # ✨ Use enhanced statistical bracket (rounded ends, fancy box)
-                    enhance_statistical_bracket(
-                        ax, x1, x2, y_position,
-                        text=annotation_text,
-                        color='black',
-                        fontsize=11
-                    )
-
-                    logger.info(
-                        f"{glycan_type}: Cancer vs Normal p={p_value:.4f} "
-                        f"({sig_marker}), Cohen's d={cohens_d:.3f}"
-                    )
+                p_values_dict[glycan_type] = p_value
+                cohens_d_dict[glycan_type] = cohens_d
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {glycan_type}: {str(e)}")
+                p_values_dict[glycan_type] = np.nan
+                cohens_d_dict[glycan_type] = np.nan
+
+        # Step 2: Apply FDR correction (Benjamini-Hochberg)
+        valid_glycan_types = [gt for gt, p in p_values_dict.items() if not np.isnan(p)]
+        valid_p_values = [p_values_dict[gt] for gt in valid_glycan_types]
+
+        fdr_dict = {}
+        if len(valid_p_values) > 0:
+            # Apply Benjamini-Hochberg FDR correction
+            reject, fdr_values, _, _ = multipletests(valid_p_values, method='fdr_bh')
+            fdr_dict = dict(zip(valid_glycan_types, fdr_values))
+
+            # Log FDR correction results
+            n_significant = sum(fdr < 0.05 for fdr in fdr_values)
+            logger.info(f"FDR correction applied: {len(valid_p_values)} tests, "
+                       f"{n_significant} significant (FDR < 0.05)")
+
+            for gt, raw_p, fdr in zip(valid_glycan_types, valid_p_values, fdr_values):
+                logger.info(f"  {gt}: p={raw_p:.4f} → FDR={fdr:.4f}")
+        else:
+            logger.warning("No valid p-values for FDR correction")
+
+        # Step 3: Plot with FDR-corrected significance markers
+        y_max = boxplot_data['Intensity'].max()
+        y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
+
+        for i, glycan_type in enumerate(existing_types):
+            # Get FDR-corrected p-value
+            fdr = fdr_dict.get(glycan_type, np.nan)
+            cohens_d = cohens_d_dict.get(glycan_type, np.nan)
+
+            # Skip if no valid FDR value
+            if np.isnan(fdr):
+                continue
+
+            # Determine significance level using FDR (not raw p-value)
+            if fdr < 0.001:
+                sig_marker = '***'
+            elif fdr < 0.01:
+                sig_marker = '**'
+            elif fdr < 0.05:
+                sig_marker = '*'
+            else:
+                sig_marker = 'ns'
+
+            # ✨ ENHANCED: Add significance bracket if significant
+            if sig_marker != 'ns':
+                # Calculate x positions for the connecting line
+                n_types = len(existing_types)
+                x_offset = (i - (n_types - 1) / 2) * (BOXPLOT_WIDTH / n_types)
+
+                x1 = 0 + x_offset  # Cancer position
+                x2 = 1 + x_offset  # Normal position
+
+                y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
+
+                # Format annotation text with effect size
+                if not np.isnan(cohens_d):
+                    annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
+                else:
+                    annotation_text = sig_marker
+
+                # ✨ Use enhanced statistical bracket (rounded ends, fancy box)
+                enhance_statistical_bracket(
+                    ax, x1, x2, y_position,
+                    text=annotation_text,
+                    color='black',
+                    fontsize=11
+                )
+
+                logger.info(
+                    f"{glycan_type}: Cancer vs Normal FDR={fdr:.4f} "
+                    f"({sig_marker}), Cohen's d={cohens_d:.3f}"
+                )
 
         # Apply standardized axis styling with gridlines
         apply_standard_axis_style(
@@ -264,13 +305,14 @@ class BoxplotMixin:
             ax=ax
         )
 
-        # Perform statistical tests and add significance markers
-        # Now comparing Cancer vs Normal for each glycan category
-        y_max = boxplot_data['Intensity'].max()
-        y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
+        # ========================================
+        # PHASE 1.2 FIX: Apply FDR correction for multiple testing
+        # ========================================
+        # Step 1: Collect all p-values and effect sizes
+        p_values_dict = {}  # {category: p_value}
+        cohens_d_dict = {}  # {category: effect_size}
 
-        # Add significance markers between Cancer and Normal for each category
-        for i, category in enumerate(existing_categories):
+        for category in existing_categories:
             # Get data for each group
             cancer_data = boxplot_data[
                 (boxplot_data['ExtendedCategory'] == category) &
@@ -284,65 +326,104 @@ class BoxplotMixin:
 
             # Skip if either group has insufficient data
             if len(cancer_data) < 3 or len(normal_data) < 3:
+                p_values_dict[category] = np.nan
+                cohens_d_dict[category] = np.nan
+                logger.warning(f"{category}: Insufficient data (Cancer: {len(cancer_data)}, Normal: {len(normal_data)})")
                 continue
 
             # Perform Mann-Whitney U test (non-parametric)
             try:
                 statistic, p_value = stats.mannwhitneyu(cancer_data, normal_data, alternative='two-sided')
-
-                # Calculate Cohen's d effect size (Phase 1.1 enhancement)
                 cohens_d = calculate_cohens_d(cancer_data, normal_data)
 
-                # Determine significance level
-                if p_value < 0.001:
-                    sig_marker = '***'
-                elif p_value < 0.01:
-                    sig_marker = '**'
-                elif p_value < 0.05:
-                    sig_marker = '*'
-                else:
-                    sig_marker = 'ns'
-
-                # Add significance marker if significant (connecting Cancer and Normal groups)
-                if sig_marker != 'ns':
-                    # Calculate x positions for the connecting line
-                    n_cats = len(existing_categories)
-                    x_offset = (i - (n_cats - 1) / 2) * (BOXPLOT_WIDTH / n_cats)
-
-                    x1 = 0 + x_offset  # Cancer position
-                    x2 = 1 + x_offset  # Normal position
-
-                    y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
-
-                    # Draw line connecting the two groups
-                    ax.plot([x1, x2], [y_position, y_position],
-                            color='black', linewidth=1.5, zorder=10)
-
-                    # Add significance marker WITH effect size (Phase 1.1)
-                    if not np.isnan(cohens_d):
-                        annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
-                    else:
-                        annotation_text = sig_marker
-
-                    ax.text(
-                        (x1 + x2) / 2,
-                        y_position,
-                        annotation_text,
-                        ha='center',
-                        va='bottom',
-                        fontsize=11,  # Slightly smaller for two-line text
-                        fontweight='bold',
-                        color='black',
-                        zorder=11
-                    )
-
-                    logger.info(
-                        f"{category}: Cancer vs Normal p={p_value:.4f} "
-                        f"({sig_marker}), Cohen's d={cohens_d:.3f}"
-                    )
+                p_values_dict[category] = p_value
+                cohens_d_dict[category] = cohens_d
 
             except Exception as e:
                 logger.warning(f"Statistical test failed for {category}: {str(e)}")
+                p_values_dict[category] = np.nan
+                cohens_d_dict[category] = np.nan
+
+        # Step 2: Apply FDR correction (Benjamini-Hochberg)
+        valid_categories = [cat for cat, p in p_values_dict.items() if not np.isnan(p)]
+        valid_p_values = [p_values_dict[cat] for cat in valid_categories]
+
+        fdr_dict = {}
+        if len(valid_p_values) > 0:
+            # Apply Benjamini-Hochberg FDR correction
+            reject, fdr_values, _, _ = multipletests(valid_p_values, method='fdr_bh')
+            fdr_dict = dict(zip(valid_categories, fdr_values))
+
+            # Log FDR correction results
+            n_significant = sum(fdr < 0.05 for fdr in fdr_values)
+            logger.info(f"FDR correction applied (extended): {len(valid_p_values)} tests, "
+                       f"{n_significant} significant (FDR < 0.05)")
+
+            for cat, raw_p, fdr in zip(valid_categories, valid_p_values, fdr_values):
+                logger.info(f"  {cat}: p={raw_p:.4f} → FDR={fdr:.4f}")
+        else:
+            logger.warning("No valid p-values for FDR correction (extended)")
+
+        # Step 3: Plot with FDR-corrected significance markers
+        y_max = boxplot_data['Intensity'].max()
+        y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
+
+        for i, category in enumerate(existing_categories):
+            # Get FDR-corrected p-value
+            fdr = fdr_dict.get(category, np.nan)
+            cohens_d = cohens_d_dict.get(category, np.nan)
+
+            # Skip if no valid FDR value
+            if np.isnan(fdr):
+                continue
+
+            # Determine significance level using FDR (not raw p-value)
+            if fdr < 0.001:
+                sig_marker = '***'
+            elif fdr < 0.01:
+                sig_marker = '**'
+            elif fdr < 0.05:
+                sig_marker = '*'
+            else:
+                sig_marker = 'ns'
+
+            # Add significance marker if significant (connecting Cancer and Normal groups)
+            if sig_marker != 'ns':
+                # Calculate x positions for the connecting line
+                n_cats = len(existing_categories)
+                x_offset = (i - (n_cats - 1) / 2) * (BOXPLOT_WIDTH / n_cats)
+
+                x1 = 0 + x_offset  # Cancer position
+                x2 = 1 + x_offset  # Normal position
+
+                y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
+
+                # Draw line connecting the two groups
+                ax.plot([x1, x2], [y_position, y_position],
+                        color='black', linewidth=1.5, zorder=10)
+
+                # Add significance marker WITH effect size (Phase 1.1)
+                if not np.isnan(cohens_d):
+                    annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
+                else:
+                    annotation_text = sig_marker
+
+                ax.text(
+                    (x1 + x2) / 2,
+                    y_position,
+                    annotation_text,
+                    ha='center',
+                    va='bottom',
+                    fontsize=11,  # Slightly smaller for two-line text
+                    fontweight='bold',
+                    color='black',
+                    zorder=11
+                )
+
+                logger.info(
+                    f"{category}: Cancer vs Normal FDR={fdr:.4f} "
+                    f"({sig_marker}), Cohen's d={cohens_d:.3f}"
+                )
 
         # Apply standardized axis styling with gridlines
         apply_standard_axis_style(
