@@ -43,12 +43,22 @@ class SankeyPlotMixin:
         - Middle: 3 Regulation States (Upregulated, Downregulated, Unchanged)
         - Target: 2 Significance States (Significant, Non-significant)
 
+        IMPORTANT - Regulation Definition (Cancer-centric):
+        - "Upregulated" means Cancer > Normal (Log2FC ≥ +threshold AND FDR < threshold)
+        - "Downregulated" means Cancer < Normal (Log2FC ≤ -threshold AND FDR < threshold)
+        - "Unchanged" means either |Log2FC| < threshold OR FDR ≥ threshold
+
+        Scientific Validity:
+        - Requires BOTH fold change AND statistical significance (FDR < 0.05)
+        - This follows standard proteomics practice (e.g., volcano plot methodology)
+        - Prevents false positives from being classified as "regulated"
+
         Args:
             df: Annotated DataFrame with all samples
             vip_scores: VIP scores DataFrame from PLS-DA
             config: Data preparation configuration
-            log2fc_threshold: Log2 fold change threshold for regulation
-            fdr_threshold: FDR threshold for significance
+            log2fc_threshold: Log2 fold change threshold for regulation (default: 1.0 = 2-fold)
+            fdr_threshold: FDR threshold for significance (default: 0.05)
         """
         logger.info("Creating Sankey diagram for glycan type flows...")
 
@@ -78,6 +88,14 @@ class SankeyPlotMixin:
         cancer_samples = [col for col in df_prepared.columns if col.startswith('C') and col[1:].isdigit()]
         normal_samples = [col for col in df_prepared.columns if col.startswith('N') and col[1:].isdigit()]
 
+        # Validate sample availability
+        if len(cancer_samples) == 0 or len(normal_samples) == 0:
+            logger.error(f"Insufficient samples: Cancer={len(cancer_samples)}, Normal={len(normal_samples)}")
+            logger.error("Cannot perform statistical comparison without samples from both groups!")
+            return None
+
+        logger.info(f"Sample validation: Cancer={len(cancer_samples)}, Normal={len(normal_samples)}")
+
         # Calculate statistical significance
         logger.info("Calculating statistical significance for Sankey flows...")
         df_with_stats = calculate_statistical_significance(
@@ -88,10 +106,14 @@ class SankeyPlotMixin:
             fdr_correction=True
         )
 
-        # Classify by regulation status
+        # Classify by regulation status (REQUIRES both fold change AND FDR significance)
         df_with_stats['Regulation'] = 'Unchanged'
-        df_with_stats.loc[df_with_stats['Log2_Fold_Change'] >= log2fc_threshold, 'Regulation'] = 'Upregulated'
-        df_with_stats.loc[df_with_stats['Log2_Fold_Change'] <= -log2fc_threshold, 'Regulation'] = 'Downregulated'
+        # Upregulated: Log2FC >= threshold AND FDR < threshold
+        upregulated_mask = (df_with_stats['Log2_Fold_Change'] >= log2fc_threshold) & (df_with_stats['FDR'] < fdr_threshold)
+        df_with_stats.loc[upregulated_mask, 'Regulation'] = 'Upregulated'
+        # Downregulated: Log2FC <= -threshold AND FDR < threshold
+        downregulated_mask = (df_with_stats['Log2_Fold_Change'] <= -log2fc_threshold) & (df_with_stats['FDR'] < fdr_threshold)
+        df_with_stats.loc[downregulated_mask, 'Regulation'] = 'Downregulated'
 
         # Classify by significance
         df_with_stats['Significance'] = 'Non-significant'
@@ -261,8 +283,19 @@ class SankeyPlotMixin:
         Features:
         - Vertical deployment of both groups on left side
         - 10 glycan type nodes on right side (5 types × 2 regulation states: Up/Down)
-        - Links colored by regulation status (red=upregulated, blue=downregulated)
-        - Legend showing regulation categories
+        - Links colored by glycan type (HM=green, F=red, S=pink, SF=orange, C/H=blue)
+        - Legend showing glycan type color mapping
+
+        IMPORTANT - Regulation Interpretation (Cancer-centric):
+        - "Upregulated" means Cancer > Normal (Log2FC ≥ +threshold AND FDR < threshold)
+        - "Downregulated" means Cancer < Normal (Log2FC ≤ -threshold AND FDR < threshold)
+        - Example: "Normal → HM_Up" means "HM glycopeptide detected in Normal samples,
+          but classified as upregulated in Cancer vs Normal comparison"
+
+        Scientific Validity:
+        - Requires BOTH fold change AND statistical significance (FDR < 0.05)
+        - Only glycopeptides passing both thresholds are classified as regulated
+        - This follows standard proteomics practice (similar to volcano plot)
 
         Args:
             df: Annotated DataFrame with all samples
@@ -299,6 +332,14 @@ class SankeyPlotMixin:
         cancer_samples = [col for col in df_prepared.columns if col.startswith('C') and col[1:].isdigit()]
         normal_samples = [col for col in df_prepared.columns if col.startswith('N') and col[1:].isdigit()]
 
+        # Validate sample availability
+        if len(cancer_samples) == 0 or len(normal_samples) == 0:
+            logger.error(f"Insufficient samples: Cancer={len(cancer_samples)}, Normal={len(normal_samples)}")
+            logger.error("Cannot perform statistical comparison without samples from both groups!")
+            return None
+
+        logger.info(f"Sample validation: Cancer={len(cancer_samples)}, Normal={len(normal_samples)}")
+
         # Calculate statistical significance
         logger.info("Calculating statistical significance and regulation status...")
         df_with_stats = calculate_statistical_significance(
@@ -309,10 +350,14 @@ class SankeyPlotMixin:
             fdr_correction=True
         )
 
-        # Classify by regulation status
+        # Classify by regulation status (REQUIRES both fold change AND FDR significance)
         df_with_stats['Regulation'] = 'Unchanged'
-        df_with_stats.loc[df_with_stats['Log2_Fold_Change'] >= log2fc_threshold, 'Regulation'] = 'Upregulated'
-        df_with_stats.loc[df_with_stats['Log2_Fold_Change'] <= -log2fc_threshold, 'Regulation'] = 'Downregulated'
+        # Upregulated: Log2FC >= threshold AND FDR < threshold
+        upregulated_mask = (df_with_stats['Log2_Fold_Change'] >= log2fc_threshold) & (df_with_stats['FDR'] < fdr_threshold)
+        df_with_stats.loc[upregulated_mask, 'Regulation'] = 'Upregulated'
+        # Downregulated: Log2FC <= -threshold AND FDR < threshold
+        downregulated_mask = (df_with_stats['Log2_Fold_Change'] <= -log2fc_threshold) & (df_with_stats['FDR'] < fdr_threshold)
+        df_with_stats.loc[downregulated_mask, 'Regulation'] = 'Downregulated'
 
         # Classify by significance
         df_with_stats['Significance'] = 'Non-significant'
@@ -490,9 +535,12 @@ class SankeyPlotMixin:
                 dict(
                     x=0.5, y=-0.15,
                     xref='paper', yref='paper',
-                    text='<b>Link Colors (Regulation Status):</b><br>'
-                         '<span style="color:#E74C3C">━━━</span> Upregulated (|Log2FC| ≥ 1.0) | '
-                         '<span style="color:#3498DB">━━━</span> Downregulated (|Log2FC| ≤ -1.0)',
+                    text='<b>Link Colors (Glycan Type):</b><br>'
+                         '<span style="color:#00CC00">━━━</span> HM (High-Mannose) | '
+                         '<span style="color:#FF0000">━━━</span> F (Fucosylated) | '
+                         '<span style="color:#FF69B4">━━━</span> S (Sialylated) | '
+                         '<span style="color:#FFA500">━━━</span> SF (Sialofucosylated) | '
+                         '<span style="color:#0000FF">━━━</span> C/H (Complex/Hybrid)',
                     showarrow=False,
                     font=dict(size=13, family='Arial, sans-serif'),
                     align='center',
