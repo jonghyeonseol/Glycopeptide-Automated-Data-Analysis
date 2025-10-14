@@ -231,6 +231,12 @@ NORMALIZATION_METHOD_TIC: str = 'tic'  # Total Ion Current
 SCALER_ROBUST: str = 'robust'
 SCALER_STANDARD: str = 'standard'
 
+# S0 parameter for t-test stability
+# Prevents division by very small standard deviations which can lead to
+# unreliable t-statistics. Inspired by SAM (Significance Analysis of Microarrays)
+S0_DEFAULT: float = 0.05  # Default S0 parameter (5% of median standard deviation)
+S0_MIN_SAMPLES: int = 3   # Minimum samples required per group for t-test
+
 # ==============================================================================
 # Logging
 # ==============================================================================
@@ -378,6 +384,8 @@ __all__ = [
     'NORMALIZATION_METHOD_TIC',
     'SCALER_ROBUST',
     'SCALER_STANDARD',
+    'S0_DEFAULT',
+    'S0_MIN_SAMPLES',
     # Logging
     'LOG_FORMAT',
     'LOG_LEVEL_INFO',

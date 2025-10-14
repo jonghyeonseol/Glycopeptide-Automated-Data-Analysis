@@ -27,9 +27,12 @@ from .utils import (
     get_all_sample_columns,
     get_sample_group,
     log_transform as utils_log_transform,
-    calculate_fold_change
+    calculate_fold_change,
+    clean_inf_nan,
+    safe_division
 )
 from .logger_config import get_logger
+from .preprocessing_tracker import PreprocessingTracker
 
 logger = get_logger(__name__)
 
@@ -39,13 +42,15 @@ class GlycanAnalyzer:
 
     def __init__(self,
                  n_components: int = DEFAULT_PCA_COMPONENTS,
-                 log_transform: bool = DEFAULT_LOG_TRANSFORM):
+                 log_transform: bool = DEFAULT_LOG_TRANSFORM,
+                 track_preprocessing: bool = True):
         """
         Initialize GlycanAnalyzer
 
         Args:
             n_components: Number of PCA components (default: 2)
             log_transform: Whether to log-transform intensity values (default: True)
+            track_preprocessing: Track preprocessing steps for reproducibility (default: True)
         """
         self.n_components = n_components
         self.log_transform = log_transform
@@ -53,6 +58,10 @@ class GlycanAnalyzer:
         self.scaler: Optional[RobustScaler] = None
         self.plsda: Optional[PLSRegression] = None
         self.vip_scores: Optional[pd.DataFrame] = None
+
+        # Preprocessing tracking for reproducibility
+        self.track_preprocessing = track_preprocessing
+        self.preprocessing_tracker = PreprocessingTracker() if track_preprocessing else None
 
     def prepare_intensity_matrix(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, list, np.ndarray]:
         """
@@ -87,9 +96,31 @@ class GlycanAnalyzer:
         sample_sums = intensity_matrix_t.sum(axis=1)
         median_sum = sample_sums.median()
 
-        # Avoid division by zero
+        # Avoid division by zero using safe_division pattern
         sample_sums_safe = sample_sums.replace(0, 1)
         intensity_matrix_t = intensity_matrix_t.div(sample_sums_safe, axis=0) * median_sum
+
+        # CRITICAL: Clean inf/nan immediately after normalization
+        inf_count_before = np.isinf(intensity_matrix_t.values).sum() if hasattr(intensity_matrix_t, 'values') else np.isinf(intensity_matrix_t).sum()
+        intensity_matrix_t = clean_inf_nan(intensity_matrix_t, context="TIC normalization", verbose=True)
+        inf_count_after = np.isinf(intensity_matrix_t.values).sum() if hasattr(intensity_matrix_t, 'values') else np.isinf(intensity_matrix_t).sum()
+
+        # Track TIC normalization step
+        if self.preprocessing_tracker:
+            self.preprocessing_tracker.record_transformation(
+                "TIC Normalization",
+                parameters={
+                    "method": "tic",
+                    "median_sum": float(median_sum),
+                    "sample_sum_min": float(sample_sums.min()),
+                    "sample_sum_max": float(sample_sums.max())
+                },
+                statistics_after={
+                    "inf_cleaned": int(inf_count_before - inf_count_after)
+                }
+            )
+            self.preprocessing_tracker.mark_tic_normalized("tic")
+            self.preprocessing_tracker.increment_inf_cleaned(int(inf_count_before - inf_count_after))
 
         logger.info(f"  - Sample sum range before: {sample_sums.min():.2e} - {sample_sums.max():.2e}")
         logger.info(f"  - Median sum (target): {median_sum:.2e}")
@@ -98,7 +129,29 @@ class GlycanAnalyzer:
         if self.log_transform:
             logger.info("Applying Log2 transformation...")
             # Use utility function with constant pseudocount
+            inf_count_before_log = np.isinf(intensity_matrix_t.values).sum() if hasattr(intensity_matrix_t, 'values') else np.isinf(intensity_matrix_t).sum()
             intensity_matrix_t = utils_log_transform(intensity_matrix_t, LOG_TRANSFORM_PSEUDOCOUNT)
+
+            # CRITICAL: Clean inf/nan immediately after log transformation
+            # Note: utils_log_transform already calls clean_inf_nan internally,
+            # but we keep this for explicit clarity and backward compatibility
+            intensity_matrix_t = clean_inf_nan(intensity_matrix_t, context="Log2 transformation", verbose=False)
+            inf_count_after_log = np.isinf(intensity_matrix_t.values).sum() if hasattr(intensity_matrix_t, 'values') else np.isinf(intensity_matrix_t).sum()
+
+            # Track log transformation step
+            if self.preprocessing_tracker:
+                self.preprocessing_tracker.record_transformation(
+                    "Log2 Transformation",
+                    parameters={
+                        "pseudocount": float(LOG_TRANSFORM_PSEUDOCOUNT),
+                        "base": 2
+                    },
+                    statistics_after={
+                        "inf_cleaned": int(inf_count_before_log - inf_count_after_log)
+                    }
+                )
+                self.preprocessing_tracker.mark_log_transformed(LOG_TRANSFORM_PSEUDOCOUNT, 2)
+                self.preprocessing_tracker.increment_inf_cleaned(int(inf_count_before_log - inf_count_after_log))
 
         logger.info(f"Intensity matrix shape: {intensity_matrix_t.shape} (samples x features)")
 
@@ -117,10 +170,41 @@ class GlycanAnalyzer:
         """
         intensity_matrix, sample_names, feature_names = self.prepare_intensity_matrix(df)
 
+        # Track sample and glycopeptide counts
+        if self.preprocessing_tracker:
+            n_cancer = sum(1 for name in sample_names if get_sample_group(name) == GROUP_CANCER)
+            n_normal = len(sample_names) - n_cancer
+            self.preprocessing_tracker.set_sample_counts(n_cancer, n_normal)
+            self.preprocessing_tracker.set_glycopeptide_counts(intensity_matrix.shape[1])
+
         # Step 3: RobustScaler - scale features using median and IQR (robust to outliers)
         logger.info("Applying RobustScaler (median and IQR-based scaling)...")
         self.scaler = RobustScaler()
         intensity_scaled = self.scaler.fit_transform(intensity_matrix)
+
+        # CRITICAL: Clean inf/nan immediately after scaling
+        inf_count_before_scale = np.isinf(intensity_scaled).sum()
+        intensity_scaled = clean_inf_nan(
+            pd.DataFrame(intensity_scaled, index=intensity_matrix.index),
+            context="RobustScaler",
+            verbose=True
+        ).values
+        inf_count_after_scale = np.isinf(intensity_scaled).sum()
+
+        # Track RobustScaler step
+        if self.preprocessing_tracker:
+            self.preprocessing_tracker.record_transformation(
+                "RobustScaler",
+                parameters={
+                    "type": "RobustScaler",
+                    "method": "median_IQR"
+                },
+                statistics_after={
+                    "inf_cleaned": int(inf_count_before_scale - inf_count_after_scale)
+                }
+            )
+            self.preprocessing_tracker.mark_scaled("RobustScaler")
+            self.preprocessing_tracker.increment_inf_cleaned(int(inf_count_before_scale - inf_count_after_scale))
 
         # Step 4: Perform PCA
         logger.info("Performing PCA...")
@@ -522,6 +606,52 @@ class GlycanAnalyzer:
         logger.info(f"Top {top_n} Peptides by VIP Score:\n{peptide_vip.head(top_n)}")
 
         return peptide_vip.head(top_n)
+
+    def save_preprocessing_state(self, filepath: str):
+        """
+        Save preprocessing state to JSON file for reproducibility
+
+        Args:
+            filepath: Path to save the JSON file (e.g., "Results/preprocessing_state.json")
+        """
+        if self.preprocessing_tracker:
+            self.preprocessing_tracker.save(filepath)
+            logger.info(f"Preprocessing state saved to: {filepath}")
+        else:
+            logger.warning("Preprocessing tracking is disabled. No state to save.")
+
+    def print_preprocessing_summary(self):
+        """
+        Print human-readable summary of preprocessing steps
+        """
+        if self.preprocessing_tracker:
+            self.preprocessing_tracker.print_summary()
+        else:
+            logger.warning("Preprocessing tracking is disabled. No summary available.")
+
+    def get_preprocessing_dict(self) -> Dict:
+        """
+        Get preprocessing state as dictionary
+
+        Returns:
+            Dictionary with preprocessing state, or empty dict if tracking disabled
+        """
+        if self.preprocessing_tracker:
+            return self.preprocessing_tracker.get_dict()
+        else:
+            return {}
+
+    def get_alphapeptstats_preprocessing_dict(self) -> Dict:
+        """
+        Get preprocessing state in alphapeptstats style
+
+        Returns:
+            Dictionary compatible with alphapeptstats preprocessing_info format
+        """
+        if self.preprocessing_tracker:
+            return self.preprocessing_tracker.get_alphapeptstats_dict()
+        else:
+            return {}
 
 
 if __name__ == "__main__":

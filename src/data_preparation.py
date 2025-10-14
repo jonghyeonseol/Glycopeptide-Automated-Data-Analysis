@@ -8,9 +8,10 @@ to ensure data consistency and scientific reproducibility.
 
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from .logger_config import get_logger
-from .utils import get_sample_columns
+from .utils import get_sample_columns, clean_inf_nan
+from .constants import S0_DEFAULT, S0_MIN_SAMPLES
 
 logger = get_logger(__name__)
 
@@ -326,12 +327,26 @@ def prepare_visualization_data(df: pd.DataFrame,
     # Step 5: Calculate derived metrics (fold change)
     logger.info("  Calculating fold change...")
 
-    # Linear fold change (Cancer / Normal)
-    # Handle division by zero: use pseudocount of 1
-    df_prep['Fold_Change'] = (df_prep['Cancer_Mean'] + 1) / (df_prep['Normal_Mean'] + 1)
+    # Import enhanced fold change function
+    from .utils import calculate_fold_change
 
-    # Log2 fold change (symmetric, better for visualization)
-    df_prep['Log2_Fold_Change'] = np.log2(df_prep['Fold_Change'])
+    # Linear fold change (Cancer / Normal) - ENHANCED VERSION
+    # Uses safe_division to avoid inf and handles zeros robustly
+    df_prep['Fold_Change'] = calculate_fold_change(
+        df_prep['Cancer_Mean'],
+        df_prep['Normal_Mean'],
+        log_scale=False,
+        pseudocount=1.0
+    )
+
+    # Log2 fold change (symmetric, better for visualization) - ENHANCED VERSION
+    # Calculated directly from means for better numerical stability
+    df_prep['Log2_Fold_Change'] = calculate_fold_change(
+        df_prep['Cancer_Mean'],
+        df_prep['Normal_Mean'],
+        log_scale=True,
+        pseudocount=1.0
+    )
 
     # Regulation direction
     df_prep['Regulation_Direction'] = 'Unchanged'
@@ -372,11 +387,83 @@ def get_standard_config_from_dict(config_dict: dict) -> DataPreparationConfig:
     )
 
 
+def calculate_ttest_with_s0(group1: np.ndarray,
+                            group2: np.ndarray,
+                            s0: float = S0_DEFAULT) -> Tuple[float, float, float, float]:
+    """
+    Calculate t-test with S0 parameter for numerical stability
+
+    S0 parameter prevents division by very small standard deviations,
+    which can lead to unreliable t-statistics. This approach is inspired by
+    SAM (Significance Analysis of Microarrays) from alphapeptstats/multicova.
+
+    SCIENTIFIC RATIONALE:
+    - Small standard deviations can inflate t-statistics artificially
+    - S0 acts as a "minimum trusted fold change" in the denominator
+    - Features with genuinely large effects remain significant
+    - Features with high variance-to-mean ratio are penalized appropriately
+
+    Args:
+        group1: Values for group 1 (e.g., Cancer samples)
+        group2: Values for group 2 (e.g., Normal samples)
+        s0: Minimum trusted standard deviation (default: 0.05)
+
+    Returns:
+        Tuple of (t_statistic, p_value, t_statistic_s0, p_value_s0)
+        - t_statistic: Regular t-statistic
+        - p_value: P-value for regular t-statistic
+        - t_statistic_s0: S0-adjusted t-statistic (MORE STABLE)
+        - p_value_s0: P-value for S0-adjusted t-statistic (RECOMMENDED)
+    """
+    from scipy import stats
+
+    n1, n2 = len(group1), len(group2)
+
+    # Require minimum samples
+    if n1 < S0_MIN_SAMPLES or n2 < S0_MIN_SAMPLES:
+        return 0.0, 1.0, 0.0, 1.0
+
+    mean1, mean2 = np.mean(group1), np.mean(group2)
+    std1, std2 = np.std(group1, ddof=1), np.std(group2, ddof=1)
+
+    # Pooled standard deviation (Bessel's correction)
+    # Formula: sqrt(((n1-1)*s1^2 + (n2-1)*s2^2) / (n1+n2-2))
+    pooled_std = np.sqrt(((n1 - 1) * std1**2 + (n2 - 1) * std2**2) / (n1 + n2 - 2))
+
+    # Standard error
+    se = pooled_std * np.sqrt(1/n1 + 1/n2)
+
+    # Regular t-statistic
+    if se > 0:
+        t_stat = (mean1 - mean2) / se
+    else:
+        t_stat = 0.0
+
+    # S0-adjusted t-statistic (MORE STABLE)
+    # By adding s0 to denominator, we prevent inflation from small variances
+    t_stat_s0 = (mean1 - mean2) / (se + s0)
+
+    # Degrees of freedom
+    df = n1 + n2 - 2
+
+    # P-values (two-tailed)
+    if se > 0:
+        p_val = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+    else:
+        p_val = 1.0
+
+    p_val_s0 = 2 * (1 - stats.t.cdf(abs(t_stat_s0), df))
+
+    return t_stat, p_val, t_stat_s0, p_val_s0
+
+
 def calculate_statistical_significance(df_prep: pd.DataFrame,
                                        cancer_samples: List[str],
                                        normal_samples: List[str],
                                        method: str = 'mannwhitneyu',
-                                       fdr_correction: bool = True) -> pd.DataFrame:
+                                       fdr_correction: bool = True,
+                                       use_s0: bool = True,
+                                       s0: float = S0_DEFAULT) -> pd.DataFrame:
     """
     Calculate statistical significance for differential expression
 
@@ -386,15 +473,27 @@ def calculate_statistical_significance(df_prep: pd.DataFrame,
         normal_samples: List of normal sample columns
         method: Statistical test ('mannwhitneyu' or 'ttest')
         fdr_correction: Apply Benjamini-Hochberg FDR correction
+        use_s0: Use S0-adjusted t-test for numerical stability (default: True)
+        s0: S0 parameter value (default: 0.05)
 
     Returns:
         DataFrame with p-values and FDR values
+
+    Note:
+        When method='ttest' and use_s0=True, both regular and S0-adjusted
+        p-values are calculated. The S0-adjusted p-value (P_Value_S0) is
+        RECOMMENDED for more stable results, especially for glycopeptides
+        with small variances.
     """
     from scipy import stats as scipy_stats
 
     logger.info(f"Calculating statistical significance ({method})...")
+    if method == 'ttest' and use_s0:
+        logger.info(f"  Using S0-adjusted t-test (s0={s0:.4f}) for numerical stability")
 
     p_values = []
+    p_values_s0 = []  # S0-adjusted p-values (for t-test only)
+    t_statistics = []  # Store t-statistics for reference
 
     for idx, row in df_prep.iterrows():
         # Get values for both groups (excluding zeros/missing)
@@ -405,33 +504,62 @@ def calculate_statistical_significance(df_prep: pd.DataFrame,
         normal_nonzero = normal_vals[normal_vals > 0].dropna()
 
         # Require at least 3 samples in each group for valid test
-        if len(cancer_nonzero) >= 3 and len(normal_nonzero) >= 3:
+        if len(cancer_nonzero) >= S0_MIN_SAMPLES and len(normal_nonzero) >= S0_MIN_SAMPLES:
             try:
                 if method == 'mannwhitneyu':
                     stat, p_val = scipy_stats.mannwhitneyu(
                         cancer_nonzero, normal_nonzero, alternative='two-sided'
                     )
+                    p_values.append(p_val)
+                    p_values_s0.append(np.nan)  # N/A for non-parametric test
+                    t_statistics.append(np.nan)
+
                 elif method == 'ttest':
-                    stat, p_val = scipy_stats.ttest_ind(
-                        cancer_nonzero, normal_nonzero, equal_var=False
-                    )
+                    if use_s0:
+                        # Use S0-adjusted t-test (RECOMMENDED)
+                        t_stat, p_val, t_stat_s0, p_val_s0 = calculate_ttest_with_s0(
+                            cancer_nonzero.values, normal_nonzero.values, s0=s0
+                        )
+                        p_values.append(p_val)
+                        p_values_s0.append(p_val_s0)
+                        t_statistics.append(t_stat_s0)
+                    else:
+                        # Regular t-test (scipy default)
+                        stat, p_val = scipy_stats.ttest_ind(
+                            cancer_nonzero, normal_nonzero, equal_var=False
+                        )
+                        p_values.append(p_val)
+                        p_values_s0.append(np.nan)
+                        t_statistics.append(stat)
                 else:
                     raise ValueError(f"Unknown method: {method}")
 
-                p_values.append(p_val)
             except Exception as e:
                 logger.warning(f"Statistical test failed for {row.get('Peptide', 'unknown')}: {e}")
                 p_values.append(np.nan)
+                p_values_s0.append(np.nan)
+                t_statistics.append(np.nan)
         else:
             p_values.append(np.nan)
+            p_values_s0.append(np.nan)
+            t_statistics.append(np.nan)
 
+    # Add p-values to dataframe
     df_prep['P_Value'] = p_values
     df_prep['-Log10_P_Value'] = -np.log10(df_prep['P_Value'].replace(0, 1e-300))
+
+    # Add S0-adjusted p-values and t-statistics (for t-test only)
+    if method == 'ttest' and use_s0:
+        df_prep['P_Value_S0'] = p_values_s0
+        df_prep['-Log10_P_Value_S0'] = -np.log10(df_prep['P_Value_S0'].replace(0, 1e-300))
+        df_prep['T_Statistic_S0'] = t_statistics
+        logger.info(f"  Added S0-adjusted p-values (recommended for publication)")
 
     # FDR correction
     if fdr_correction:
         from statsmodels.stats.multitest import multipletests
 
+        # FDR correction for regular p-values
         valid_p = df_prep['P_Value'].dropna()
         if len(valid_p) > 0:
             _, fdr_values, _, _ = multipletests(valid_p.values, method='fdr_bh')
@@ -445,6 +573,22 @@ def calculate_statistical_significance(df_prep: pd.DataFrame,
         else:
             df_prep['FDR'] = np.nan
             df_prep['-Log10_FDR'] = np.nan
+
+        # FDR correction for S0-adjusted p-values (if applicable)
+        if method == 'ttest' and use_s0:
+            valid_p_s0 = df_prep['P_Value_S0'].dropna()
+            if len(valid_p_s0) > 0:
+                _, fdr_values_s0, _, _ = multipletests(valid_p_s0.values, method='fdr_bh')
+
+                # Map back to original dataframe
+                df_prep['FDR_S0'] = np.nan
+                df_prep.loc[valid_p_s0.index, 'FDR_S0'] = fdr_values_s0
+                df_prep['-Log10_FDR_S0'] = -np.log10(df_prep['FDR_S0'].replace(0, 1e-300))
+
+                logger.info(f"  Significant S0-adjusted (FDR_S0 < 0.05): {(df_prep['FDR_S0'] < 0.05).sum()} glycopeptides (RECOMMENDED)")
+            else:
+                df_prep['FDR_S0'] = np.nan
+                df_prep['-Log10_FDR_S0'] = np.nan
 
     logger.info(f"  Valid p-values: {(~df_prep['P_Value'].isna()).sum()}/{len(df_prep)}")
 
