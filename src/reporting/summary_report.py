@@ -42,6 +42,7 @@ class SummaryReport(BaseReport):
                 - pipeline_state: PipelineState object
                 - config: Configuration dict
                 - filtering_report: Filtering report text
+                - preprocessing_tracker: PreprocessingTracker object (optional)
 
         Returns:
             Complete summary report
@@ -49,6 +50,7 @@ class SummaryReport(BaseReport):
         state = data.get('pipeline_state')
         config = data.get('config')
         filtering_report = data.get('filtering_report', '')
+        preprocessing_tracker = data.get('preprocessing_tracker')
 
         # Clear any existing sections
         self.clear()
@@ -60,43 +62,97 @@ class SummaryReport(BaseReport):
             order=0
         )
 
+        # Phase 1.1: Add preprocessing section for reproducibility
+        if preprocessing_tracker:
+            self.add_section(
+                "PREPROCESSING STATE (Reproducibility)",
+                self._generate_preprocessing_info(preprocessing_tracker),
+                order=1
+            )
+
         self.add_section(
             "Data Integration",
             self._generate_data_info(state),
-            order=1
+            order=2
         )
 
         self.add_section(
             "Glycan Annotation",
             self._generate_annotation_info(state.filtered_data),
-            order=2
+            order=3
         )
 
         self.add_section(
             "PCA Results",
             self._generate_pca_info(state.analysis_results.get('pca')),
-            order=3
+            order=4
         )
 
         self.add_section(
             "Statistics by Glycan Type",
             self._generate_statistics_info(state.analysis_results.get('statistics')),
-            order=4
+            order=5
         )
 
         self.add_section(
             "Top 10 VIP Scores (Glycopeptide)",
             self._generate_vip_info(state.analysis_results.get('plsda')),
-            order=5
+            order=6
         )
 
         self.add_section(
             "Output Files",
             self._generate_output_files_info(config, state),
-            order=6
+            order=7
         )
 
         return self.render()
+
+    def _generate_preprocessing_info(self, tracker) -> str:
+        """
+        Generate preprocessing state section for reproducibility
+
+        Phase 1.1: Added to ensure complete documentation of all data transformations
+        """
+        lines = []
+        lines.append("Transformations Applied:")
+
+        state_dict = tracker.get_dict()
+        transformations = state_dict.get('transformations', {})
+        parameters = state_dict.get('parameters', {})
+        statistics = state_dict.get('statistics', {})
+
+        # List transformations with checkmarks
+        trans_list = [
+            ("TIC Normalization", transformations.get('tic_normalized', False), parameters.get('normalization_method', '')),
+            ("Log2 Transformation", transformations.get('log2_transformed', False), f"pseudocount={parameters.get('log_transform_pseudocount', 1.0)}"),
+            ("Scaling", transformations.get('scaled', False), parameters.get('scaler_type', '')),
+            ("Detection Filtering", transformations.get('filtered', False), f"≥{parameters.get('min_detection_pct', 0.30)*100:.0f}%"),
+        ]
+
+        for name, applied, detail in trans_list:
+            status = "✓" if applied else "✗"
+            detail_str = f" ({detail})" if detail else ""
+            lines.append(f"  [{status}] {name}{detail_str}")
+
+        lines.append("")
+        lines.append("Data Statistics:")
+        lines.append(f"  - Original glycopeptides: {statistics.get('n_glycopeptides_original', 'N/A')}")
+        lines.append(f"  - Filtered glycopeptides: {statistics.get('n_glycopeptides_filtered', 'N/A')}")
+        lines.append(f"  - Cancer samples: {statistics.get('n_samples_cancer', 'N/A')}")
+        lines.append(f"  - Normal samples: {statistics.get('n_samples_normal', 'N/A')}")
+
+        lines.append("")
+        lines.append("Missing Data Handling:")
+        lines.append(f"  - Method: {parameters.get('missing_data_method', 'skipna')}")
+        lines.append("  - Scientifically appropriate for MNAR (Missing Not At Random) data")
+
+        lines.append("")
+        lines.append("Reproducibility:")
+        lines.append("  - Complete state saved to: Results/preprocessing_state.json")
+        lines.append("  - Compatible with alphapeptstats preprocessing_info format")
+
+        return "\n".join(lines)
 
     def _generate_data_info(self, state) -> str:
         """Generate data integration section"""

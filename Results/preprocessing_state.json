@@ -1,0 +1,32 @@
+{
+  "transformations": {
+    "tic_normalized": true,
+    "log2_transformed": true,
+    "scaled": true,
+    "filtered": true,
+    "imputed": false
+  },
+  "parameters": {
+    "log_transform_pseudocount": 1.0,
+    "log_transform_base": 2,
+    "scaler_type": "RobustScaler",
+    "normalization_method": "tic",
+    "min_detection_pct": 0.3,
+    "min_samples": 5,
+    "missing_data_method": "skipna"
+  },
+  "statistics": {
+    "n_glycopeptides_original": 2314,
+    "n_glycopeptides_filtered": 2314,
+    "n_samples_cancer": 24,
+    "n_samples_normal": 23,
+    "n_samples_total": 47,
+    "inf_cleaned_count": 0,
+    "nan_count_final": 0
+  },
+  "history": [],
+  "metadata": {
+    "created_at": "2025-10-14T22:55:46.796583",
+    "version": "3.1.0"
+  }
+}

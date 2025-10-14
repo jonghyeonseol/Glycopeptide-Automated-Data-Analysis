@@ -42,6 +42,88 @@ logger = logging.getLogger(__name__)
 class SampleQCDashboardMixin:
     """Mixin class for per-sample QC dashboard"""
 
+    def _create_bar_panel(self, ax, all_samples, data_values, sample_colors,
+                          qc_metrics, ylabel, title,
+                          add_group_means=True, threshold_lines=None,
+                          scientific_notation=False):
+        """
+        Unified helper for creating bar chart panels in QC dashboard
+
+        This method consolidates the repetitive panel creation logic, eliminating
+        ~120 lines of duplication across 5 panels.
+
+        Args:
+            ax: Matplotlib axis object
+            all_samples: List of sample names
+            data_values: Array of values to plot
+            sample_colors: List of bar colors (Cancer=red, Normal=blue)
+            qc_metrics: QC metrics DataFrame (for group mean calculation)
+            ylabel: Y-axis label
+            title: Panel title
+            add_group_means: Whether to add Cancer/Normal mean lines
+            threshold_lines: List of (value, color, label) tuples for threshold lines
+            scientific_notation: Whether to format y-axis in scientific notation
+
+        Returns:
+            bars: Bar container (for further customization if needed)
+        """
+        # Create bar chart
+        bars = ax.bar(range(len(all_samples)), data_values,
+                      color=sample_colors, edgecolor=EDGE_COLOR_BLACK,
+                      linewidth=EDGE_LINEWIDTH_THIN)
+
+        # Extract data column name from ylabel or use generic approach
+        # This assumes the data column matches the metric being plotted
+        data_column = None
+        for col in ['total_intensity', 'detection_count', 'detection_rate_pct',
+                    'median_intensity', 'cv_median_pct']:
+            if col in qc_metrics.columns:
+                if np.array_equal(data_values, qc_metrics[col].values):
+                    data_column = col
+                    break
+
+        # Add group mean lines if requested
+        if add_group_means and data_column:
+            cancer_mean = qc_metrics.loc[qc_metrics['group'] == 'Cancer', data_column].mean()
+            normal_mean = qc_metrics.loc[qc_metrics['group'] == 'Normal', data_column].mean()
+
+            # Format mean labels based on magnitude
+            if cancer_mean > 1e6 or normal_mean > 1e6:
+                cancer_label = f'Cancer mean: {cancer_mean:.2e}'
+                normal_label = f'Normal mean: {normal_mean:.2e}'
+            elif cancer_mean > 100:
+                cancer_label = f'Cancer mean: {cancer_mean:.0f}'
+                normal_label = f'Normal mean: {normal_mean:.0f}'
+            else:
+                cancer_label = f'Cancer mean: {cancer_mean:.1f}'
+                normal_label = f'Normal mean: {normal_mean:.1f}'
+
+            ax.axhline(cancer_mean, color=COLOR_CANCER, linestyle=THRESHOLD_LINESTYLE,
+                       linewidth=PLOT_LINE_LINEWIDTH, label=cancer_label, alpha=LINE_ALPHA)
+            ax.axhline(normal_mean, color=COLOR_NORMAL, linestyle=THRESHOLD_LINESTYLE,
+                       linewidth=PLOT_LINE_LINEWIDTH, label=normal_label, alpha=LINE_ALPHA)
+
+        # Add threshold lines if provided
+        if threshold_lines:
+            for threshold_value, color, label in threshold_lines:
+                ax.axhline(threshold_value, color=color, linestyle=THRESHOLD_LINESTYLE,
+                           linewidth=PLOT_LINE_LINEWIDTH, label=label, alpha=LINE_ALPHA)
+
+        # Standard axis styling
+        ax.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax.set_ylabel(ylabel, fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
+        ax.set_title(title, fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
+        ax.set_xticks(range(len(all_samples)))
+        ax.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
+        ax.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
+        ax.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
+
+        # Scientific notation if requested
+        if scientific_notation:
+            ax.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
+
+        return bars
+
     def plot_sample_qc_dashboard(self, df: pd.DataFrame, figsize: tuple = None):
         """
         Create comprehensive per-sample QC dashboard
@@ -91,26 +173,17 @@ class SampleQCDashboardMixin:
         ax1 = axes[0, 0]
         logger.debug("  Panel 1: Total intensity (TIC)...")
 
-        _ = ax1.bar(range(len(all_samples)), qc_metrics['total_intensity'],
-                    color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
-
-        # Add group means as horizontal lines
-        cancer_mean_tic = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'total_intensity'].mean()
-        normal_mean_tic = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'total_intensity'].mean()
-
-        ax1.axhline(cancer_mean_tic, color=COLOR_CANCER, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Cancer mean: {cancer_mean_tic:.2e}', alpha=LINE_ALPHA)
-        ax1.axhline(normal_mean_tic, color=COLOR_NORMAL, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Normal mean: {normal_mean_tic:.2e}', alpha=LINE_ALPHA)
-
-        ax1.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax1.set_ylabel('Total Intensity (TIC)', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax1.set_title('Total Ion Current (TIC)', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
-        ax1.set_xticks(range(len(all_samples)))
-        ax1.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
-        ax1.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
-        ax1.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
-        ax1.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
+        self._create_bar_panel(
+            ax=ax1,
+            all_samples=all_samples,
+            data_values=qc_metrics['total_intensity'].values,
+            sample_colors=sample_colors,
+            qc_metrics=qc_metrics,
+            ylabel='Total Intensity (TIC)',
+            title='Total Ion Current (TIC)',
+            add_group_means=True,
+            scientific_notation=True
+        )
 
         # =====================================================================
         # PANEL 2: Detection Count
@@ -118,25 +191,16 @@ class SampleQCDashboardMixin:
         ax2 = axes[0, 1]
         logger.debug("  Panel 2: Detection count...")
 
-        _ = ax2.bar(range(len(all_samples)), qc_metrics['detection_count'],
-                        color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
-
-        # Add group means
-        cancer_mean_det = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'detection_count'].mean()
-        normal_mean_det = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'detection_count'].mean()
-
-        ax2.axhline(cancer_mean_det, color=COLOR_CANCER, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Cancer mean: {cancer_mean_det:.0f}', alpha=LINE_ALPHA)
-        ax2.axhline(normal_mean_det, color=COLOR_NORMAL, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Normal mean: {normal_mean_det:.0f}', alpha=LINE_ALPHA)
-
-        ax2.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax2.set_ylabel('Detected Glycopeptides', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax2.set_title('Detection Count', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
-        ax2.set_xticks(range(len(all_samples)))
-        ax2.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
-        ax2.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
-        ax2.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
+        self._create_bar_panel(
+            ax=ax2,
+            all_samples=all_samples,
+            data_values=qc_metrics['detection_count'].values,
+            sample_colors=sample_colors,
+            qc_metrics=qc_metrics,
+            ylabel='Detected Glycopeptides',
+            title='Detection Count',
+            add_group_means=True
+        )
 
         # =====================================================================
         # PANEL 3: Detection Rate (%) with centralized threshold
@@ -144,21 +208,18 @@ class SampleQCDashboardMixin:
         ax3 = axes[0, 2]
         logger.debug("  Panel 3: Detection rate...")
 
-        _ = ax3.bar(range(len(all_samples)), qc_metrics['detection_rate_pct'],
-                        color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
-
-        # Add threshold line using centralized constant
-        ax3.axhline(QC_THRESHOLD_DETECTION_RATE, color='red', linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'{QC_THRESHOLD_DETECTION_RATE}% threshold', alpha=LINE_ALPHA)
-
-        ax3.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax3.set_ylabel('Detection Rate (%)', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax3.set_title('Detection Completeness', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
-        ax3.set_xticks(range(len(all_samples)))
-        ax3.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
-        ax3.set_ylim(0, 100)
-        ax3.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
-        ax3.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
+        self._create_bar_panel(
+            ax=ax3,
+            all_samples=all_samples,
+            data_values=qc_metrics['detection_rate_pct'].values,
+            sample_colors=sample_colors,
+            qc_metrics=qc_metrics,
+            ylabel='Detection Rate (%)',
+            title='Detection Completeness',
+            add_group_means=False,
+            threshold_lines=[(QC_THRESHOLD_DETECTION_RATE, 'red', f'{QC_THRESHOLD_DETECTION_RATE}% threshold')]
+        )
+        ax3.set_ylim(0, 100)  # Specific to percentage data
 
         # =====================================================================
         # PANEL 4: Median Intensity
@@ -166,26 +227,17 @@ class SampleQCDashboardMixin:
         ax4 = axes[1, 0]
         logger.debug("  Panel 4: Median intensity...")
 
-        _ = ax4.bar(range(len(all_samples)), qc_metrics['median_intensity'],
-                        color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
-
-        # Add group means
-        cancer_mean_med = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'median_intensity'].mean()
-        normal_mean_med = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'median_intensity'].mean()
-
-        ax4.axhline(cancer_mean_med, color=COLOR_CANCER, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Cancer mean: {cancer_mean_med:.2e}', alpha=LINE_ALPHA)
-        ax4.axhline(normal_mean_med, color=COLOR_NORMAL, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Normal mean: {normal_mean_med:.2e}', alpha=LINE_ALPHA)
-
-        ax4.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax4.set_ylabel('Median Intensity', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax4.set_title('Central Tendency', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
-        ax4.set_xticks(range(len(all_samples)))
-        ax4.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
-        ax4.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
-        ax4.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
-        ax4.ticklabel_format(style='scientific', axis='y', scilimits=(0, 0))
+        self._create_bar_panel(
+            ax=ax4,
+            all_samples=all_samples,
+            data_values=qc_metrics['median_intensity'].values,
+            sample_colors=sample_colors,
+            qc_metrics=qc_metrics,
+            ylabel='Median Intensity',
+            title='Central Tendency',
+            add_group_means=True,
+            scientific_notation=True
+        )
 
         # =====================================================================
         # PANEL 5: CV Distribution with centralized thresholds
@@ -193,22 +245,20 @@ class SampleQCDashboardMixin:
         ax5 = axes[1, 1]
         logger.debug("  Panel 5: CV distribution...")
 
-        _ = ax5.bar(range(len(all_samples)), qc_metrics['cv_median_pct'],
-                        color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
-
-        # Add threshold lines using centralized constants
-        ax5.axhline(QC_THRESHOLD_CV_GOOD, color='green', linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Good QC (<{QC_THRESHOLD_CV_GOOD}%)', alpha=LINE_ALPHA)
-        ax5.axhline(QC_THRESHOLD_CV_ACCEPTABLE, color='orange', linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
-                    label=f'Acceptable (<{QC_THRESHOLD_CV_ACCEPTABLE}%)', alpha=LINE_ALPHA)
-
-        ax5.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax5.set_ylabel('Median CV (%)', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
-        ax5.set_title('Technical Variability', fontsize=QC_TITLE_FONTSIZE, fontweight='bold')
-        ax5.set_xticks(range(len(all_samples)))
-        ax5.set_xticklabels(all_samples, rotation=90, fontsize=QC_XTICKLABEL_FONTSIZE)
-        ax5.legend(loc='upper right', fontsize=QC_LEGEND_FONTSIZE)
-        ax5.grid(axis='y', alpha=ALPHA_MEDIUM_LIGHT)
+        self._create_bar_panel(
+            ax=ax5,
+            all_samples=all_samples,
+            data_values=qc_metrics['cv_median_pct'].values,
+            sample_colors=sample_colors,
+            qc_metrics=qc_metrics,
+            ylabel='Median CV (%)',
+            title='Technical Variability',
+            add_group_means=False,
+            threshold_lines=[
+                (QC_THRESHOLD_CV_GOOD, 'green', f'Good QC (<{QC_THRESHOLD_CV_GOOD}%)'),
+                (QC_THRESHOLD_CV_ACCEPTABLE, 'orange', f'Acceptable (<{QC_THRESHOLD_CV_ACCEPTABLE}%)')
+            ]
+        )
 
         # =====================================================================
         # PANEL 6: Outlier Detection with dynamic df calculation

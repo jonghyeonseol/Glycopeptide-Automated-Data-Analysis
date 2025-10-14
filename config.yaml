@@ -45,6 +45,14 @@ analysis:
     fdr_correction: true  # Apply Benjamini-Hochberg FDR correction
     method: 'mannwhitneyu'  # 'mannwhitneyu' (non-parametric) or 'ttest' (parametric)
 
+    # Phase 1.2: S0-adjusted t-test parameters (SAM method from AlphaPepStats)
+    # Prevents inflation of t-statistics from small variances
+    s0_parameter: 0.05  # Minimum trusted standard deviation (default: 0.05)
+    use_s0_adjusted: true  # Use S0-adjusted p-values (RECOMMENDED for publication)
+    # SCIENTIFIC NOTE: S0-adjusted t-test is more stable than regular t-test
+    # Especially important for features with small variances
+    # Inspired by SAM (Significance Analysis of Microarrays)
+
 # Visualization parameters
 visualization:
   figsize:

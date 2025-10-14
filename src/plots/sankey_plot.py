@@ -182,6 +182,106 @@ class SankeyPlotMixin:
 
         return df_with_stats
 
+    def _prepare_sankey_data(
+        self,
+        df: pd.DataFrame,
+        vip_scores: pd.DataFrame,
+        config: DataPreparationConfig,
+        log2fc_threshold: float,
+        fdr_threshold: float,
+        log_prefix: str
+    ) -> tuple:
+        """
+        Unified data preparation pipeline for Sankey diagrams.
+
+        This helper consolidates the common data preparation steps used by both
+        plot_glycan_type_sankey() and plot_group_to_glycan_sankey():
+        1. Data preparation with VIP score merging
+        2. Sample extraction and validation
+        3. Statistical significance calculation
+        4. Regulation status classification
+
+        Args:
+            df: Annotated DataFrame with all samples
+            vip_scores: VIP scores DataFrame from PLS-DA
+            config: Data preparation configuration
+            log2fc_threshold: Log2 fold change threshold for regulation
+            fdr_threshold: FDR threshold for significance
+            log_prefix: Prefix for logging messages (method-specific)
+
+        Returns:
+            Tuple of (df_with_stats, cancer_samples, normal_samples) on success,
+            or (None, None, None) on failure.
+        """
+        # Prepare data with statistics
+        df_prepared = prepare_visualization_data(
+            df=df,
+            config=config,
+            vip_scores=vip_scores,
+            merge_method='left',
+            apply_detection_filter=False,
+            log_prefix=log_prefix
+        )
+
+        if len(df_prepared) == 0:
+            logger.error("No glycopeptides available!")
+            return None, None, None
+
+        # Get sample lists and validate
+        cancer_samples, normal_samples = self._get_sample_lists(df_prepared)
+        if not self._validate_samples(cancer_samples, normal_samples):
+            return None, None, None
+
+        # Calculate statistical significance
+        logger.info("Calculating statistical significance...")
+        df_with_stats = calculate_statistical_significance(
+            df_prep=df_prepared,
+            cancer_samples=cancer_samples,
+            normal_samples=normal_samples,
+            method='mannwhitneyu',
+            fdr_correction=True
+        )
+
+        # Classify by regulation status (uses helper method)
+        df_with_stats = self._calculate_regulation_status(
+            df_with_stats,
+            log2fc_threshold=log2fc_threshold,
+            fdr_threshold=fdr_threshold
+        )
+
+        return df_with_stats, cancer_samples, normal_samples
+
+    @staticmethod
+    def _save_sankey_figure(
+        fig: go.Figure,
+        output_png: Path,
+        output_html: Path,
+        width: int,
+        height: int,
+        diagram_type: str
+    ) -> None:
+        """
+        Save Sankey figure as PNG and HTML with error handling.
+
+        Args:
+            fig: Plotly Figure object to save
+            output_png: Path object for PNG file
+            output_html: Path object for HTML file
+            width: Figure width in pixels
+            height: Figure height in pixels
+            diagram_type: Description for logging (e.g., "Sankey diagram", "Group → Glycan Type Sankey")
+        """
+        # Save as PNG with error handling
+        try:
+            fig.write_image(str(output_png), width=width, height=height, scale=2)
+            logger.info(f"Saved {diagram_type} (PNG) to {output_png}")
+        except Exception as e:
+            logger.warning(f"Could not save PNG (requires kaleido): {e}")
+
+        # Save as HTML
+        fig.write_html(str(output_html))
+        logger.info(f"Saved {diagram_type} (HTML) to {output_html}")
+
     # ========================================================================
     # Main Visualization Methods (Public)
     # ========================================================================
@@ -232,41 +332,18 @@ class SankeyPlotMixin:
                 missing_data_method='skipna'
             )
 
-        # Prepare data with statistics
-        df_prepared = prepare_visualization_data(
+        # Prepare data with statistics using unified helper
+        df_with_stats, cancer_samples, normal_samples = self._prepare_sankey_data(
             df=df,
-            config=config,
             vip_scores=vip_scores,
-            merge_method='left',
-            apply_detection_filter=False,
+            config=config,
+            log2fc_threshold=log2fc_threshold,
+            fdr_threshold=fdr_threshold,
             log_prefix="[Sankey] "
         )
 
-        if len(df_prepared) == 0:
-            logger.error("No glycopeptides available!")
-            return
-
-        # Get sample lists and validate
-        cancer_samples, normal_samples = self._get_sample_lists(df_prepared)
-        if not self._validate_samples(cancer_samples, normal_samples):
+        if df_with_stats is None:
             return None
-
-        # Calculate statistical significance
-        logger.info("Calculating statistical significance for Sankey flows...")
-        df_with_stats = calculate_statistical_significance(
-            df_prep=df_prepared,
-            cancer_samples=cancer_samples,
-            normal_samples=normal_samples,
-            method='mannwhitneyu',
-            fdr_correction=True
-        )
-
-        # Classify by regulation status (uses helper method)
-        df_with_stats = self._calculate_regulation_status(
-            df_with_stats,
-            log2fc_threshold=log2fc_threshold,
-            fdr_threshold=fdr_threshold
-        )
 
         logger.info(f"Total glycopeptides: {len(df_with_stats)}")
 
@@ -463,18 +540,17 @@ class SankeyPlotMixin:
             margin=dict(l=50, r=50, t=150, b=50)  # Increased top margin for longer title
         )
 
-        # Save as PNG and HTML
+        # Save as PNG and HTML using unified helper
         output_png = self.output_dir / 'sankey_glycan_type_flow.png'
         output_html = self.output_dir / 'sankey_glycan_type_flow.html'
-
-        try:
-            fig.write_image(str(output_png), width=1400, height=800, scale=2)
-            logger.info(f"Saved Sankey diagram (PNG) to {output_png}")
-        except Exception as e:
-            logger.warning(f"Could not save PNG (requires kaleido): {e}")
-
-        fig.write_html(str(output_html))
-        logger.info(f"Saved Sankey diagram (HTML) to {output_html}")
+        self._save_sankey_figure(
+            fig=fig,
+            output_png=output_png,
+            output_html=output_html,
+            width=1400,
+            height=800,
+            diagram_type="Sankey diagram"
+        )
 
         # Save trace data
         trace_data = df_with_stats[['Peptide', 'GlycanComposition', 'GlycanTypeCategory',
@@ -546,41 +622,18 @@ class SankeyPlotMixin:
                 missing_data_method='skipna'
             )
 
-        # Prepare data with statistics
-        df_prepared = prepare_visualization_data(
+        # Prepare data with statistics using unified helper
+        df_with_stats, cancer_samples, normal_samples = self._prepare_sankey_data(
             df=df,
-            config=config,
             vip_scores=vip_scores,
-            merge_method='left',
-            apply_detection_filter=False,
+            config=config,
+            log2fc_threshold=log2fc_threshold,
+            fdr_threshold=fdr_threshold,
             log_prefix="[Group Sankey] "
         )
 
-        if len(df_prepared) == 0:
-            logger.error("No glycopeptides available!")
-            return
-
-        # Get sample lists and validate
-        cancer_samples, normal_samples = self._get_sample_lists(df_prepared)
-        if not self._validate_samples(cancer_samples, normal_samples):
+        if df_with_stats is None:
             return None
-
-        # Calculate statistical significance
-        logger.info("Calculating statistical significance and regulation status...")
-        df_with_stats = calculate_statistical_significance(
-            df_prep=df_prepared,
-            cancer_samples=cancer_samples,
-            normal_samples=normal_samples,
-            method='mannwhitneyu',
-            fdr_correction=True
-        )
-
-        # Classify by regulation status (uses helper method)
-        df_with_stats = self._calculate_regulation_status(
-            df_with_stats,
-            log2fc_threshold=log2fc_threshold,
-            fdr_threshold=fdr_threshold
-        )
 
         # Determine group presence for each glycopeptide (using constant)
         df_with_stats['Has_Cancer'] = df_with_stats['Cancer_Mean'].notna() & (df_with_stats['Cancer_Mean'] > MIN_INTENSITY_THRESHOLD)
@@ -840,18 +893,17 @@ class SankeyPlotMixin:
             ]
         )
 
-        # Save as PNG and HTML
+        # Save as PNG and HTML using unified helper
         output_png = self.output_dir / 'sankey_group_to_glycan_type.png'
         output_html = self.output_dir / 'sankey_group_to_glycan_type.html'
-
-        try:
-            fig.write_image(str(output_png), width=1200, height=1400, scale=2)
-            logger.info(f"Saved Group → Glycan Type Sankey (PNG) to {output_png}")
-        except Exception as e:
-            logger.warning(f"Could not save PNG (requires kaleido): {e}")
-
-        fig.write_html(str(output_html))
-        logger.info(f"Saved Group → Glycan Type Sankey (HTML) to {output_html}")
+        self._save_sankey_figure(
+            fig=fig,
+            output_png=output_png,
+            output_html=output_html,
+            width=1200,
+            height=1400,
+            diagram_type="Group → Glycan Type Sankey"
+        )
 
         # Save detailed trace data with regulation breakdown
         trace_data = df_with_stats[['Peptide', 'GlycanComposition', 'GlycanTypeCategory',

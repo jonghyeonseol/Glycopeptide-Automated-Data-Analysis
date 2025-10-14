@@ -17,7 +17,8 @@ from src.exceptions import InsufficientDataError
 from src.utils import (
     replace_empty_with_zero,
     get_all_sample_columns,
-    log_transform as utils_log_transform
+    log_transform as utils_log_transform,
+    detect_log_transform  # Phase 1.3: Auto-detect log transformation
 )
 from src.logger_config import get_logger
 
@@ -94,11 +95,26 @@ class BaseAnalyzer:
 
         # Step 2: Log2 transform if specified
         if self.log_transform:
-            logger.info("Applying Log2 transformation...")
-            intensity_matrix_t = utils_log_transform(
-                intensity_matrix_t,
-                LOG_TRANSFORM_PSEUDOCOUNT
-            )
+            # Phase 1.3: Check if data is already log-transformed to prevent double transformation
+            detection_result = detect_log_transform(intensity_matrix_t)
+
+            if detection_result['is_log_transformed']:
+                logger.warning(
+                    f"Data appears to be already log-transformed "
+                    f"(confidence: {detection_result['confidence']:.2f}, "
+                    f"method: {detection_result['method']}). "
+                    f"Skipping log transformation to prevent log(log(x)) error."
+                )
+                self.log_transform = False  # Disable to prevent future attempts
+            else:
+                logger.info(
+                    f"Applying Log2 transformation... "
+                    f"(data confirmed as raw, confidence: {1 - detection_result['confidence']:.2f})"
+                )
+                intensity_matrix_t = utils_log_transform(
+                    intensity_matrix_t,
+                    LOG_TRANSFORM_PSEUDOCOUNT
+                )
 
         logger.info(f"Intensity matrix shape: {intensity_matrix_t.shape} (samples x features)")
 

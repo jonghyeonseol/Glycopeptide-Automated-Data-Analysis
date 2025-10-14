@@ -29,6 +29,133 @@ logger = logging.getLogger(__name__)
 class HistogramMixin:
     """Mixin class for histogram-related plots"""
 
+    @staticmethod
+    def _normalize_intensity_column(intensity_col: pd.Series, normalization: str) -> pd.Series:
+        """
+        Normalize a single intensity column using min-max scaling or keep raw.
+
+        Args:
+            intensity_col: Intensity column to normalize
+            normalization: 'raw' for min-max normalization, else return as-is
+
+        Returns:
+            Normalized intensity column
+        """
+        if normalization == 'raw':
+            min_val = intensity_col.min()
+            max_val = intensity_col.max()
+            if max_val > min_val:
+                return (intensity_col - min_val) / (max_val - min_val)
+            else:
+                return intensity_col * 0  # All zeros if no variation
+        else:
+            return intensity_col
+
+    @staticmethod
+    def _apply_proportional_normalization(plot_df: pd.DataFrame, categories: list) -> pd.DataFrame:
+        """
+        Apply within-row proportional normalization (convert to proportions).
+
+        Args:
+            plot_df: DataFrame to normalize
+            categories: List of category columns
+
+        Returns:
+            Normalized DataFrame
+        """
+        row_sums = plot_df[categories].sum(axis=1)
+        for col in categories:
+            plot_df[col] = plot_df[col] / row_sums
+        return plot_df.fillna(0)
+
+    def _aggregate_by_classification_samplewise(
+        self,
+        df: pd.DataFrame,
+        sample_cols: list,
+        categories: list,
+        classification_col: str,
+        normalization: str
+    ) -> pd.DataFrame:
+        """
+        Aggregate intensities by classification across individual samples.
+
+        Args:
+            df: Annotated DataFrame
+            sample_cols: List of sample column names
+            categories: List of classification categories
+            classification_col: Name of classification column
+            normalization: 'raw' or 'aggregated'
+
+        Returns:
+            DataFrame with aggregated data (samples as rows, categories as columns)
+        """
+        data_for_plot = []
+
+        for sample in sample_cols:
+            sample_data = {'Sample': sample}
+
+            # Get intensity column and apply normalization
+            intensity_col = replace_empty_with_zero(df[sample])
+            intensity_col = self._normalize_intensity_column(intensity_col, normalization)
+
+            # Sum by classification
+            for category in categories:
+                mask = df[classification_col] == category
+                sample_data[category] = intensity_col[mask].sum()
+
+            data_for_plot.append(sample_data)
+
+        # Create DataFrame
+        plot_df = pd.DataFrame(data_for_plot).set_index('Sample')
+
+        # Apply proportional normalization if requested
+        if normalization == 'aggregated':
+            plot_df = self._apply_proportional_normalization(plot_df, categories)
+
+        return plot_df
+
+    def _aggregate_by_classification_groupwise(
+        self,
+        df: pd.DataFrame,
+        cancer_samples: list,
+        normal_samples: list,
+        categories: list,
+        classification_col: str
+    ) -> pd.DataFrame:
+        """
+        Aggregate intensities by classification for cancer vs normal groups.
+
+        Args:
+            df: Annotated DataFrame
+            cancer_samples: List of cancer sample columns
+            normal_samples: List of normal sample columns
+            categories: List of classification categories
+            classification_col: Name of classification column
+
+        Returns:
+            DataFrame with aggregated data (groups as rows, categories as columns)
+        """
+        data_for_plot = []
+
+        for group_name, group_samples in [('Cancer', cancer_samples), ('Normal', normal_samples)]:
+            group_data = {'Group': group_name}
+
+            # Get intensity matrix for this group
+            intensity_matrix = replace_empty_with_zero(df[group_samples])
+
+            # Sum across all samples in the group, then by category
+            for category in categories:
+                mask = df[classification_col] == category
+                group_data[category] = intensity_matrix[mask].sum().sum()
+
+            data_for_plot.append(group_data)
+
+        # Create DataFrame and apply proportional normalization
+        plot_df = pd.DataFrame(data_for_plot).set_index('Group')
+        plot_df = self._apply_proportional_normalization(plot_df, categories)
+
+        return plot_df
+
     def plot_histogram_normalized(self, df: pd.DataFrame, figsize: tuple = (20, 12)):
         """
         Create histogram showing glycan type intensities per sample (TIC normalized data)
@@ -159,49 +286,17 @@ class HistogramMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         sample_cols = cancer_samples + normal_samples
 
-        # Get intensity matrix
-        replace_empty_with_zero(df[sample_cols])
         # Primary classification categories
         primary_categories = ['Outlier', 'High Mannose', 'ComplexHybrid']
 
-        data_for_plot = []
-
-        for sample in sample_cols:
-            sample_data = {'Sample': sample}
-
-            if normalization == 'raw':
-                # Normalize raw data using min-max scaling
-                intensity_col = replace_empty_with_zero(df[sample])
-                # Min-max normalization
-                min_val = intensity_col.min()
-                max_val = intensity_col.max()
-                if max_val > min_val:
-                    intensity_col = (intensity_col - min_val) / (max_val - min_val)
-                else:
-                    intensity_col = intensity_col * 0  # All zeros if no variation
-            else:
-                # Use raw intensities for aggregation
-                intensity_col = replace_empty_with_zero(df[sample])
-            # Sum by primary classification
-            for category in primary_categories:
-                mask = df['PrimaryClassification'] == category
-                sample_data[category] = intensity_col[mask].sum()
-
-            data_for_plot.append(sample_data)
-
-        # Create DataFrame
-        plot_df = pd.DataFrame(data_for_plot)
-        plot_df = plot_df.set_index('Sample')
-
-        # Apply normalization after aggregation if needed
-        if normalization == 'aggregated':
-            # Within-sample proportional normalization: show proportion of each type within each sample
-            # This allows visual comparison of HM vs CH ratios within samples
-            row_sums = plot_df[primary_categories].sum(axis=1)
-            for col in primary_categories:
-                plot_df[col] = plot_df[col] / row_sums
-            # Replace any NaN with 0 (if row sum was 0)
-            plot_df = plot_df.fillna(0)
+        # Aggregate data using unified helper
+        plot_df = self._aggregate_by_classification_samplewise(
+            df=df,
+            sample_cols=sample_cols,
+            categories=primary_categories,
+            classification_col='PrimaryClassification',
+            normalization=normalization
+        )
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
@@ -273,44 +368,14 @@ class HistogramMixin:
         # Secondary classification categories (5 categories, exclude Truncated and Outlier)
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
 
-        data_for_plot = []
-
-        for sample in sample_cols:
-            sample_data = {'Sample': sample}
-
-            if normalization == 'raw':
-                # Normalize raw data using min-max scaling
-                intensity_col = replace_empty_with_zero(df[sample])
-                # Min-max normalization
-                min_val = intensity_col.min()
-                max_val = intensity_col.max()
-                if max_val > min_val:
-                    intensity_col = (intensity_col - min_val) / (max_val - min_val)
-                else:
-                    intensity_col = intensity_col * 0
-            else:
-                # Use raw intensities for aggregation
-                intensity_col = replace_empty_with_zero(df[sample])
-            # Sum by secondary classification
-            for category in secondary_categories:
-                mask = df['SecondaryClassification'] == category
-                sample_data[category] = intensity_col[mask].sum()
-
-            data_for_plot.append(sample_data)
-
-        # Create DataFrame
-        plot_df = pd.DataFrame(data_for_plot)
-        plot_df = plot_df.set_index('Sample')
-
-        # Apply normalization after aggregation if needed
-        if normalization == 'aggregated':
-            # Within-sample proportional normalization: show proportion of each type within each sample
-            # This allows visual comparison of ratios within samples
-            row_sums = plot_df[secondary_categories].sum(axis=1)
-            for col in secondary_categories:
-                plot_df[col] = plot_df[col] / row_sums
-            # Replace any NaN with 0 (if row sum was 0)
-            plot_df = plot_df.fillna(0)
+        # Aggregate data using unified helper
+        plot_df = self._aggregate_by_classification_samplewise(
+            df=df,
+            sample_cols=sample_cols,
+            categories=secondary_categories,
+            classification_col='SecondaryClassification',
+            normalization=normalization
+        )
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
@@ -377,37 +442,18 @@ class HistogramMixin:
         """
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        # sample_cols not needed here - cancer_samples and normal_samples already correct
 
         # Primary classification categories
         primary_categories = ['Outlier', 'High Mannose', 'ComplexHybrid']
 
-        # Calculate sums for each group
-        data_for_plot = []
-
-        for group_name, group_samples in [('Cancer', cancer_samples), ('Normal', normal_samples)]:
-            group_data = {'Group': group_name}
-
-            # Get intensity matrix for this group
-            intensity_matrix = replace_empty_with_zero(df[group_samples])
-            # Sum across all samples in the group, then by category
-            for category in primary_categories:
-                mask = df['PrimaryClassification'] == category
-                group_data[category] = intensity_matrix[mask].sum().sum()
-
-            data_for_plot.append(group_data)
-
-        # Create DataFrame
-        plot_df = pd.DataFrame(data_for_plot)
-        plot_df = plot_df.set_index('Group')
-
-        # Calculate proportions within each group (Cancer and Normal separately)
-        # This shows what % of each group's total is each glycan type
-        row_sums = plot_df[primary_categories].sum(axis=1)
-        for col in primary_categories:
-            plot_df[col] = plot_df[col] / row_sums
-        # Replace any NaN with 0
-        plot_df = plot_df.fillna(0)
+        # Aggregate data using unified helper
+        plot_df = self._aggregate_by_classification_groupwise(
+            df=df,
+            cancer_samples=cancer_samples,
+            normal_samples=normal_samples,
+            categories=primary_categories,
+            classification_col='PrimaryClassification'
+        )
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)
@@ -461,37 +507,18 @@ class HistogramMixin:
         """
         # Get sample columns (C1-C24, N1-N24)
         cancer_samples, normal_samples = get_sample_columns(df)
-        # sample_cols not needed here - cancer_samples and normal_samples already correct
 
         # Secondary classification categories (5 categories)
         secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
 
-        # Calculate sums for each group
-        data_for_plot = []
-
-        for group_name, group_samples in [('Cancer', cancer_samples), ('Normal', normal_samples)]:
-            group_data = {'Group': group_name}
-
-            # Get intensity matrix for this group
-            intensity_matrix = replace_empty_with_zero(df[group_samples])
-            # Sum across all samples in the group, then by category
-            for category in secondary_categories:
-                mask = df['SecondaryClassification'] == category
-                group_data[category] = intensity_matrix[mask].sum().sum()
-
-            data_for_plot.append(group_data)
-
-        # Create DataFrame
-        plot_df = pd.DataFrame(data_for_plot)
-        plot_df = plot_df.set_index('Group')
-
-        # Calculate proportions within each group (Cancer and Normal separately)
-        # This shows what % of each group's total is each glycan type
-        row_sums = plot_df[secondary_categories].sum(axis=1)
-        for col in secondary_categories:
-            plot_df[col] = plot_df[col] / row_sums
-        # Replace any NaN with 0
-        plot_df = plot_df.fillna(0)
+        # Aggregate data using unified helper
+        plot_df = self._aggregate_by_classification_groupwise(
+            df=df,
+            cancer_samples=cancer_samples,
+            normal_samples=normal_samples,
+            categories=secondary_categories,
+            classification_col='SecondaryClassification'
+        )
 
         # Create grouped bar plot
         fig, ax = plt.subplots(figsize=figsize)

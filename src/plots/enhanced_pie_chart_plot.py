@@ -66,6 +66,283 @@ logger = logging.getLogger(__name__)
 class PieChartPlotMixin:
     """Mixin class for enhanced pie chart visualizations with fold change"""
 
+    def _plot_pie_chart_comparative_base(
+        self,
+        df: pd.DataFrame,
+        categories: list,
+        column_name: str,
+        colors_dict: dict,
+        chart_type: str,
+        title_main: str,
+        title_cancer: str,
+        title_normal: str,
+        title_fc: str,
+        output_filename: str,
+        trace_data_key: str,
+        perform_statistical_test: bool = False,
+        rotation: int = 0,
+        figsize: tuple = (16, 12)
+    ) -> None:
+        """
+        Unified base method for comparative pie charts with fold change
+        (Phase 4 - Extracted base helper)
+
+        Creates three-panel visualization:
+        - Cancer pie chart (top-left)
+        - Normal pie chart (top-right)
+        - Fold change bar chart (bottom, spans both columns)
+
+        Args:
+            df: Annotated DataFrame with intensity data
+            categories: List of category names to plot
+            column_name: DataFrame column name for filtering (e.g., 'GlycanType')
+            colors_dict: Mapping of category -> color
+            chart_type: Type identifier for logging
+            title_main: Overall figure title
+            title_cancer: Cancer pie chart title
+            title_normal: Normal pie chart title
+            title_fc: Fold change bar chart title
+            output_filename: Output file name without extension
+            trace_data_key: Column name for trace data output
+            perform_statistical_test: If True, perform Mann-Whitney U + FDR correction
+            rotation: X-axis label rotation in degrees
+            figsize: Figure size (width, height)
+        """
+        logger.info(f"Creating enhanced {chart_type} pie charts with fold change...")
+
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
+
+        # Calculate total intensities per category for each group
+        cancer_data = {}
+        normal_data = {}
+
+        for category in categories:
+            mask = df[column_name] == category
+
+            # Sum intensities across all samples in group
+            cancer_total = replace_empty_with_zero(df[mask][cancer_samples]).sum().sum()
+            normal_total = replace_empty_with_zero(df[mask][normal_samples]).sum().sum()
+
+            cancer_data[category] = cancer_total
+            normal_data[category] = normal_total
+
+        # Create figure with GridSpec for pie charts + fold change panel
+        fig = plt.figure(figsize=figsize)
+        gs = fig.add_gridspec(2, 2, height_ratios=[2, 1], hspace=0.3, wspace=0.2)
+
+        ax1 = fig.add_subplot(gs[0, 0])  # Cancer pie
+        ax2 = fig.add_subplot(gs[0, 1])  # Normal pie
+        ax3 = fig.add_subplot(gs[1, :])  # Fold change bar chart (spans both columns)
+
+        # Define colors using provided color mapping
+        colors = [colors_dict.get(cat, '#CCCCCC') for cat in categories]
+
+        # ===== Cancer pie chart =====
+        cancer_values = [cancer_data[cat] for cat in categories]
+        cancer_total_sum = sum(cancer_values)
+
+        wedges1, texts1, autotexts1 = ax1.pie(
+            cancer_values,
+            labels=categories,
+            colors=colors,
+            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
+            startangle=90,
+            textprops={'fontsize': TICK_LABEL_SIZE, 'weight': 'bold'}
+        )
+
+        ax1.set_title(title_cancer, fontsize=TITLE_SIZE, weight='bold', pad=15)
+
+        # ===== Normal pie chart =====
+        normal_values = [normal_data[cat] for cat in categories]
+        normal_total_sum = sum(normal_values)
+
+        wedges2, texts2, autotexts2 = ax2.pie(
+            normal_values,
+            labels=categories,
+            colors=colors,
+            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
+            startangle=90,
+            textprops={'fontsize': TICK_LABEL_SIZE if len(categories) <= 4 else 10, 'weight': 'bold'}
+        )
+
+        ax2.set_title(title_normal, fontsize=TITLE_SIZE, weight='bold', pad=15)
+
+        # ===== Fold change bar chart =====
+        fold_changes = []
+        fc_colors = []
+        p_values = [] if perform_statistical_test else None
+
+        for category in categories:
+            cancer_val = cancer_data[category]
+            normal_val = normal_data[category]
+
+            # Calculate fold change (Cancer / Normal)
+            if normal_val > 0 and cancer_val > 0:
+                fc = cancer_val / normal_val
+            elif normal_val == 0 and cancer_val > 0:
+                fc = 100.0  # Cap at 100-fold
+                logger.debug(f"{category}: Cancer={cancer_val:.2e}, Normal=0 → FC=100 (capped)")
+            elif normal_val > 0 and cancer_val == 0:
+                fc = 0.01  # Cap at 0.01 (100-fold decrease)
+                logger.debug(f"{category}: Cancer=0, Normal={normal_val:.2e} → FC=0.01 (capped)")
+            else:
+                fc = 1.0  # Both zero
+                logger.debug(f"{category}: Both groups zero → FC=1.0")
+
+            fold_changes.append(fc)
+
+            # Color by enrichment direction
+            if fc > 1.1:  # >10% enrichment in Cancer
+                fc_colors.append(GROUP_PALETTE['Cancer'])
+            elif fc < 0.9:  # >10% enrichment in Normal
+                fc_colors.append(GROUP_PALETTE['Normal'])
+            else:
+                fc_colors.append('#95A5A6')  # Gray - similar
+
+            # Statistical significance (conditional)
+            if perform_statistical_test:
+                mask = df[column_name] == category
+                if mask.sum() > 0:
+                    cancer_intensities = replace_empty_with_zero(df[mask][cancer_samples]).values.flatten()
+                    normal_intensities = replace_empty_with_zero(df[mask][normal_samples]).values.flatten()
+
+                    # Remove zeros for statistical test
+                    cancer_nonzero = cancer_intensities[cancer_intensities > 0]
+                    normal_nonzero = normal_intensities[normal_intensities > 0]
+
+                    if len(cancer_nonzero) >= 3 and len(normal_nonzero) >= 3:
+                        try:
+                            _, p_val = scipy_stats.mannwhitneyu(cancer_nonzero, normal_nonzero, alternative='two-sided')
+                            if np.isnan(p_val) or np.isinf(p_val):
+                                logger.warning(f"{category}: Mann-Whitney U returned invalid p-value, using p=1.0")
+                                p_values.append(1.0)
+                            else:
+                                p_values.append(p_val)
+                        except Exception as e:
+                            logger.warning(f"{category}: Mann-Whitney U failed ({str(e)}), using p=1.0")
+                            p_values.append(1.0)
+                    else:
+                        logger.debug(f"{category}: Insufficient samples (C:{len(cancer_nonzero)}, N:{len(normal_nonzero)}), p=1.0")
+                        p_values.append(1.0)
+                else:
+                    logger.debug(f"{category}: No glycopeptides found, p=1.0")
+                    p_values.append(1.0)
+
+        # Apply FDR correction if statistical tests were performed
+        fdr_values = None
+        if perform_statistical_test:
+            valid_indices = [i for i, p in enumerate(p_values) if p < 1.0]
+            valid_p_values = [p_values[i] for i in valid_indices]
+
+            fdr_values = [1.0] * len(p_values)
+            if len(valid_p_values) > 0:
+                _, fdr_corrected, _, _ = multipletests(valid_p_values, method='fdr_bh')
+                for i, idx in enumerate(valid_indices):
+                    fdr_values[idx] = fdr_corrected[i]
+
+                n_significant = sum(fdr < 0.05 for fdr in fdr_corrected)
+                logger.info(f"FDR correction applied ({chart_type}): {len(valid_p_values)} tests, "
+                           f"{n_significant} significant (FDR < 0.05)")
+                for cat, raw_p, fdr in zip(categories, p_values, fdr_values):
+                    if raw_p < 1.0:
+                        logger.info(f"  {cat}: p={raw_p:.4f} → FDR={fdr:.4f}")
+
+        # Plot bars
+        x_pos = np.arange(len(categories))
+        bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
+                       edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
+
+        # Add fold change values on top of bars
+        for i, bar in enumerate(bars):
+            height = bar.get_height()
+            fc = fold_changes[i]
+
+            # Fold change text
+            fc_text = f'{fc:.2f}x'
+            y_pos = height + 0.05
+
+            ax3.text(bar.get_x() + bar.get_width() / 2., y_pos,
+                     fc_text, ha='center', va='bottom',
+                     fontsize=ANNOTATION_SIZE, weight='bold')
+
+            # Significance marker (if FDR was calculated)
+            if fdr_values is not None:
+                fdr = fdr_values[i]
+                if fdr < 0.001:
+                    sig = '***'
+                elif fdr < 0.01:
+                    sig = '**'
+                elif fdr < 0.05:
+                    sig = '*'
+                else:
+                    sig = ''
+
+                if sig:
+                    ax3.text(bar.get_x() + bar.get_width() / 2., y_pos + 0.15,
+                             sig, ha='center', va='bottom',
+                             fontsize=AXIS_LABEL_SIZE, weight='bold', color='black')
+
+        # Add reference line at FC=1.0 (no change)
+        ax3.axhline(y=1.0, color='black', linestyle=LINESTYLE_DASHED,
+                    linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH, label='No change')
+
+        # Style fold change axis
+        ax3.set_xticks(x_pos)
+        ax3.set_xticklabels(categories, fontsize=TICK_LABEL_SIZE, weight='bold',
+                           rotation=rotation, ha='right' if rotation > 0 else 'center')
+        ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
+        ax3.set_title(title_fc, fontsize=TITLE_SIZE, weight='bold', pad=15)
+
+        # Add legend for colors
+        from matplotlib.patches import Patch
+        legend_elements = [
+            Patch(facecolor=GROUP_PALETTE['Cancer'], edgecolor=EDGE_COLOR_BLACK,
+                  label='Enriched in Cancer (>10%)'),
+            Patch(facecolor=GROUP_PALETTE['Normal'], edgecolor=EDGE_COLOR_BLACK,
+                  label='Enriched in Normal (>10%)'),
+            Patch(facecolor='#95A5A6', edgecolor=EDGE_COLOR_BLACK,
+                  label='Similar (<10% difference)')
+        ]
+        ax3.legend(handles=legend_elements, loc='upper right', fontsize=LEGEND_SIZE)
+
+        # Apply Prism-style grid
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR,
+                linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
+        ax3.set_axisbelow(True)
+
+        # Overall title
+        fig.suptitle(title_main, fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family=FONT_DISPLAY)
+
+        # Apply publication theme
+        apply_publication_theme(fig)
+
+        plt.tight_layout()
+
+        # Save plot
+        output_file = self.output_dir / f'{output_filename}.png'
+        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
+        logger.info(f"Saved enhanced {chart_type} pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
+
+        # Save trace data
+        trace_data_dict = {
+            trace_data_key: categories,
+            'Cancer_Intensity': cancer_values,
+            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
+            'Normal_Intensity': normal_values,
+            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values],
+            'Fold_Change': fold_changes
+        }
+
+        if perform_statistical_test:
+            trace_data_dict['P_Value'] = p_values
+            trace_data_dict['FDR'] = fdr_values
+
+        trace_data = pd.DataFrame(trace_data_dict)
+        save_trace_data(trace_data, self.output_dir, f'{output_filename}_data.csv')
+
+        plt.close()
+
     def plot_pie_chart_glycan_types(self, df: pd.DataFrame, figsize: tuple = (16, 12)):
         """
         Create publication-quality pie charts with fold change visualization
@@ -77,244 +354,23 @@ class PieChartPlotMixin:
             df: Annotated DataFrame with intensity data
             figsize: Figure size (width, height) - increased for fold change panel
         """
-        logger.info("Creating enhanced glycan type pie charts with fold change...")
-
-        # Get sample columns using centralized function
-        cancer_samples, normal_samples = get_sample_columns(df)
-
-        # Calculate total intensities per glycan type for each group
-        glycan_types = ['Non', 'Sialylated', 'Fucosylated', 'Both']
-
-        cancer_data = {}
-        normal_data = {}
-
-        for glycan_type in glycan_types:
-            mask = df['GlycanType'] == glycan_type
-
-            # Sum intensities across all samples in group
-            cancer_total = replace_empty_with_zero(df[mask][cancer_samples]).sum().sum()
-            normal_total = replace_empty_with_zero(df[mask][normal_samples]).sum().sum()
-
-            cancer_data[glycan_type] = cancer_total
-            normal_data[glycan_type] = normal_total
-
-        # Create figure with GridSpec for pie charts + fold change panel
-        fig = plt.figure(figsize=figsize)
-        gs = fig.add_gridspec(2, 2, height_ratios=[2, 1], hspace=0.3, wspace=0.2)
-
-        ax1 = fig.add_subplot(gs[0, 0])  # Cancer pie
-        ax2 = fig.add_subplot(gs[0, 1])  # Normal pie
-        ax3 = fig.add_subplot(gs[1, :])  # Fold change bar chart (spans both columns)
-
-        # Define colors using standard palette
-        colors = [LEGACY_GLYCAN_COLORS.get(gt, '#CCCCCC') for gt in glycan_types]
-
-        # ===== Cancer pie chart =====
-        cancer_values = [cancer_data[gt] for gt in glycan_types]
-        cancer_total_sum = sum(cancer_values)
-
-        wedges1, texts1, autotexts1 = ax1.pie(
-            cancer_values,
-            labels=glycan_types,
-            colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
-            startangle=90,
-            textprops={'fontsize': TICK_LABEL_SIZE, 'weight': 'bold'}
+        # Phase 4: Thin wrapper - delegates to unified base method
+        return self._plot_pie_chart_comparative_base(
+            df=df,
+            categories=['Non', 'Sialylated', 'Fucosylated', 'Both'],
+            column_name='GlycanType',
+            colors_dict=LEGACY_GLYCAN_COLORS,
+            chart_type='glycan_types',
+            title_main='Glycan Type Distribution & Comparative Analysis',
+            title_cancer='Cancer Group\nGlycan Type Distribution',
+            title_normal='Normal Group\nGlycan Type Distribution',
+            title_fc='Fold Change Analysis (Cancer vs Normal)',
+            output_filename='pie_chart_glycan_types_enhanced',
+            trace_data_key='GlycanType',
+            perform_statistical_test=True,  # Only glycan_types needs statistical testing
+            rotation=0,
+            figsize=figsize
         )
-
-        ax1.set_title('Cancer Group\nGlycan Type Distribution',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-
-        # ===== Normal pie chart =====
-        normal_values = [normal_data[gt] for gt in glycan_types]
-        normal_total_sum = sum(normal_values)
-
-        wedges2, texts2, autotexts2 = ax2.pie(
-            normal_values,
-            labels=glycan_types,
-            colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
-            startangle=90,
-            textprops={'fontsize': TICK_LABEL_SIZE, 'weight': 'bold'}
-        )
-
-        ax2.set_title('Normal Group\nGlycan Type Distribution',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-
-        # ===== Fold change bar chart (MetaboAnalyst style) =====
-        fold_changes = []
-        fc_colors = []
-        p_values = []
-
-        for glycan_type in glycan_types:
-            cancer_val = cancer_data[glycan_type]
-            normal_val = normal_data[glycan_type]
-
-            # ========================================
-            # PHASE 1.3 FIX: Correct fold change calculation
-            # ========================================
-            # Calculate fold change (Cancer / Normal)
-            if normal_val > 0 and cancer_val > 0:
-                fc = cancer_val / normal_val
-            elif normal_val == 0 and cancer_val > 0:
-                # Cancer detected, Normal not detected → Maximum fold change
-                fc = 100.0  # Cap at 100-fold (scientifically reasonable)
-                logger.debug(f"{glycan_type}: Cancer={cancer_val:.2e}, Normal=0 → FC=100 (capped)")
-            elif normal_val > 0 and cancer_val == 0:
-                # Normal detected, Cancer not detected → Minimum fold change
-                fc = 0.01  # Cap at 0.01 (100-fold decrease)
-                logger.debug(f"{glycan_type}: Cancer=0, Normal={normal_val:.2e} → FC=0.01 (capped)")
-            else:
-                # Both zero → No change
-                fc = 1.0
-                logger.debug(f"{glycan_type}: Both groups zero → FC=1.0")
-
-            fold_changes.append(fc)
-
-            # Color by enrichment direction (Prism style)
-            if fc > 1.1:  # >10% enrichment in Cancer
-                fc_colors.append(GROUP_PALETTE['Cancer'])  # Red
-            elif fc < 0.9:  # >10% enrichment in Normal
-                fc_colors.append(GROUP_PALETTE['Normal'])  # Blue
-            else:
-                fc_colors.append('#95A5A6')  # Gray - similar
-
-            # ========================================
-            # PHASE 2.3 FIX: Explicit handling of insufficient samples
-            # ========================================
-            # Calculate statistical significance (Mann-Whitney U test)
-            mask = df['GlycanType'] == glycan_type
-            if mask.sum() > 0:
-                cancer_intensities = replace_empty_with_zero(df[mask][cancer_samples]).values.flatten()
-                normal_intensities = replace_empty_with_zero(df[mask][normal_samples]).values.flatten()
-
-                # Remove zeros for statistical test
-                cancer_nonzero = cancer_intensities[cancer_intensities > 0]
-                normal_nonzero = normal_intensities[normal_intensities > 0]
-
-                if len(cancer_nonzero) >= 3 and len(normal_nonzero) >= 3:
-                    try:
-                        _, p_val = scipy_stats.mannwhitneyu(cancer_nonzero, normal_nonzero, alternative='two-sided')
-                        if np.isnan(p_val) or np.isinf(p_val):
-                            logger.warning(f"{glycan_type}: Mann-Whitney U test returned invalid p-value ({p_val}), using p=1.0")
-                            p_values.append(1.0)
-                        else:
-                            p_values.append(p_val)
-                    except Exception as e:
-                        logger.warning(f"{glycan_type}: Mann-Whitney U test failed ({str(e)}), using p=1.0")
-                        p_values.append(1.0)
-                else:
-                    # Insufficient samples for valid test
-                    logger.debug(f"{glycan_type}: Insufficient samples (Cancer: {len(cancer_nonzero)}, Normal: {len(normal_nonzero)}), p=1.0 (non-significant)")
-                    p_values.append(1.0)
-            else:
-                # No glycopeptides of this type
-                logger.debug(f"{glycan_type}: No glycopeptides found, p=1.0")
-                p_values.append(1.0)
-
-        # ========================================
-        # PHASE 1.4 FIX: Apply FDR correction for multiple testing
-        # ========================================
-        # Apply Benjamini-Hochberg FDR correction
-        valid_indices = [i for i, p in enumerate(p_values) if p < 1.0]
-        valid_p_values = [p_values[i] for i in valid_indices]
-
-        fdr_values = [1.0] * len(p_values)  # Default to 1.0
-        if len(valid_p_values) > 0:
-            _, fdr_corrected, _, _ = multipletests(valid_p_values, method='fdr_bh')
-            for i, idx in enumerate(valid_indices):
-                fdr_values[idx] = fdr_corrected[i]
-
-            # Log FDR correction results
-            n_significant = sum(fdr < 0.05 for fdr in fdr_corrected)
-            logger.info(f"FDR correction applied (glycan types): {len(valid_p_values)} tests, "
-                       f"{n_significant} significant (FDR < 0.05)")
-            for gt, raw_p, fdr in zip(glycan_types, p_values, fdr_values):
-                if raw_p < 1.0:
-                    logger.info(f"  {gt}: p={raw_p:.4f} → FDR={fdr:.4f}")
-
-        # Plot bars
-        x_pos = np.arange(len(glycan_types))
-        bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                       edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
-
-        # Add fold change values on top of bars
-        for i, (bar, fc, fdr) in enumerate(zip(bars, fold_changes, fdr_values)):
-            height = bar.get_height()
-
-            # Fold change text
-            fc_text = f'{fc:.2f}x'
-            y_pos = height + 0.05
-
-            ax3.text(bar.get_x() + bar.get_width() / 2., y_pos,
-                     fc_text, ha='center', va='bottom',
-                     fontsize=ANNOTATION_SIZE, weight='bold')
-
-            # Significance marker using FDR (not raw p-value) - Prism style
-            if fdr < 0.001:
-                sig = '***'
-            elif fdr < 0.01:
-                sig = '**'
-            elif fdr < 0.05:
-                sig = '*'
-            else:
-                sig = ''
-
-            if sig:
-                ax3.text(bar.get_x() + bar.get_width() / 2., y_pos + 0.15,
-                         sig, ha='center', va='bottom',
-                         fontsize=AXIS_LABEL_SIZE, weight='bold', color='black')
-
-        # Add reference line at FC=1.0 (no change)
-        ax3.axhline(y=1.0, color='black', linestyle=LINESTYLE_DASHED, linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH, label='No change')
-
-        # Style fold change axis
-        ax3.set_xticks(x_pos)
-        ax3.set_xticklabels(glycan_types, fontsize=TICK_LABEL_SIZE, weight='bold')
-        ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
-        ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-
-        # Add legend for colors
-        from matplotlib.patches import Patch
-        legend_elements = [
-            Patch(facecolor=GROUP_PALETTE['Cancer'], edgecolor=EDGE_COLOR_BLACK, label='Enriched in Cancer (>10%)'),
-            Patch(facecolor=GROUP_PALETTE['Normal'], edgecolor=EDGE_COLOR_BLACK, label='Enriched in Normal (>10%)'),
-            Patch(facecolor='#95A5A6', edgecolor=EDGE_COLOR_BLACK, label='Similar (<10% difference)')
-        ]
-        ax3.legend(handles=legend_elements, loc='upper right', fontsize=LEGEND_SIZE)
-
-        # Apply Prism-style grid
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR, linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
-        ax3.set_axisbelow(True)
-
-        # Overall title
-        fig.suptitle('Glycan Type Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family=FONT_DISPLAY)
-
-        # ✨ ENHANCED: Apply publication theme
-        apply_publication_theme(fig)
-
-        plt.tight_layout()
-
-        # Save plot
-        output_file = self.output_dir / 'pie_chart_glycan_types_enhanced.png'
-        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
-        logger.info(f"Saved enhanced glycan type pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
-
-        # Save trace data
-        trace_data = pd.DataFrame({
-            'GlycanType': glycan_types,
-            'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v / cancer_total_sum * 100 for v in cancer_values],
-            'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v / normal_total_sum * 100 for v in normal_values],
-            'Fold_Change': fold_changes,
-            'P_Value': p_values
-        })
-        save_trace_data(trace_data, self.output_dir, 'pie_chart_glycan_types_enhanced_data.csv')
-
-        plt.close()
 
     def plot_pie_chart_primary_classification(self, df: pd.DataFrame, figsize: tuple = (16, 12)):
         """
@@ -324,159 +380,30 @@ class PieChartPlotMixin:
             df: Annotated DataFrame with intensity data
             figsize: Figure size (width, height)
         """
-        logger.info("Creating enhanced primary classification pie charts with fold change...")
-
-        # Get sample columns using centralized function
-        cancer_samples, normal_samples = get_sample_columns(df)
-
-        # Primary classification categories
-        primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid', 'Outlier']
-
-        cancer_data = {}
-        normal_data = {}
-
-        for category in primary_categories:
-            mask = df['PrimaryClassification'] == category
-
-            # Sum intensities across all samples in group
-            cancer_total = replace_empty_with_zero(df[mask][cancer_samples]).sum().sum()
-            normal_total = replace_empty_with_zero(df[mask][normal_samples]).sum().sum()
-
-            cancer_data[category] = cancer_total
-            normal_data[category] = normal_total
-
-        # Create figure with GridSpec
-        fig = plt.figure(figsize=figsize)
-        gs = fig.add_gridspec(2, 2, height_ratios=[2, 1], hspace=0.3, wspace=0.2)
-
-        ax1 = fig.add_subplot(gs[0, 0])
-        ax2 = fig.add_subplot(gs[0, 1])
-        ax3 = fig.add_subplot(gs[1, :])
-
-        # Define colors
+        # Phase 4: Thin wrapper - delegates to unified base method
         colors_primary = {
             'Truncated': '#CCCCCC',       # Gray
             'High Mannose': '#2ECC71',    # Green
             'ComplexHybrid': '#3498DB',   # Blue
             'Outlier': '#95A5A6'          # Light gray
         }
-        colors = [colors_primary.get(cat, '#CCCCCC') for cat in primary_categories]
 
-        # Cancer pie chart
-        cancer_values = [cancer_data[cat] for cat in primary_categories]
-        cancer_total_sum = sum(cancer_values)
-
-        wedges1, texts1, autotexts1 = ax1.pie(
-            cancer_values,
-            labels=primary_categories,
-            colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
-            startangle=90,
-            textprops={'fontsize': TICK_LABEL_SIZE, 'weight': 'bold'}
+        return self._plot_pie_chart_comparative_base(
+            df=df,
+            categories=['Truncated', 'High Mannose', 'ComplexHybrid', 'Outlier'],
+            column_name='PrimaryClassification',
+            colors_dict=colors_primary,
+            chart_type='primary_classification',
+            title_main='Primary Classification Distribution & Comparative Analysis',
+            title_cancer='Cancer Group\nPrimary Classification',
+            title_normal='Normal Group\nPrimary Classification',
+            title_fc='Fold Change Analysis (Cancer vs Normal)',
+            output_filename='pie_chart_primary_classification_enhanced',
+            trace_data_key='PrimaryClassification',
+            perform_statistical_test=False,  # No statistical testing for classification
+            rotation=15,  # 15-degree rotation for better label readability
+            figsize=figsize
         )
-
-        ax1.set_title('Cancer Group\nPrimary Classification',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-
-        # Normal pie chart
-        normal_values = [normal_data[cat] for cat in primary_categories]
-        normal_total_sum = sum(normal_values)
-
-        wedges2, texts2, autotexts2 = ax2.pie(
-            normal_values,
-            labels=primary_categories,
-            colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
-            startangle=90,
-            textprops={'fontsize': TICK_LABEL_SIZE, 'weight': 'bold'}
-        )
-
-        ax2.set_title('Normal Group\nPrimary Classification',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-
-        # Fold change bar chart
-        fold_changes = []
-        fc_colors = []
-
-        for i, category in enumerate(primary_categories):
-            cancer_val = cancer_data[category]
-            normal_val = normal_data[category]
-
-            # ========================================
-            # PHASE 1.3 FIX: Correct fold change calculation
-            # ========================================
-            if normal_val > 0 and cancer_val > 0:
-                fc = cancer_val / normal_val
-            elif normal_val == 0 and cancer_val > 0:
-                fc = 100.0  # Cap at 100-fold
-                logger.debug(f"{category}: Cancer={cancer_val:.2e}, Normal=0 → FC=100 (capped)")
-            elif normal_val > 0 and cancer_val == 0:
-                fc = 0.01  # Cap at 0.01 (100-fold decrease)
-                logger.debug(f"{category}: Cancer=0, Normal={normal_val:.2e} → FC=0.01 (capped)")
-            else:
-                fc = 1.0  # Both zero
-                logger.debug(f"{category}: Both groups zero → FC=1.0")
-
-            fold_changes.append(fc)
-
-            # Color by enrichment
-            if fc > 1.1:
-                fc_colors.append(GROUP_PALETTE['Cancer'])
-            elif fc < 0.9:
-                fc_colors.append(GROUP_PALETTE['Normal'])
-            else:
-                fc_colors.append('#95A5A6')
-
-        # Plot bars
-        x_pos = np.arange(len(primary_categories))
-        bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                       edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
-
-        # Add fold change values
-        for bar, fc in zip(bars, fold_changes):
-            height = bar.get_height()
-            ax3.text(bar.get_x() + bar.get_width() / 2., height + 0.05,
-                     f'{fc:.2f}x', ha='center', va='bottom',
-                     fontsize=ANNOTATION_SIZE, weight='bold')
-
-        # Reference line
-        ax3.axhline(y=1.0, color='black', linestyle=LINESTYLE_DASHED, linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
-
-        # Style axis
-        ax3.set_xticks(x_pos)
-        ax3.set_xticklabels(primary_categories, fontsize=TICK_LABEL_SIZE, weight='bold', rotation=15, ha='right')
-        ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
-        ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR, linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
-        ax3.set_axisbelow(True)
-
-        # Overall title
-        fig.suptitle('Primary Classification Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family=FONT_DISPLAY)
-
-        # ✨ ENHANCED: Apply publication theme
-        apply_publication_theme(fig)
-
-        plt.tight_layout()
-
-        # Save plot
-        output_file = self.output_dir / 'pie_chart_primary_classification_enhanced.png'
-        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
-        logger.info(f"Saved enhanced primary classification pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
-
-        # Save trace data
-        trace_data = pd.DataFrame({
-            'PrimaryClassification': primary_categories,
-            'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
-            'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values],
-            'Fold_Change': fold_changes
-        })
-        save_trace_data(trace_data, self.output_dir, 'pie_chart_primary_classification_enhanced_data.csv')
-
-        plt.close()
 
     def plot_pie_chart_secondary_classification(self, df: pd.DataFrame, figsize: tuple = (18, 12)):
         """
@@ -486,153 +413,23 @@ class PieChartPlotMixin:
             df: Annotated DataFrame with intensity data
             figsize: Figure size (width, height)
         """
-        logger.info("Creating enhanced secondary classification pie charts with fold change...")
-
-        # Get sample columns using centralized function
-        cancer_samples, normal_samples = get_sample_columns(df)
-
-        # Secondary classification categories (5 categories)
-        secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
-
-        cancer_data = {}
-        normal_data = {}
-
-        for category in secondary_categories:
-            mask = df['SecondaryClassification'] == category
-
-            # Sum intensities across all samples in group
-            cancer_total = replace_empty_with_zero(df[mask][cancer_samples]).sum().sum()
-            normal_total = replace_empty_with_zero(df[mask][normal_samples]).sum().sum()
-
-            cancer_data[category] = cancer_total
-            normal_data[category] = normal_total
-
-        # Create figure with GridSpec
-        fig = plt.figure(figsize=figsize)
-        gs = fig.add_gridspec(2, 2, height_ratios=[2, 1], hspace=0.3, wspace=0.2)
-
-        ax1 = fig.add_subplot(gs[0, 0])
-        ax2 = fig.add_subplot(gs[0, 1])
-        ax3 = fig.add_subplot(gs[1, :])
-
-        # Define colors (using standardized palette)
-        colors = [EXTENDED_CATEGORY_COLORS.get(cat, '#CCCCCC') for cat in secondary_categories]
-
-        # Cancer pie chart
-        cancer_values = [cancer_data[cat] for cat in secondary_categories]
-        cancer_total_sum = sum(cancer_values)
-
-        wedges1, texts1, autotexts1 = ax1.pie(
-            cancer_values,
-            labels=secondary_categories,
-            colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
-            startangle=90,
-            textprops={'fontsize': 10, 'weight': 'bold'}
+        # Phase 4: Thin wrapper - delegates to unified base method
+        return self._plot_pie_chart_comparative_base(
+            df=df,
+            categories=['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated'],
+            column_name='SecondaryClassification',
+            colors_dict=EXTENDED_CATEGORY_COLORS,
+            chart_type='secondary_classification',
+            title_main='Secondary Classification Distribution & Comparative Analysis',
+            title_cancer='Cancer Group\nSecondary Classification',
+            title_normal='Normal Group\nSecondary Classification',
+            title_fc='Fold Change Analysis (Cancer vs Normal)',
+            output_filename='pie_chart_secondary_classification_enhanced',
+            trace_data_key='SecondaryClassification',
+            perform_statistical_test=False,  # No statistical testing for classification
+            rotation=20,  # 20-degree rotation for 5 categories
+            figsize=figsize  # Note: Default is (18, 12) for this method
         )
-
-        ax1.set_title('Cancer Group\nSecondary Classification',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-
-        # Normal pie chart
-        normal_values = [normal_data[cat] for cat in secondary_categories]
-        normal_total_sum = sum(normal_values)
-
-        wedges2, texts2, autotexts2 = ax2.pie(
-            normal_values,
-            labels=secondary_categories,
-            colors=colors,
-            autopct=lambda pct: f'{pct:.1f}%' if pct > 1 else '',
-            startangle=90,
-            textprops={'fontsize': 10, 'weight': 'bold'}
-        )
-
-        ax2.set_title('Normal Group\nSecondary Classification',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-
-        # Fold change bar chart
-        fold_changes = []
-        fc_colors = []
-
-        for category in secondary_categories:
-            cancer_val = cancer_data[category]
-            normal_val = normal_data[category]
-
-            # ========================================
-            # PHASE 1.3 FIX: Correct fold change calculation
-            # ========================================
-            if normal_val > 0 and cancer_val > 0:
-                fc = cancer_val / normal_val
-            elif normal_val == 0 and cancer_val > 0:
-                fc = 100.0  # Cap at 100-fold
-                logger.debug(f"{category}: Cancer={cancer_val:.2e}, Normal=0 → FC=100 (capped)")
-            elif normal_val > 0 and cancer_val == 0:
-                fc = 0.01  # Cap at 0.01 (100-fold decrease)
-                logger.debug(f"{category}: Cancer=0, Normal={normal_val:.2e} → FC=0.01 (capped)")
-            else:
-                fc = 1.0  # Both zero
-                logger.debug(f"{category}: Both groups zero → FC=1.0")
-
-            fold_changes.append(fc)
-
-            # Color by enrichment
-            if fc > 1.1:
-                fc_colors.append(GROUP_PALETTE['Cancer'])
-            elif fc < 0.9:
-                fc_colors.append(GROUP_PALETTE['Normal'])
-            else:
-                fc_colors.append('#95A5A6')
-
-        # Plot bars
-        x_pos = np.arange(len(secondary_categories))
-        bars = ax3.bar(x_pos, fold_changes, color=fc_colors,
-                       edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THICK, alpha=ALPHA_MOSTLY_OPAQUE)
-
-        # Add fold change values
-        for bar, fc in zip(bars, fold_changes):
-            height = bar.get_height()
-            ax3.text(bar.get_x() + bar.get_width() / 2., height + 0.05,
-                     f'{fc:.2f}x', ha='center', va='bottom',
-                     fontsize=ANNOTATION_SIZE, weight='bold')
-
-        # Reference line
-        ax3.axhline(y=1.0, color='black', linestyle=LINESTYLE_DASHED, linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
-
-        # Style axis
-        ax3.set_xticks(x_pos)
-        ax3.set_xticklabels(secondary_categories, fontsize=TICK_LABEL_SIZE, weight='bold', rotation=20, ha='right')
-        ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
-        ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
-                      fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR, linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
-        ax3.set_axisbelow(True)
-
-        # Overall title
-        fig.suptitle('Secondary Classification Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family=FONT_DISPLAY)
-
-        # ✨ ENHANCED: Apply publication theme
-        apply_publication_theme(fig)
-
-        plt.tight_layout()
-
-        # Save plot
-        output_file = self.output_dir / 'pie_chart_secondary_classification_enhanced.png'
-        save_publication_figure(fig, output_file, dpi=DPI_MAIN)
-        logger.info(f"Saved enhanced secondary classification pie charts to {output_file} (optimized, {DPI_MAIN} DPI)")
-
-        # Save trace data
-        trace_data = pd.DataFrame({
-            'SecondaryClassification': secondary_categories,
-            'Cancer_Intensity': cancer_values,
-            'Cancer_Percentage': [v / cancer_total_sum * 100 if cancer_total_sum > 0 else 0 for v in cancer_values],
-            'Normal_Intensity': normal_values,
-            'Normal_Percentage': [v / normal_total_sum * 100 if normal_total_sum > 0 else 0 for v in normal_values],
-            'Fold_Change': fold_changes
-        })
-        save_trace_data(trace_data, self.output_dir, 'pie_chart_secondary_classification_enhanced_data.csv')
-
-        plt.close()
 
     def plot_pie_chart_significant_glycan_types(self, df: pd.DataFrame, vip_df: pd.DataFrame = None,
                                                  config=None, log2fc_threshold: float = 2.0,

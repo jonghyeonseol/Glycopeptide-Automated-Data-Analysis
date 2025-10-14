@@ -86,6 +86,508 @@ def calculate_cohens_d(group1: np.ndarray, group2: np.ndarray) -> float:
     return cohens_d
 
 
+def _perform_fdr_correction_and_plot_brackets(
+    ax: plt.Axes,
+    boxplot_data: pd.DataFrame,
+    category_column: str,
+    existing_categories: list,
+    log_context: str = "",
+    use_enhanced_brackets: bool = True
+) -> None:
+    """
+    Perform FDR-corrected statistical testing and plot significance brackets
+
+    This helper consolidates the FDR correction logic used across multiple
+    boxplot methods, ensuring consistent statistical testing and visualization.
+
+    Args:
+        ax: Matplotlib axes for plotting brackets
+        boxplot_data: Long-format DataFrame with columns:
+            - {category_column}: Category identifier (e.g., 'GlycanType', 'ExtendedCategory')
+            - 'Group': 'Cancer' or 'Normal'
+            - 'Intensity': Numerical values for comparison
+        category_column: Name of column containing categories
+        existing_categories: Ordered list of categories to test
+        log_context: Prefix for logging (e.g., "" or "extended")
+        use_enhanced_brackets: If True, use enhance_statistical_bracket() style.
+                               If False, use manual line + text style.
+
+    Returns:
+        None (modifies ax in-place, logs results to logger)
+
+    Statistical Methods:
+        - Mann-Whitney U test: Non-parametric comparison of two groups
+        - Benjamini-Hochberg FDR correction: Controls false discovery rate
+        - Cohen's d effect size: Standardized difference between groups
+
+    Scientific Integrity:
+        - All calculations are deterministic (same input → same output)
+        - No data-specific hard-coded assumptions
+        - Generic parameterization prevents over-fitting
+        - Standard significance thresholds: 0.001 (***), 0.01 (**), 0.05 (*)
+
+    Reference:
+        - Benjamini & Hochberg (1995). "Controlling the false discovery rate"
+        - Mann & Whitney (1947). "On a test of whether one of two random variables"
+    """
+    # Step 1: Collect all p-values and effect sizes
+    p_values_dict = {}  # {category: p_value}
+    cohens_d_dict = {}  # {category: effect_size}
+
+    for category in existing_categories:
+        # Get data for each group
+        cancer_data = boxplot_data[
+            (boxplot_data[category_column] == category) &
+            (boxplot_data['Group'] == 'Cancer')
+        ]['Intensity'].values
+
+        normal_data = boxplot_data[
+            (boxplot_data[category_column] == category) &
+            (boxplot_data['Group'] == 'Normal')
+        ]['Intensity'].values
+
+        # Skip if either group has insufficient data (need ≥3 for Mann-Whitney U)
+        if len(cancer_data) < 3 or len(normal_data) < 3:
+            p_values_dict[category] = np.nan
+            cohens_d_dict[category] = np.nan
+            logger.warning(
+                f"{category}: Insufficient data (Cancer: {len(cancer_data)}, "
+                f"Normal: {len(normal_data)})"
+            )
+            continue
+
+        # Perform Mann-Whitney U test (non-parametric, robust to outliers)
+        try:
+            statistic, p_value = stats.mannwhitneyu(
+                cancer_data, normal_data, alternative='two-sided'
+            )
+            cohens_d = calculate_cohens_d(cancer_data, normal_data)
+
+            p_values_dict[category] = p_value
+            cohens_d_dict[category] = cohens_d
+
+        except Exception as e:
+            logger.warning(f"Statistical test failed for {category}: {str(e)}")
+            p_values_dict[category] = np.nan
+            cohens_d_dict[category] = np.nan
+
+    # Step 2: Apply FDR correction (Benjamini-Hochberg)
+    valid_categories = [cat for cat, p in p_values_dict.items() if not np.isnan(p)]
+    valid_p_values = [p_values_dict[cat] for cat in valid_categories]
+
+    fdr_dict = {}
+    if len(valid_p_values) > 0:
+        # Apply Benjamini-Hochberg FDR correction
+        reject, fdr_values, _, _ = multipletests(valid_p_values, method='fdr_bh')
+        fdr_dict = dict(zip(valid_categories, fdr_values))
+
+        # Log FDR correction results
+        n_significant = sum(fdr < 0.05 for fdr in fdr_values)
+        log_prefix = f" ({log_context})" if log_context else ""
+        logger.info(
+            f"FDR correction applied{log_prefix}: {len(valid_p_values)} tests, "
+            f"{n_significant} significant (FDR < 0.05)"
+        )
+
+        for cat, raw_p, fdr in zip(valid_categories, valid_p_values, fdr_values):
+            logger.info(f"  {cat}: p={raw_p:.4f} → FDR={fdr:.4f}")
+    else:
+        log_prefix = f" ({log_context})" if log_context else ""
+        logger.warning(f"No valid p-values for FDR correction{log_prefix}")
+
+    # Step 3: Plot with FDR-corrected significance markers
+    y_max = boxplot_data['Intensity'].max()
+    y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
+
+    for i, category in enumerate(existing_categories):
+        # Get FDR-corrected p-value and effect size
+        fdr = fdr_dict.get(category, np.nan)
+        cohens_d = cohens_d_dict.get(category, np.nan)
+
+        # Skip if no valid FDR value
+        if np.isnan(fdr):
+            continue
+
+        # Determine significance level using FDR (not raw p-value)
+        if fdr < 0.001:
+            sig_marker = '***'
+        elif fdr < 0.01:
+            sig_marker = '**'
+        elif fdr < 0.05:
+            sig_marker = '*'
+        else:
+            sig_marker = 'ns'
+
+        # Add significance bracket if significant
+        if sig_marker != 'ns':
+            # Calculate x positions for the connecting line
+            n_cats = len(existing_categories)
+            x_offset = (i - (n_cats - 1) / 2) * (BOXPLOT_WIDTH / n_cats)
+
+            x1 = 0 + x_offset  # Cancer position
+            x2 = 1 + x_offset  # Normal position
+
+            y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
+
+            # Format annotation text with effect size
+            if not np.isnan(cohens_d):
+                annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
+            else:
+                annotation_text = sig_marker
+
+            # Plot bracket using appropriate style
+            if use_enhanced_brackets:
+                # Enhanced style with rounded ends and fancy box
+                enhance_statistical_bracket(
+                    ax, x1, x2, y_position,
+                    text=annotation_text,
+                    color='black',
+                    fontsize=ANNOTATION_SIZE
+                )
+            else:
+                # Manual style with simple line and text
+                ax.plot(
+                    [x1, x2], [y_position, y_position],
+                    color='black', linewidth=LINE_MEDIUM_THICK,
+                    zorder=ZORDER_THRESHOLD
+                )
+                ax.text(
+                    (x1 + x2) / 2, y_position,
+                    annotation_text,
+                    ha='center', va='bottom',
+                    fontsize=ANNOTATION_SIZE,
+                    fontweight='bold',
+                    color='black',
+                    zorder=ZORDER_ANNOTATION
+                )
+
+            # Log result
+            logger.info(
+                f"{category}: Cancer vs Normal FDR={fdr:.4f} "
+                f"({sig_marker}), Cohen's d={cohens_d:.3f}"
+            )
+
+
+def _plot_boxplot_cancer_vs_normal_base(
+    self,
+    df: pd.DataFrame,
+    classification_type: str,
+    categories: list,
+    column_name: str,
+    figsize: tuple,
+    enable_debug_logging: bool = False
+) -> None:
+    """
+    Base method for Cancer vs Normal boxplot comparison (Phase 3.2)
+
+    Pipeline: TIC Normalization → Non-zero mean → Log2 Transform
+
+    Creates two versions for each classification type:
+    1. Without QC: All samples, mean of non-zero values
+    2. With QC: Exclude samples with <10% detection rate
+
+    Args:
+        df: Annotated DataFrame
+        classification_type: 'primary' or 'secondary' (for titles/filenames)
+        categories: List of classification categories to plot
+        column_name: Classification column name in DataFrame
+        figsize: Figure size tuple (e.g., (10, 6) or (12, 6))
+        enable_debug_logging: If True, log category distribution by group
+
+    Returns:
+        None (saves plots and trace data to self.output_dir)
+
+    Scientific Pipeline:
+        1. TIC normalization (Total Ion Current): Normalize intensities by sample sum
+        2. Non-zero mean calculation: Average only detected values (skipna method)
+        3. Log2 transformation: log2(mean + 1) for variance stabilization
+        4. Optional QC filtering: Exclude samples with <10% detection rate
+
+    Data Integrity:
+        - TIC normalization preserves relative intensities within samples
+        - Non-zero mean avoids bias from missing values (MNAR data)
+        - Log2 transformation: Standard for fold-change analysis
+        - Detection rate QC: Ensures reliable measurements
+    """
+    # Get sample columns (C1-C24, N1-N24)
+    cancer_samples, normal_samples = get_sample_columns(df)
+    sample_cols = cancer_samples + normal_samples
+
+    # Step 1: TIC (Total Ion Current) Normalization on entire dataset
+    intensity_matrix = replace_empty_with_zero(df[sample_cols])
+    sample_sums = intensity_matrix.sum(axis=0)
+    median_sum = sample_sums.median()
+    sample_sums_safe = sample_sums.replace(0, 1)
+    intensity_normalized = intensity_matrix / sample_sums_safe * median_sum
+
+    # Create df copy with normalized intensities
+    df_normalized = df.copy()
+    df_normalized[sample_cols] = intensity_normalized
+
+    # STANDARDIZED: Use centralized statistics calculation
+    _ = DataPreparationConfig(missing_data_method='skipna')  # Config for documentation
+
+    # Generate both versions (with and without QC)
+    for apply_qc in [False, True]:
+        data_for_plot = []
+
+        # Collect data for each classification category
+        for classification in categories:
+            subset_df = df_normalized[df_normalized[column_name] == classification]
+
+            for sample in sample_cols:
+                group = 'Cancer' if sample in cancer_samples else 'Normal'
+
+                # Calculate mean directly (for single sample column)
+                if len(subset_df) > 0:
+                    values = pd.to_numeric(subset_df[sample], errors='coerce')
+
+                    # Use skipna method: mean of non-zero values only
+                    valid_values = values[values > 0]
+
+                    if len(valid_values) > 0:
+                        mean_intensity = valid_values.mean()
+                        detection_rate = len(valid_values) / len(values)
+
+                        # Apply QC filter if needed
+                        if apply_qc and detection_rate < 0.1:
+                            continue  # Skip this sample
+
+                        # Add data point
+                        data_for_plot.append({
+                            'Group': group,
+                            'Classification': classification,
+                            'Intensity': np.log2(mean_intensity + 1),
+                            'Sample': sample,
+                            'DetectionRate': detection_rate
+                        })
+
+        # Check if we have data
+        if not data_for_plot:
+            logger.warning(
+                f"No data for {classification_type} Cancer vs Normal boxplot (QC={apply_qc})"
+            )
+            continue
+
+        plot_df = pd.DataFrame(data_for_plot)
+
+        # DEBUG: Log category distribution (optional, for secondary only)
+        if enable_debug_logging:
+            logger.info(f"{classification_type.capitalize()} boxplot (QC={apply_qc}) - Categories by group:")
+            for group in ['Cancer', 'Normal']:
+                group_data = plot_df[plot_df['Group'] == group]
+                group_categories = group_data['Classification'].unique()
+                logger.info(
+                    f"  {group}: {sorted(group_categories)} ({len(group_data)} datapoints)"
+                )
+                for cat in categories:
+                    count = len(group_data[group_data['Classification'] == cat])
+                    if count == 0:
+                        logger.warning(f"    MISSING: {cat} has 0 samples in {group}!")
+
+        # Create figure
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # Determine which classifications are actually present
+        existing_classifications = [
+            cat for cat in categories if cat in plot_df['Classification'].values
+        ]
+
+        # Prism-style boxplot: Group on x-axis, colored by Classification
+        sns.boxplot(
+            data=plot_df,
+            x='Group',
+            y='Intensity',
+            hue='Classification',
+            order=['Cancer', 'Normal'],
+            hue_order=existing_classifications,
+            palette=EXTENDED_CATEGORY_COLORS,
+            width=BOXPLOT_WIDTH,
+            linewidth=BOXPLOT_LINEWIDTH,
+            flierprops={'markersize': BOXPLOT_FLIERSIZE},
+            dodge=True,
+            ax=ax
+        )
+
+        # Set labels and title
+        ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+        ax.set_ylabel(
+            'Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)',
+            fontsize=AXIS_LABEL_SIZE,
+            weight=AXIS_LABEL_WEIGHT
+        )
+
+        title = f'{classification_type.capitalize()} Classification: Cancer vs Normal'
+        if apply_qc:
+            title += '\n(QC: Detection rate ≥10%)'
+
+        ax.set_title(title, fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
+
+        # Apply Prism styling (grid and spine settings)
+        apply_standard_axis_style(ax, grid=True)
+        apply_standard_legend(ax, title=f'{classification_type.capitalize()} Classification')
+
+        # Add sample size annotation (Phase 2.2 enhancement)
+        n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+        n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+        add_sample_size_annotation(
+            ax, n_cancer=n_cancer, n_normal=n_normal,
+            location='upper left', fontsize=ANNOTATION_SIZE
+        )
+
+        # ✨ ENHANCED: Apply publication theme
+        apply_publication_theme(fig)
+
+        plt.tight_layout()
+
+        # Save outputs
+        suffix = '_qc' if apply_qc else ''
+        output_file = self.output_dir / f'boxplot_{classification_type}_cancer_vs_normal{suffix}.png'
+        save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+        logger.info(
+            f"✨ Saved ENHANCED {classification_type} Cancer vs Normal boxplot "
+            f"(QC={apply_qc}) to {output_file}"
+        )
+
+        # Save trace data
+        save_trace_data(
+            plot_df, self.output_dir,
+            f'boxplot_{classification_type}_cancer_vs_normal{suffix}_data.csv'
+        )
+
+        plt.close()
+
+
+def _plot_boxplot_classification_base(
+    self,
+    df: pd.DataFrame,
+    classification_type: str,
+    categories: list,
+    column_name: str,
+    normalization: str,
+    figsize: tuple
+) -> None:
+    """
+    Base method for classification boxplot (Phase 3.3)
+
+    Creates boxplot showing classification distribution across Cancer vs Normal groups.
+    Supports two normalization modes: 'raw' (min-max per sample) or 'aggregated' (log2).
+
+    Args:
+        df: Annotated DataFrame
+        classification_type: 'primary' or 'secondary' (for titles/filenames)
+        categories: List of classification categories to include
+        column_name: Classification column name in DataFrame
+        normalization: 'raw' (min-max) or 'aggregated' (log2)
+        figsize: Figure size tuple (e.g., (12, 8) or (14, 8))
+
+    Returns:
+        None (saves plot and trace data to self.output_dir)
+
+    Pipeline:
+        1. Get sample columns
+        2. Prepare long-format data with normalization
+        3. Apply log2 transform if aggregated
+        4. Aggregate by Sample, Group, Classification
+        5. Create Prism-style boxplot
+        6. Save outputs
+    """
+    # Get sample columns (C1-C24, N1-N24)
+    cancer_samples, normal_samples = get_sample_columns(df)
+    sample_cols = cancer_samples + normal_samples
+
+    # Prepare long format data
+    data_for_plot = []
+
+    for sample in sample_cols:
+        if normalization == 'raw':
+            # Min-max normalize per sample
+            intensity_col = replace_empty_with_zero(df[sample])
+            min_val, max_val = intensity_col.min(), intensity_col.max()
+            if max_val > min_val:
+                intensity_col = (intensity_col - min_val) / (max_val - min_val)
+        else:
+            intensity_col = replace_empty_with_zero(df[sample])
+
+        group = 'Cancer' if sample in cancer_samples else 'Normal'
+
+        for idx, row in df.iterrows():
+            if row[column_name] in categories:
+                intensity = intensity_col.loc[idx]
+                # CRITICAL FIX: Filter out zeros to avoid detection bias
+                # Only include detected values in the plot
+                if intensity > 0:
+                    data_for_plot.append({
+                        'Sample': sample,
+                        'Group': group,
+                        'Classification': row[column_name],
+                        'Intensity': intensity
+                    })
+
+    plot_df = pd.DataFrame(data_for_plot)
+
+    # Apply aggregated normalization if needed
+    if normalization == 'aggregated':
+        plot_df['Intensity'] = np.log2(plot_df['Intensity'] + 1)
+
+    # CRITICAL FIX: Aggregate by Sample and Classification
+    # Without this, we plot ~108,000 individual glycopeptide measurements
+    # With this, we plot ~94 aggregated values (47 samples × categories)
+    plot_df = plot_df.groupby(['Sample', 'Group', 'Classification'], as_index=False)['Intensity'].mean()
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Determine which classifications are actually present
+    existing_classifications = [cat for cat in categories if cat in plot_df['Classification'].values]
+
+    # Prism-style boxplot: Group on x-axis, colored by Classification
+    sns.boxplot(
+        data=plot_df,
+        x='Group',
+        y='Intensity',
+        hue='Classification',
+        order=['Cancer', 'Normal'],
+        hue_order=existing_classifications,
+        palette=EXTENDED_CATEGORY_COLORS,
+        width=BOXPLOT_WIDTH,
+        linewidth=BOXPLOT_LINEWIDTH,
+        flierprops={'markersize': BOXPLOT_FLIERSIZE},
+        dodge=True,
+        ax=ax
+    )
+
+    norm_text = 'Raw Normalized' if normalization == 'raw' else 'Log2 Scaled'
+    ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+    ax.set_ylabel(f'Intensity ({norm_text})', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
+    ax.set_title(
+        f'{classification_type.capitalize()} Classification Distribution ({norm_text})',
+        fontsize=TITLE_SIZE, weight=TITLE_WEIGHT
+    )
+
+    # Apply Prism styling (grid and spine settings)
+    apply_standard_axis_style(ax, grid=True)
+    apply_standard_legend(ax, title=f'{classification_type.capitalize()} Classification')
+
+    # Add sample size annotation (Phase 2.2 enhancement)
+    n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
+    n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
+    add_sample_size_annotation(
+        ax, n_cancer=n_cancer, n_normal=n_normal,
+        location='upper left', fontsize=ANNOTATION_SIZE
+    )
+
+    # ✨ ENHANCED: Apply publication theme
+    apply_publication_theme(fig)
+
+    plt.tight_layout()
+
+    output_file = self.output_dir / f'boxplot_{classification_type}_{normalization}_normalized.png'
+    save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
+    logger.info(f"✨ Saved ENHANCED {classification_type} boxplot to {output_file}")
+
+    plt.close()
+
+
 class BoxplotMixin:
     """Mixin class for boxplot-related visualizations"""
 
@@ -129,116 +631,16 @@ class BoxplotMixin:
         )
 
         # ========================================
-        # PHASE 1.1 FIX: Apply FDR correction for multiple testing
+        # PHASE 3.1: Apply FDR correction using centralized helper
         # ========================================
-        # Step 1: Collect all p-values and effect sizes
-        p_values_dict = {}  # {glycan_type: p_value}
-        cohens_d_dict = {}  # {glycan_type: effect_size}
-
-        for glycan_type in existing_types:
-            # Get data for each group
-            cancer_data = boxplot_data[
-                (boxplot_data['GlycanType'] == glycan_type) &
-                (boxplot_data['Group'] == 'Cancer')
-            ]['Intensity'].values
-
-            normal_data = boxplot_data[
-                (boxplot_data['GlycanType'] == glycan_type) &
-                (boxplot_data['Group'] == 'Normal')
-            ]['Intensity'].values
-
-            # Skip if either group has insufficient data
-            if len(cancer_data) < 3 or len(normal_data) < 3:
-                p_values_dict[glycan_type] = np.nan
-                cohens_d_dict[glycan_type] = np.nan
-                logger.warning(f"{glycan_type}: Insufficient data (Cancer: {len(cancer_data)}, Normal: {len(normal_data)})")
-                continue
-
-            # Perform Mann-Whitney U test (non-parametric)
-            try:
-                statistic, p_value = stats.mannwhitneyu(cancer_data, normal_data, alternative='two-sided')
-                cohens_d = calculate_cohens_d(cancer_data, normal_data)
-
-                p_values_dict[glycan_type] = p_value
-                cohens_d_dict[glycan_type] = cohens_d
-
-            except Exception as e:
-                logger.warning(f"Statistical test failed for {glycan_type}: {str(e)}")
-                p_values_dict[glycan_type] = np.nan
-                cohens_d_dict[glycan_type] = np.nan
-
-        # Step 2: Apply FDR correction (Benjamini-Hochberg)
-        valid_glycan_types = [gt for gt, p in p_values_dict.items() if not np.isnan(p)]
-        valid_p_values = [p_values_dict[gt] for gt in valid_glycan_types]
-
-        fdr_dict = {}
-        if len(valid_p_values) > 0:
-            # Apply Benjamini-Hochberg FDR correction
-            reject, fdr_values, _, _ = multipletests(valid_p_values, method='fdr_bh')
-            fdr_dict = dict(zip(valid_glycan_types, fdr_values))
-
-            # Log FDR correction results
-            n_significant = sum(fdr < 0.05 for fdr in fdr_values)
-            logger.info(f"FDR correction applied: {len(valid_p_values)} tests, "
-                       f"{n_significant} significant (FDR < 0.05)")
-
-            for gt, raw_p, fdr in zip(valid_glycan_types, valid_p_values, fdr_values):
-                logger.info(f"  {gt}: p={raw_p:.4f} → FDR={fdr:.4f}")
-        else:
-            logger.warning("No valid p-values for FDR correction")
-
-        # Step 3: Plot with FDR-corrected significance markers
-        y_max = boxplot_data['Intensity'].max()
-        y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
-
-        for i, glycan_type in enumerate(existing_types):
-            # Get FDR-corrected p-value
-            fdr = fdr_dict.get(glycan_type, np.nan)
-            cohens_d = cohens_d_dict.get(glycan_type, np.nan)
-
-            # Skip if no valid FDR value
-            if np.isnan(fdr):
-                continue
-
-            # Determine significance level using FDR (not raw p-value)
-            if fdr < 0.001:
-                sig_marker = '***'
-            elif fdr < 0.01:
-                sig_marker = '**'
-            elif fdr < 0.05:
-                sig_marker = '*'
-            else:
-                sig_marker = 'ns'
-
-            # ✨ ENHANCED: Add significance bracket if significant
-            if sig_marker != 'ns':
-                # Calculate x positions for the connecting line
-                n_types = len(existing_types)
-                x_offset = (i - (n_types - 1) / 2) * (BOXPLOT_WIDTH / n_types)
-
-                x1 = 0 + x_offset  # Cancer position
-                x2 = 1 + x_offset  # Normal position
-
-                y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
-
-                # Format annotation text with effect size
-                if not np.isnan(cohens_d):
-                    annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
-                else:
-                    annotation_text = sig_marker
-
-                # ✨ Use enhanced statistical bracket (rounded ends, fancy box)
-                enhance_statistical_bracket(
-                    ax, x1, x2, y_position,
-                    text=annotation_text,
-                    color='black',
-                    fontsize=ANNOTATION_SIZE
-                )
-
-                logger.info(
-                    f"{glycan_type}: Cancer vs Normal FDR={fdr:.4f} "
-                    f"({sig_marker}), Cohen's d={cohens_d:.3f}"
-                )
+        _perform_fdr_correction_and_plot_brackets(
+            ax=ax,
+            boxplot_data=boxplot_data,
+            category_column='GlycanType',
+            existing_categories=existing_types,
+            log_context="",  # No prefix for standard boxplot
+            use_enhanced_brackets=True  # Use enhanced bracket style
+        )
 
         # Apply standardized axis styling with gridlines
         apply_standard_axis_style(
@@ -314,124 +716,16 @@ class BoxplotMixin:
         )
 
         # ========================================
-        # PHASE 1.2 FIX: Apply FDR correction for multiple testing
+        # PHASE 3.1: Apply FDR correction using centralized helper
         # ========================================
-        # Step 1: Collect all p-values and effect sizes
-        p_values_dict = {}  # {category: p_value}
-        cohens_d_dict = {}  # {category: effect_size}
-
-        for category in existing_categories:
-            # Get data for each group
-            cancer_data = boxplot_data[
-                (boxplot_data['ExtendedCategory'] == category) &
-                (boxplot_data['Group'] == 'Cancer')
-            ]['Intensity'].values
-
-            normal_data = boxplot_data[
-                (boxplot_data['ExtendedCategory'] == category) &
-                (boxplot_data['Group'] == 'Normal')
-            ]['Intensity'].values
-
-            # Skip if either group has insufficient data
-            if len(cancer_data) < 3 or len(normal_data) < 3:
-                p_values_dict[category] = np.nan
-                cohens_d_dict[category] = np.nan
-                logger.warning(f"{category}: Insufficient data (Cancer: {len(cancer_data)}, Normal: {len(normal_data)})")
-                continue
-
-            # Perform Mann-Whitney U test (non-parametric)
-            try:
-                statistic, p_value = stats.mannwhitneyu(cancer_data, normal_data, alternative='two-sided')
-                cohens_d = calculate_cohens_d(cancer_data, normal_data)
-
-                p_values_dict[category] = p_value
-                cohens_d_dict[category] = cohens_d
-
-            except Exception as e:
-                logger.warning(f"Statistical test failed for {category}: {str(e)}")
-                p_values_dict[category] = np.nan
-                cohens_d_dict[category] = np.nan
-
-        # Step 2: Apply FDR correction (Benjamini-Hochberg)
-        valid_categories = [cat for cat, p in p_values_dict.items() if not np.isnan(p)]
-        valid_p_values = [p_values_dict[cat] for cat in valid_categories]
-
-        fdr_dict = {}
-        if len(valid_p_values) > 0:
-            # Apply Benjamini-Hochberg FDR correction
-            reject, fdr_values, _, _ = multipletests(valid_p_values, method='fdr_bh')
-            fdr_dict = dict(zip(valid_categories, fdr_values))
-
-            # Log FDR correction results
-            n_significant = sum(fdr < 0.05 for fdr in fdr_values)
-            logger.info(f"FDR correction applied (extended): {len(valid_p_values)} tests, "
-                       f"{n_significant} significant (FDR < 0.05)")
-
-            for cat, raw_p, fdr in zip(valid_categories, valid_p_values, fdr_values):
-                logger.info(f"  {cat}: p={raw_p:.4f} → FDR={fdr:.4f}")
-        else:
-            logger.warning("No valid p-values for FDR correction (extended)")
-
-        # Step 3: Plot with FDR-corrected significance markers
-        y_max = boxplot_data['Intensity'].max()
-        y_range = boxplot_data['Intensity'].max() - boxplot_data['Intensity'].min()
-
-        for i, category in enumerate(existing_categories):
-            # Get FDR-corrected p-value
-            fdr = fdr_dict.get(category, np.nan)
-            cohens_d = cohens_d_dict.get(category, np.nan)
-
-            # Skip if no valid FDR value
-            if np.isnan(fdr):
-                continue
-
-            # Determine significance level using FDR (not raw p-value)
-            if fdr < 0.001:
-                sig_marker = '***'
-            elif fdr < 0.01:
-                sig_marker = '**'
-            elif fdr < 0.05:
-                sig_marker = '*'
-            else:
-                sig_marker = 'ns'
-
-            # Add significance marker if significant (connecting Cancer and Normal groups)
-            if sig_marker != 'ns':
-                # Calculate x positions for the connecting line
-                n_cats = len(existing_categories)
-                x_offset = (i - (n_cats - 1) / 2) * (BOXPLOT_WIDTH / n_cats)
-
-                x1 = 0 + x_offset  # Cancer position
-                x2 = 1 + x_offset  # Normal position
-
-                y_position = y_max + y_range * 0.05 * (1 + i * 0.3)
-
-                # Draw line connecting the two groups
-                ax.plot([x1, x2], [y_position, y_position],
-                        color='black', linewidth=LINE_MEDIUM_THICK, zorder=ZORDER_THRESHOLD)
-
-                # Add significance marker WITH effect size (Phase 1.1)
-                if not np.isnan(cohens_d):
-                    annotation_text = f"{sig_marker}\n(d={cohens_d:.2f})"
-                else:
-                    annotation_text = sig_marker
-
-                ax.text(
-                    (x1 + x2) / 2,
-                    y_position,
-                    annotation_text,
-                    ha='center',
-                    va='bottom',
-                    fontsize=ANNOTATION_SIZE,  # Slightly smaller for two-line text
-                    fontweight='bold',
-                    color='black',
-                    zorder=ZORDER_ANNOTATION
-                )
-
-                logger.info(
-                    f"{category}: Cancer vs Normal FDR={fdr:.4f} "
-                    f"({sig_marker}), Cohen's d={cohens_d:.3f}"
-                )
+        _perform_fdr_correction_and_plot_brackets(
+            ax=ax,
+            boxplot_data=boxplot_data,
+            category_column='ExtendedCategory',
+            existing_categories=existing_categories,
+            log_context="extended",  # Add "extended" prefix to logs
+            use_enhanced_brackets=False  # Use manual bracket style (line + text)
+        )
 
         # Apply standardized axis styling with gridlines
         apply_standard_axis_style(
@@ -479,99 +773,16 @@ class BoxplotMixin:
             normalization: 'raw' or 'aggregated'
             figsize: Figure size
         """
-        # Identify sample columns
-        # Get sample columns (C1-C24, N1-N24)
-        cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
-
-        # Primary classification categories
-        primary_categories = ['Truncated', 'High Mannose', 'ComplexHybrid']
-
-        # Prepare long format data
-        data_for_plot = []
-
-        for sample in sample_cols:
-            if normalization == 'raw':
-                # Min-max normalize per sample
-                intensity_col = replace_empty_with_zero(df[sample])
-                min_val, max_val = intensity_col.min(), intensity_col.max()
-                if max_val > min_val:
-                    intensity_col = (intensity_col - min_val) / (max_val - min_val)
-            else:
-                intensity_col = replace_empty_with_zero(df[sample])
-
-            group = 'Cancer' if sample in cancer_samples else 'Normal'
-
-            for idx, row in df.iterrows():
-                if row['PrimaryClassification'] in primary_categories:
-                    intensity = intensity_col.loc[idx]
-                    # CRITICAL FIX: Filter out zeros to avoid detection bias
-                    # Only include detected values in the plot
-                    if intensity > 0:
-                        data_for_plot.append({
-                            'Sample': sample,
-                            'Group': group,
-                            'Classification': row['PrimaryClassification'],
-                            'Intensity': intensity
-                        })
-
-        plot_df = pd.DataFrame(data_for_plot)
-
-        # Apply aggregated normalization if needed
-        if normalization == 'aggregated':
-            plot_df['Intensity'] = np.log2(plot_df['Intensity'] + 1)
-
-        # CRITICAL FIX: Aggregate by Sample and Classification
-        # Without this, we plot ~108,000 individual glycopeptide measurements
-        # With this, we plot ~94 aggregated values (47 samples × 2 categories)
-        plot_df = plot_df.groupby(['Sample', 'Group', 'Classification'], as_index=False)['Intensity'].mean()
-
-        fig, ax = plt.subplots(figsize=figsize)
-
-        # Determine which classifications are actually present
-        existing_classifications = [cat for cat in primary_categories if cat in plot_df['Classification'].values]
-
-        # Prism-style boxplot: Group on x-axis, colored by Classification
-        sns.boxplot(
-            data=plot_df,
-            x='Group',
-            y='Intensity',
-            hue='Classification',
-            order=['Cancer', 'Normal'],
-            hue_order=existing_classifications,
-            palette=EXTENDED_CATEGORY_COLORS,
-            width=BOXPLOT_WIDTH,
-            linewidth=BOXPLOT_LINEWIDTH,
-            flierprops={'markersize': BOXPLOT_FLIERSIZE},
-            dodge=True,
-            ax=ax
+        # PHASE 3.3: Thin wrapper delegating to centralized base method
+        _plot_boxplot_classification_base(
+            self,
+            df=df,
+            classification_type='primary',
+            categories=['Truncated', 'High Mannose', 'ComplexHybrid'],
+            column_name='PrimaryClassification',
+            normalization=normalization,
+            figsize=figsize
         )
-
-        norm_text = 'Raw Normalized' if normalization == 'raw' else 'Log2 Scaled'
-        ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-        ax.set_ylabel(f'Intensity ({norm_text})', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-        ax.set_title(f'Primary Classification Distribution ({norm_text})', fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
-
-        # Apply Prism styling (grid and spine settings)
-        apply_standard_axis_style(ax, grid=True)
-        apply_standard_legend(ax, title='Primary Classification')
-
-        # Add sample size annotation (Phase 2.2 enhancement)
-        n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
-        n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
-        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='upper left', fontsize=ANNOTATION_SIZE)
-
-        # ✨ ENHANCED: Apply publication theme
-        apply_publication_theme(fig)
-
-        plt.tight_layout()
-
-        output_file = self.output_dir / f'boxplot_primary_{normalization}_normalized.png'
-        save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
-        logger.info(f"✨ Saved ENHANCED primary boxplot to {output_file}")
-
-        plt.close()
 
     def plot_boxplot_secondary_classification(
         self, df: pd.DataFrame, normalization: str = 'raw',
@@ -585,99 +796,16 @@ class BoxplotMixin:
             normalization: 'raw' or 'aggregated'
             figsize: Figure size
         """
-        # Identify sample columns
-        # Get sample columns (C1-C24, N1-N24)
-        cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
-
-        # Secondary classification categories
-        secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
-
-        # Prepare long format data
-        data_for_plot = []
-
-        for sample in sample_cols:
-            if normalization == 'raw':
-                # Min-max normalize per sample
-                intensity_col = replace_empty_with_zero(df[sample])
-                min_val, max_val = intensity_col.min(), intensity_col.max()
-                if max_val > min_val:
-                    intensity_col = (intensity_col - min_val) / (max_val - min_val)
-            else:
-                intensity_col = replace_empty_with_zero(df[sample])
-
-            group = 'Cancer' if sample in cancer_samples else 'Normal'
-
-            for idx, row in df.iterrows():
-                if row['SecondaryClassification'] in secondary_categories:
-                    intensity = intensity_col.loc[idx]
-                    # CRITICAL FIX: Filter out zeros to avoid detection bias
-                    # Only include detected values in the plot
-                    if intensity > 0:
-                        data_for_plot.append({
-                            'Sample': sample,
-                            'Group': group,
-                            'Classification': row['SecondaryClassification'],
-                            'Intensity': intensity
-                        })
-
-        plot_df = pd.DataFrame(data_for_plot)
-
-        # Apply aggregated normalization if needed
-        if normalization == 'aggregated':
-            plot_df['Intensity'] = np.log2(plot_df['Intensity'] + 1)
-
-        # CRITICAL FIX: Aggregate by Sample and Classification
-        # Without this, we plot ~108,000 individual glycopeptide measurements
-        # With this, we plot ~235 aggregated values (47 samples × 5 categories)
-        plot_df = plot_df.groupby(['Sample', 'Group', 'Classification'], as_index=False)['Intensity'].mean()
-
-        fig, ax = plt.subplots(figsize=figsize)
-
-        # Determine which classifications are actually present
-        existing_classifications = [cat for cat in secondary_categories if cat in plot_df['Classification'].values]
-
-        # Prism-style boxplot: Group on x-axis, colored by Classification
-        sns.boxplot(
-            data=plot_df,
-            x='Group',
-            y='Intensity',
-            hue='Classification',
-            order=['Cancer', 'Normal'],
-            hue_order=existing_classifications,
-            palette=EXTENDED_CATEGORY_COLORS,
-            width=BOXPLOT_WIDTH,
-            linewidth=BOXPLOT_LINEWIDTH,
-            flierprops={'markersize': BOXPLOT_FLIERSIZE},
-            dodge=True,
-            ax=ax
+        # PHASE 3.3: Thin wrapper delegating to centralized base method
+        _plot_boxplot_classification_base(
+            self,
+            df=df,
+            classification_type='secondary',
+            categories=['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated'],
+            column_name='SecondaryClassification',
+            normalization=normalization,
+            figsize=figsize
         )
-
-        norm_text = 'Raw Normalized' if normalization == 'raw' else 'Log2 Scaled'
-        ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-        ax.set_ylabel(f'Intensity ({norm_text})', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-        ax.set_title(f'Secondary Classification Distribution ({norm_text})', fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
-
-        # Apply Prism styling (grid and spine settings)
-        apply_standard_axis_style(ax, grid=True)
-        apply_standard_legend(ax, title='Secondary Classification')
-
-        # Add sample size annotation (Phase 2.2 enhancement)
-        n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
-        n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
-        add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                   location='upper left', fontsize=ANNOTATION_SIZE)
-
-        # ✨ ENHANCED: Apply publication theme
-        apply_publication_theme(fig)
-
-        plt.tight_layout()
-
-        output_file = self.output_dir / f'boxplot_secondary_{normalization}_normalized.png'
-        save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
-        logger.info(f"✨ Saved ENHANCED secondary boxplot to {output_file}")
-
-        plt.close()
 
     def plot_boxplot_cancer_vs_normal_primary(self, df: pd.DataFrame, figsize: tuple = (10, 6)):
         """
@@ -693,121 +821,16 @@ class BoxplotMixin:
             df: Annotated DataFrame
             figsize: Figure size
         """
-        # Get sample columns (C1-C24, N1-N24)
-        cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
-
-        # Step 1: TIC (Total Ion Current) Normalization on entire dataset
-        intensity_matrix = replace_empty_with_zero(df[sample_cols])
-        sample_sums = intensity_matrix.sum(axis=0)
-        median_sum = sample_sums.median()
-        sample_sums_safe = sample_sums.replace(0, 1)
-        intensity_normalized = intensity_matrix / sample_sums_safe * median_sum
-
-        # Create df copy with normalized intensities
-        df_normalized = df.copy()
-        df_normalized[sample_cols] = intensity_normalized
-
-        primary_categories = ['High Mannose', 'ComplexHybrid']
-
-        # STANDARDIZED: Use centralized statistics calculation
-        _ = DataPreparationConfig(missing_data_method='skipna')  # Config for documentation
-
-        # Generate both versions
-        for apply_qc in [False, True]:
-            data_for_plot = []
-
-            for classification in primary_categories:
-                subset_df = df_normalized[df_normalized['PrimaryClassification'] == classification]
-
-                for sample in sample_cols:
-                    group = 'Cancer' if sample in cancer_samples else 'Normal'
-
-                    # Calculate mean directly (for single sample column)
-                    if len(subset_df) > 0:
-                        values = pd.to_numeric(subset_df[sample], errors='coerce')
-
-                        # Use skipna method: mean of non-zero values only
-                        valid_values = values[values > 0]
-
-                        if len(valid_values) > 0:
-                            mean_intensity = valid_values.mean()
-                            detection_rate = len(valid_values) / len(values)
-
-                            # Apply QC filter if needed
-                            if apply_qc and detection_rate < 0.1:
-                                continue  # Skip this sample
-
-                            # Add data point
-                            data_for_plot.append({
-                                'Group': group,
-                                'Classification': classification,
-                                'Intensity': np.log2(mean_intensity + 1),
-                                'Sample': sample,
-                                'DetectionRate': detection_rate
-                            })
-
-            if not data_for_plot:
-                logger.warning(f"No data for primary Cancer vs Normal boxplot (QC={apply_qc})")
-                continue
-
-            plot_df = pd.DataFrame(data_for_plot)
-
-            fig, ax = plt.subplots(figsize=figsize)
-
-            # Determine which classifications are actually present
-            existing_classifications = [cat for cat in primary_categories if cat in plot_df['Classification'].values]
-
-            # Prism-style boxplot: Group on x-axis, colored by Classification
-            sns.boxplot(
-                data=plot_df,
-                x='Group',
-                y='Intensity',
-                hue='Classification',
-                order=['Cancer', 'Normal'],
-                hue_order=existing_classifications,
-                palette=EXTENDED_CATEGORY_COLORS,
-                width=BOXPLOT_WIDTH,
-                linewidth=BOXPLOT_LINEWIDTH,
-                flierprops={'markersize': BOXPLOT_FLIERSIZE},
-                dodge=True,
-                ax=ax
-            )
-
-            ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)',
-                          fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-
-            title = 'Primary Classification: Cancer vs Normal'
-            if apply_qc:
-                title += '\n(QC: Detection rate ≥10%)'
-
-            ax.set_title(title, fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
-
-            # Apply Prism styling (grid and spine settings)
-            apply_standard_axis_style(ax, grid=True)
-            apply_standard_legend(ax, title='Primary Classification')
-
-            # Add sample size annotation (Phase 2.2 enhancement)
-            n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
-            n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
-            add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                       location='upper left', fontsize=ANNOTATION_SIZE)
-
-            # ✨ ENHANCED: Apply publication theme
-            apply_publication_theme(fig)
-
-            plt.tight_layout()
-
-            suffix = '_qc' if apply_qc else ''
-            output_file = self.output_dir / f'boxplot_primary_cancer_vs_normal{suffix}.png'
-            save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
-            logger.info(f"✨ Saved ENHANCED primary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
-
-            # Save trace data
-            save_trace_data(plot_df, self.output_dir, f'boxplot_primary_cancer_vs_normal{suffix}_data.csv')
-
-            plt.close()
+        # PHASE 3.2: Thin wrapper delegating to centralized base method
+        _plot_boxplot_cancer_vs_normal_base(
+            self,
+            df=df,
+            classification_type='primary',
+            categories=['High Mannose', 'ComplexHybrid'],
+            column_name='PrimaryClassification',
+            figsize=figsize,
+            enable_debug_logging=False
+        )
 
     def plot_boxplot_cancer_vs_normal_secondary(self, df: pd.DataFrame, figsize: tuple = (12, 6)):
         """
@@ -823,129 +846,13 @@ class BoxplotMixin:
             df: Annotated DataFrame
             figsize: Figure size
         """
-        # Get sample columns (C1-C24, N1-N24)
-        cancer_samples, normal_samples = get_sample_columns(df)
-        sample_cols = cancer_samples + normal_samples
-
-        # Step 1: TIC (Total Ion Current) Normalization on entire dataset
-        intensity_matrix = replace_empty_with_zero(df[sample_cols])
-        sample_sums = intensity_matrix.sum(axis=0)
-        median_sum = sample_sums.median()
-        sample_sums_safe = sample_sums.replace(0, 1)
-        intensity_normalized = intensity_matrix / sample_sums_safe * median_sum
-
-        # Create df copy with normalized intensities
-        df_normalized = df.copy()
-        df_normalized[sample_cols] = intensity_normalized
-
-        secondary_categories = ['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated']
-
-        # STANDARDIZED: Use centralized statistics calculation
-        _ = DataPreparationConfig(missing_data_method='skipna')  # Config for documentation
-
-        # Generate both versions
-        for apply_qc in [False, True]:
-            data_for_plot = []
-
-            for classification in secondary_categories:
-                subset_df = df_normalized[df_normalized['SecondaryClassification'] == classification]
-
-                for sample in sample_cols:
-                    group = 'Cancer' if sample in cancer_samples else 'Normal'
-
-                    # Calculate mean directly (for single sample column)
-                    if len(subset_df) > 0:
-                        values = pd.to_numeric(subset_df[sample], errors='coerce')
-
-                        # Use skipna method: mean of non-zero values only
-                        valid_values = values[values > 0]
-
-                        if len(valid_values) > 0:
-                            mean_intensity = valid_values.mean()
-                            detection_rate = len(valid_values) / len(values)
-
-                            # Apply QC filter if needed
-                            if apply_qc and detection_rate < 0.1:
-                                continue  # Skip this sample
-
-                            # Add data point
-                            data_for_plot.append({
-                                'Group': group,
-                                'Classification': classification,
-                                'Intensity': np.log2(mean_intensity + 1),
-                                'Sample': sample,
-                                'DetectionRate': detection_rate
-                            })
-
-            if not data_for_plot:
-                logger.warning(f"No data for secondary Cancer vs Normal boxplot (QC={apply_qc})")
-                continue
-
-            plot_df = pd.DataFrame(data_for_plot)
-
-            # DEBUG: Log categories by group
-            logger.info(f"Secondary boxplot (QC={apply_qc}) - Categories by group:")
-            for group in ['Cancer', 'Normal']:
-                group_data = plot_df[plot_df['Group'] == group]
-                categories = group_data['Classification'].unique()
-                logger.info(f"  {group}: {sorted(categories)} ({len(group_data)} datapoints)")
-                for cat in secondary_categories:
-                    count = len(group_data[group_data['Classification'] == cat])
-                    if count == 0:
-                        logger.warning(f"    MISSING: {cat} has 0 samples in {group}!")
-
-            fig, ax = plt.subplots(figsize=figsize)
-
-            # Determine which classifications are actually present
-            existing_classifications = [cat for cat in secondary_categories if cat in plot_df['Classification'].values]
-
-            # Prism-style boxplot: Group on x-axis, colored by Classification
-            sns.boxplot(
-                data=plot_df,
-                x='Group',
-                y='Intensity',
-                hue='Classification',
-                order=['Cancer', 'Normal'],
-                hue_order=existing_classifications,
-                palette=EXTENDED_CATEGORY_COLORS,
-                width=BOXPLOT_WIDTH,
-                linewidth=BOXPLOT_LINEWIDTH,
-                flierprops={'markersize': BOXPLOT_FLIERSIZE},
-                dodge=True,
-                ax=ax
-            )
-
-            ax.set_xlabel('Group', fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-            ax.set_ylabel('Log2(Mean Intensity + 1)\n(TIC-normalized, non-zero values only)',
-                          fontsize=AXIS_LABEL_SIZE, weight=AXIS_LABEL_WEIGHT)
-
-            title = 'Secondary Classification: Cancer vs Normal'
-            if apply_qc:
-                title += '\n(QC: Detection rate ≥10%)'
-
-            ax.set_title(title, fontsize=TITLE_SIZE, weight=TITLE_WEIGHT)
-
-            # Apply Prism styling (grid and spine settings)
-            apply_standard_axis_style(ax, grid=True)
-            apply_standard_legend(ax, title='Secondary Classification')
-
-            # Add sample size annotation (Phase 2.2 enhancement)
-            n_cancer = len(plot_df[plot_df['Group'] == 'Cancer']['Sample'].unique())
-            n_normal = len(plot_df[plot_df['Group'] == 'Normal']['Sample'].unique())
-            add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
-                                       location='upper left', fontsize=ANNOTATION_SIZE)
-
-            # ✨ ENHANCED: Apply publication theme
-            apply_publication_theme(fig)
-
-            plt.tight_layout()
-
-            suffix = '_qc' if apply_qc else ''
-            output_file = self.output_dir / f'boxplot_secondary_cancer_vs_normal{suffix}.png'
-            save_publication_figure(fig, output_file, dpi=BOXPLOT_DPI)
-            logger.info(f"✨ Saved ENHANCED secondary Cancer vs Normal boxplot (QC={apply_qc}) to {output_file}")
-
-            # Save trace data
-            save_trace_data(plot_df, self.output_dir, f'boxplot_secondary_cancer_vs_normal{suffix}_data.csv')
-
-            plt.close()
+        # PHASE 3.2: Thin wrapper delegating to centralized base method
+        _plot_boxplot_cancer_vs_normal_base(
+            self,
+            df=df,
+            classification_type='secondary',
+            categories=['High Mannose', 'Complex/Hybrid', 'Fucosylated', 'Sialylated', 'Sialofucosylated'],
+            column_name='SecondaryClassification',
+            figsize=figsize,
+            enable_debug_logging=True  # Enable debug logging for secondary (original behavior)
+        )

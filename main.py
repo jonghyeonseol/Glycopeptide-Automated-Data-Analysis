@@ -163,7 +163,9 @@ def generate_summary_report(state, config):
     logger.info("\n[6/6] Generating summary report...")
 
     from src.reporting import SummaryReport
+    from src.preprocessing_tracker import PreprocessingTracker
     from pathlib import Path
+    import json
 
     # Read filtering report
     filtering_report_path = Path(config['paths']['results_dir']) / 'filtering_report.txt'
@@ -172,12 +174,49 @@ def generate_summary_report(state, config):
         with open(filtering_report_path, 'r') as f:
             filtering_report = f.read()
 
+    # Phase 1.1: Generate and save preprocessing state
+    logger.info("Generating preprocessing state for reproducibility...")
+    tracker = PreprocessingTracker()
+
+    # Extract preprocessing information from config and pipeline state
+    tracker.mark_tic_normalized("tic")
+    tracker.mark_log_transformed(
+        pseudocount=1.0,  # From LOG_TRANSFORM_PSEUDOCOUNT constant
+        base=2
+    )
+    tracker.mark_scaled("RobustScaler")
+
+    # Set data statistics
+    cancer_samples = [col for col in state.filtered_data.columns if col.startswith('C') and col[1:].isdigit()]
+    normal_samples = [col for col in state.filtered_data.columns if col.startswith('N') and col[1:].isdigit()]
+    tracker.set_sample_counts(len(cancer_samples), len(normal_samples))
+
+    # Get glycopeptide counts from filtering report if available
+    if hasattr(state, 'raw_data') and state.raw_data is not None:
+        tracker.set_glycopeptide_counts(len(state.raw_data), len(state.filtered_data))
+    else:
+        # Only filtered count available (raw_data not stored in state)
+        tracker.set_glycopeptide_counts(len(state.filtered_data))
+
+    # Record filtering configuration
+    detection_config = config.get('analysis', {}).get('detection_filter', {})
+    tracker.mark_filtered(
+        min_detection_pct=detection_config.get('min_detection_pct', 0.30),
+        min_samples=detection_config.get('min_samples', 5)
+    )
+
+    # Save preprocessing state as JSON
+    preprocessing_path = Path(config['paths']['results_dir']) / 'preprocessing_state.json'
+    tracker.save(str(preprocessing_path))
+    logger.info(f"Saved preprocessing state to {preprocessing_path}")
+
     # Generate summary report
     report = SummaryReport()
     summary_content = report.generate({
         'pipeline_state': state,
         'config': config,
-        'filtering_report': filtering_report
+        'filtering_report': filtering_report,
+        'preprocessing_tracker': tracker  # Pass tracker for summary inclusion
     })
 
     # Save to file

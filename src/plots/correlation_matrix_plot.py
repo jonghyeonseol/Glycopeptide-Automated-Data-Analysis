@@ -40,6 +40,58 @@ logger = logging.getLogger(__name__)
 class CorrelationMatrixPlotMixin:
     """Mixin class for correlation matrix visualization"""
 
+    @staticmethod
+    def _prepare_correlation_matrix(df: pd.DataFrame, samples: list, method: str = 'pearson') -> tuple:
+        """
+        Unified correlation matrix preparation pipeline.
+
+        Pipeline: Extract Data → TIC Normalization → Log2 Transform → Correlation
+
+        Args:
+            df: Annotated DataFrame
+            samples: List of sample columns
+            method: Correlation method (default='pearson')
+
+        Returns:
+            Tuple of (corr_matrix, intensity_log)
+        """
+        # Step 1: Extract intensity data
+        intensity_data = replace_empty_with_zero(df[samples])
+
+        # Step 2: TIC (Total Ion Current) Normalization
+        sample_sums = intensity_data.sum(axis=0)
+        median_sum = sample_sums.median()
+        sample_sums_safe = sample_sums.replace(0, 1)
+        intensity_normalized = intensity_data / sample_sums_safe * median_sum
+
+        # Step 3: Log2 transform
+        intensity_log = np.log2(intensity_normalized + 1)
+
+        # Step 4: Calculate correlation matrix
+        corr_matrix = intensity_log.corr(method=method)
+
+        return corr_matrix, intensity_log
+
+    @staticmethod
+    def _get_correlation_center(corr_matrix: pd.DataFrame, default_center: float = None) -> float:
+        """
+        Calculate correlation center (dynamic or fixed).
+
+        Args:
+            corr_matrix: Correlation matrix
+            default_center: Optional default center for special cases
+
+        Returns:
+            Center value for heatmap color scale
+        """
+        if CORR_CENTER_AUTO:
+            center = np.median(corr_matrix.values)
+            logger.debug(f"  Using dynamic center: {center:.3f}")
+        else:
+            center = default_center if default_center is not None else CORR_CENTER_FIXED
+            logger.debug(f"  Using fixed center: {center:.3f}")
+        return center
+
     def plot_correlation_matrix(self, df: pd.DataFrame):
         """
         Create correlation matrix heatmaps for Cancer and Normal samples
@@ -73,37 +125,14 @@ class CorrelationMatrixPlotMixin:
         """
         logger.info(f"  Creating {group_name} correlation matrix...")
 
-        # Prepare intensity matrix
-        intensity_data = replace_empty_with_zero(df[samples])
-
-        # Step 1: TIC (Total Ion Current) Normalization
-        sample_sums = intensity_data.sum(axis=0)
-        median_sum = sample_sums.median()
-        sample_sums_safe = sample_sums.replace(0, 1)
-        intensity_normalized = intensity_data / sample_sums_safe * median_sum
-
-        logger.debug(f"  TIC normalization: median_sum={median_sum:.2e}")
-
-        # Step 2: Log2 transform
-        intensity_log = np.log2(intensity_normalized + 1)
-
-        # Step 3: Calculate correlation matrix
-        corr_matrix = intensity_log.corr(method='pearson')
+        # Prepare correlation matrix using unified helper
+        corr_matrix, intensity_log = self._prepare_correlation_matrix(df, samples)
 
         logger.debug(f"  Correlation range: [{corr_matrix.values.min():.3f}, "
                     f"{corr_matrix.values.max():.3f}]")
 
-        # ========================================
-        # DYNAMIC CENTER CALCULATION (NEW)
-        # ========================================
-        if CORR_CENTER_AUTO:
-            # Dynamic: use median of correlation values
-            corr_center = np.median(corr_matrix.values)
-            logger.debug(f"  Using dynamic center: {corr_center:.3f} (median)")
-        else:
-            # Fixed: use constant from config
-            corr_center = CORR_CENTER_FIXED
-            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+        # Get correlation center using unified helper
+        corr_center = self._get_correlation_center(corr_matrix)
 
         # Create figure
         fig, ax = plt.subplots(figsize=CORR_FIGSIZE)
@@ -197,30 +226,11 @@ class CorrelationMatrixPlotMixin:
         """
         logger.info(f"  Creating {group_name} correlation clustermap...")
 
-        # Prepare intensity matrix
-        intensity_data = replace_empty_with_zero(df[samples])
+        # Prepare correlation matrix using unified helper
+        corr_matrix, intensity_log = self._prepare_correlation_matrix(df, samples)
 
-        # Step 1: TIC (Total Ion Current) Normalization
-        sample_sums = intensity_data.sum(axis=0)
-        median_sum = sample_sums.median()
-        sample_sums_safe = sample_sums.replace(0, 1)
-        intensity_normalized = intensity_data / sample_sums_safe * median_sum
-
-        # Step 2: Log2 transform
-        intensity_log = np.log2(intensity_normalized + 1)
-
-        # Step 3: Calculate correlation matrix
-        corr_matrix = intensity_log.corr(method='pearson')
-
-        # ========================================
-        # DYNAMIC CENTER CALCULATION
-        # ========================================
-        if CORR_CENTER_AUTO:
-            corr_center = np.median(corr_matrix.values)
-            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
-        else:
-            corr_center = CORR_CENTER_FIXED
-            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+        # Get correlation center using unified helper
+        corr_center = self._get_correlation_center(corr_matrix)
 
         # Create clustermap with centralized constants
         g = sns.clustermap(corr_matrix,
@@ -277,30 +287,11 @@ class CorrelationMatrixPlotMixin:
         logger.debug(f"  Total samples: {len(all_samples)} "
                     f"(Cancer: {len(cancer_samples)}, Normal: {len(normal_samples)})")
 
-        # Prepare intensity matrix
-        intensity_data = replace_empty_with_zero(df[all_samples])
+        # Prepare correlation matrix using unified helper
+        corr_matrix, intensity_log = self._prepare_correlation_matrix(df, all_samples)
 
-        # Step 1: TIC (Total Ion Current) Normalization
-        sample_sums = intensity_data.sum(axis=0)
-        median_sum = sample_sums.median()
-        sample_sums_safe = sample_sums.replace(0, 1)
-        intensity_normalized = intensity_data / sample_sums_safe * median_sum
-
-        # Step 2: Log2 transform
-        intensity_log = np.log2(intensity_normalized + 1)
-
-        # Step 3: Calculate correlation matrix
-        corr_matrix = intensity_log.corr(method='pearson')
-
-        # ========================================
-        # DYNAMIC CENTER CALCULATION
-        # ========================================
-        if CORR_CENTER_AUTO:
-            corr_center = np.median(corr_matrix.values)
-            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
-        else:
-            corr_center = CORR_CENTER_FIXED
-            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+        # Get correlation center using unified helper
+        corr_center = self._get_correlation_center(corr_matrix)
 
         # Create figure with larger size to accommodate all samples
         fig, ax = plt.subplots(figsize=(18, 16))
@@ -386,35 +377,14 @@ class CorrelationMatrixPlotMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         all_samples = cancer_samples + normal_samples
 
-        # Prepare intensity matrix
-        intensity_data = replace_empty_with_zero(df[all_samples])
-
-        # Step 1: TIC normalization
-        sample_sums = intensity_data.sum(axis=0)
-        median_sum = sample_sums.median()
-        sample_sums_safe = sample_sums.replace(0, 1)
-        intensity_normalized = intensity_data / sample_sums_safe * median_sum
-
-        # Step 2: Log2 transform
-        intensity_log = np.log2(intensity_normalized + 1)
-
-        # Step 3: Calculate full correlation matrix
-        corr_matrix = intensity_log.corr(method='pearson')
+        # Prepare correlation matrix using unified helper
+        corr_matrix, intensity_log = self._prepare_correlation_matrix(df, all_samples)
 
         # Extract cross-group correlations only
         cross_corr = corr_matrix.loc[cancer_samples, normal_samples]
 
-        # ========================================
-        # DYNAMIC CENTER CALCULATION
-        # ========================================
-        # For cross-group, typically lower correlation, so adjust center
-        if CORR_CENTER_AUTO:
-            corr_center = np.median(cross_corr.values)
-            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
-        else:
-            # Use slightly lower fixed center for cross-group (0.7 instead of 0.8)
-            corr_center = 0.7
-            logger.debug(f"  Using adjusted fixed center: {corr_center:.3f}")
+        # Get correlation center using unified helper (adjusted for cross-group)
+        corr_center = self._get_correlation_center(cross_corr, default_center=0.7)
 
         # Create figure
         fig, ax = plt.subplots(figsize=CORR_FIGSIZE)
@@ -483,30 +453,11 @@ class CorrelationMatrixPlotMixin:
         cancer_samples, normal_samples = get_sample_columns(df)
         all_samples = cancer_samples + normal_samples
 
-        # Prepare intensity matrix
-        intensity_data = replace_empty_with_zero(df[all_samples])
+        # Prepare correlation matrix using unified helper
+        corr_matrix, intensity_log = self._prepare_correlation_matrix(df, all_samples)
 
-        # Step 1: TIC normalization
-        sample_sums = intensity_data.sum(axis=0)
-        median_sum = sample_sums.median()
-        sample_sums_safe = sample_sums.replace(0, 1)
-        intensity_normalized = intensity_data / sample_sums_safe * median_sum
-
-        # Step 2: Log2 transform
-        intensity_log = np.log2(intensity_normalized + 1)
-
-        # Step 3: Calculate correlation matrix
-        corr_matrix = intensity_log.corr(method='pearson')
-
-        # ========================================
-        # DYNAMIC CENTER CALCULATION
-        # ========================================
-        if CORR_CENTER_AUTO:
-            corr_center = np.median(corr_matrix.values)
-            logger.debug(f"  Using dynamic center: {corr_center:.3f}")
-        else:
-            corr_center = CORR_CENTER_FIXED
-            logger.debug(f"  Using fixed center: {corr_center:.3f}")
+        # Get correlation center using unified helper
+        corr_center = self._get_correlation_center(corr_matrix)
 
         # Create color annotation for sample groups
         sample_colors = []

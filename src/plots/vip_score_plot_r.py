@@ -229,6 +229,74 @@ class VIPScorePlotRMixin:
         ro.r(r_script)
         logger.info(f"Saved R-based VIP score plot to {output_file} (optimized, {DPI_SUPPLEMENTARY} DPI)")
 
+    def _prepare_vip_heatmap_data_generic(
+        self,
+        df: pd.DataFrame,
+        features_df: pd.DataFrame,
+        mask_fn,
+        aggregation_fn
+    ) -> tuple:
+        """
+        Generic heatmap data preparation for VIP score plots.
+
+        This helper consolidates the common heatmap data preparation pattern used by:
+        - plot_vip_scores_glycopeptide_r()
+        - plot_vip_scores_glycan_composition_r()
+        - plot_vip_scores_peptide_r()
+
+        Uses Strategy Pattern for flexible filtering and aggregation.
+
+        Args:
+            df: Annotated DataFrame
+            features_df: DataFrame with 'Feature' and 'VIP_Score' columns
+            mask_fn: Callable(df, row) -> boolean mask for filtering data
+            aggregation_fn: Callable(stats_dict, row) -> aggregated value
+
+        Returns:
+            Tuple of (heatmap_df, vip_plot_data)
+        """
+        # Get sample columns and config
+        cancer_samples, normal_samples = get_sample_columns(df)
+        config = DataPreparationConfig(missing_data_method='skipna')
+
+        # Prepare heatmap data using provided strategies
+        heatmap_data = []
+
+        for _, row in features_df.iterrows():
+            mask = mask_fn(df, row)
+
+            if mask.sum() > 0:
+                filtered_rows = df[mask]
+
+                # Use standardized statistics calculation
+                cancer_stats = calculate_group_statistics_standardized(
+                    filtered_rows, cancer_samples, method=config.missing_data_method
+                )
+                normal_stats = calculate_group_statistics_standardized(
+                    filtered_rows, normal_samples, method=config.missing_data_method
+                )
+
+                # Apply aggregation strategy
+                cancer_value = aggregation_fn(cancer_stats, row)
+                normal_value = aggregation_fn(normal_stats, row)
+
+                heatmap_data.append({
+                    'Feature': row['Feature'],
+                    'Cancer': cancer_value,
+                    'Normal': normal_value
+                })
+            else:
+                heatmap_data.append({
+                    'Feature': row['Feature'],
+                    'Cancer': 0,
+                    'Normal': 0
+                })
+
+        heatmap_df = pd.DataFrame(heatmap_data)
+        vip_plot_data = features_df[['Feature', 'VIP_Score']].copy()
+
+        return heatmap_df, vip_plot_data
+
     def plot_vip_scores_glycopeptide_r(self, df: pd.DataFrame, vip_df: pd.DataFrame, top_n: int = 10):
         """
         Plot top VIP scores by glycopeptide using R/ggplot2
@@ -250,36 +318,23 @@ class VIPScorePlotRMixin:
             lambda row: format_feature_label(row['Peptide'], row['GlycanComposition']), axis=1
         )
 
-        # Get sample columns
-        # Get sample columns (C1-C24, N1-N24)
-        cancer_samples, normal_samples = get_sample_columns(df)
+        # Define strategies for glycopeptide-specific filtering and aggregation
+        def mask_glycopeptide(df_inner, row):
+            """Filter by exact peptide + glycan combination"""
+            return (df_inner['Peptide'] == row['Peptide']) & \
+                   (df_inner['GlycanComposition'] == row['GlycanComposition'])
 
-        # STANDARDIZED: Prepare heatmap data using centralized statistics
-        config = DataPreparationConfig(missing_data_method='skipna')
-        heatmap_data = []
+        def aggregate_mean(stats, row):
+            """Use mean for individual glycopeptides"""
+            return stats['mean'].iloc[0] if not stats['mean'].isna().all() else 0
 
-        for _, row in top_n_data.iterrows():
-            mask = (df['Peptide'] == row['Peptide']) & (df['GlycanComposition'] == row['GlycanComposition'])
-            if mask.sum() > 0:
-                glycopeptide_row = df[mask]
-
-                # Use standardized statistics calculation
-                cancer_stats = calculate_group_statistics_standardized(
-                    glycopeptide_row, cancer_samples, method=config.missing_data_method
-                )
-                normal_stats = calculate_group_statistics_standardized(
-                    glycopeptide_row, normal_samples, method=config.missing_data_method
-                )
-
-                cancer_mean = cancer_stats['mean'].iloc[0] if not cancer_stats['mean'].isna().all() else 0
-                normal_mean = normal_stats['mean'].iloc[0] if not normal_stats['mean'].isna().all() else 0
-
-                heatmap_data.append({'Feature': row['Feature'], 'Cancer': cancer_mean, 'Normal': normal_mean})
-            else:
-                heatmap_data.append({'Feature': row['Feature'], 'Cancer': 0, 'Normal': 0})
-
-        heatmap_df = pd.DataFrame(heatmap_data)
-        vip_plot_data = top_n_data[['Feature', 'VIP_Score']].copy()
+        # Prepare heatmap data using unified helper
+        heatmap_df, vip_plot_data = self._prepare_vip_heatmap_data_generic(
+            df=df,
+            features_df=top_n_data,
+            mask_fn=mask_glycopeptide,
+            aggregation_fn=aggregate_mean
+        )
 
         output_file = self.output_dir / 'vip_score_glycopeptide_r.png'
         self._create_vip_plot_r(vip_plot_data, heatmap_df,
@@ -299,39 +354,22 @@ class VIPScorePlotRMixin:
         glycan_vip = vip_df.groupby('GlycanComposition')['VIP_Score'].max().nlargest(top_n).reset_index()
         glycan_vip['Feature'] = glycan_vip['GlycanComposition']
 
-        # Get sample columns
-        # Get sample columns (C1-C24, N1-N24)
-        cancer_samples, normal_samples = get_sample_columns(df)
+        # Define strategies for glycan composition-specific filtering and aggregation
+        def mask_glycan_composition(df_inner, row):
+            """Filter by glycan composition"""
+            return df_inner['GlycanComposition'] == row['GlycanComposition']
 
-        # STANDARDIZED: Prepare heatmap data using centralized statistics
-        config = DataPreparationConfig(missing_data_method='skipna')
-        heatmap_data = []
+        def aggregate_sum(stats, row):
+            """Sum across all peptides with this glycan"""
+            return stats['sum'].sum()
 
-        for _, row in glycan_vip.iterrows():
-            glycan_comp = row['GlycanComposition']
-            mask = df['GlycanComposition'] == glycan_comp
-
-            if mask.sum() > 0:
-                glycan_rows = df[mask]
-
-                # Use standardized statistics calculation
-                cancer_stats = calculate_group_statistics_standardized(
-                    glycan_rows, cancer_samples, method=config.missing_data_method
-                )
-                normal_stats = calculate_group_statistics_standardized(
-                    glycan_rows, normal_samples, method=config.missing_data_method
-                )
-
-                # Sum across all peptides with this glycan
-                cancer_total = cancer_stats['sum'].sum()
-                normal_total = normal_stats['sum'].sum()
-
-                heatmap_data.append({'Feature': row['Feature'], 'Cancer': cancer_total, 'Normal': normal_total})
-            else:
-                heatmap_data.append({'Feature': row['Feature'], 'Cancer': 0, 'Normal': 0})
-
-        heatmap_df = pd.DataFrame(heatmap_data)
-        vip_plot_data = glycan_vip[['Feature', 'VIP_Score']].copy()
+        # Prepare heatmap data using unified helper
+        heatmap_df, vip_plot_data = self._prepare_vip_heatmap_data_generic(
+            df=df,
+            features_df=glycan_vip,
+            mask_fn=mask_glycan_composition,
+            aggregation_fn=aggregate_sum
+        )
 
         output_file = self.output_dir / 'vip_score_glycan_composition_r.png'
         self._create_vip_plot_r(vip_plot_data, heatmap_df,
@@ -351,39 +389,22 @@ class VIPScorePlotRMixin:
         peptide_vip = vip_df.groupby('Peptide')['VIP_Score'].max().nlargest(top_n).reset_index()
         peptide_vip['Feature'] = peptide_vip['Peptide']
 
-        # Get sample columns
-        # Get sample columns (C1-C24, N1-N24)
-        cancer_samples, normal_samples = get_sample_columns(df)
+        # Define strategies for peptide-specific filtering and aggregation
+        def mask_peptide(df_inner, row):
+            """Filter by peptide"""
+            return df_inner['Peptide'] == row['Peptide']
 
-        # STANDARDIZED: Prepare heatmap data using centralized statistics
-        config = DataPreparationConfig(missing_data_method='skipna')
-        heatmap_data = []
+        def aggregate_sum(stats, row):
+            """Sum across all glycoforms of this peptide"""
+            return stats['sum'].sum()
 
-        for _, row in peptide_vip.iterrows():
-            peptide = row['Peptide']
-            mask = df['Peptide'] == peptide
-
-            if mask.sum() > 0:
-                peptide_rows = df[mask]
-
-                # Use standardized statistics calculation
-                cancer_stats = calculate_group_statistics_standardized(
-                    peptide_rows, cancer_samples, method=config.missing_data_method
-                )
-                normal_stats = calculate_group_statistics_standardized(
-                    peptide_rows, normal_samples, method=config.missing_data_method
-                )
-
-                # Sum across all glycoforms of this peptide
-                cancer_total = cancer_stats['sum'].sum()
-                normal_total = normal_stats['sum'].sum()
-
-                heatmap_data.append({'Feature': row['Feature'], 'Cancer': cancer_total, 'Normal': normal_total})
-            else:
-                heatmap_data.append({'Feature': row['Feature'], 'Cancer': 0, 'Normal': 0})
-
-        heatmap_df = pd.DataFrame(heatmap_data)
-        vip_plot_data = peptide_vip[['Feature', 'VIP_Score']].copy()
+        # Prepare heatmap data using unified helper
+        heatmap_df, vip_plot_data = self._prepare_vip_heatmap_data_generic(
+            df=df,
+            features_df=peptide_vip,
+            mask_fn=mask_peptide,
+            aggregation_fn=aggregate_sum
+        )
 
         output_file = self.output_dir / 'vip_score_peptide_r.png'
         self._create_vip_plot_r(vip_plot_data, heatmap_df,
