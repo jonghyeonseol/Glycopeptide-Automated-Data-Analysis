@@ -30,6 +30,8 @@ from .plot_config import (
     EDGE_COLOR_BLACK,# Edge color standardization,
     # Font family constants (Phase 10.3.10)
     FONT_DATA,
+    # Colormap constants (Phase 10.3.11)
+    CMAP_MISSING_DATA,
     # Linestyle constants (Phase 10.3.8)
     THRESHOLD_LINESTYLE,
     # Zorder constants (Phase 10.3.7)
@@ -128,7 +130,7 @@ class MissingDataPlotMixin:
             display_detection = glycopeptide_detection
 
         # Plot heatmap (white = missing, color = detected)
-        im = ax_main.imshow(display_matrix.values, aspect='auto', cmap='RdYlGn',
+        im = ax_main.imshow(display_matrix.values, aspect='auto', cmap=CMAP_MISSING_DATA,
                             interpolation='nearest', vmin=0, vmax=1)
 
         # Sample group colors (Cancer vs Normal)

@@ -39,6 +39,8 @@ from .plot_config import (
     EDGE_COLOR_BLACK,# Edge color standardization,
     # Font family constants (Phase 10.3.10)
     FONT_DATA,
+    # Colormap constants (Phase 10.3.11)
+    CMAP_CONFUSION_MATRIX,
     # Marker style constants (Phase 10.3.9)
     MARKER_HIGHLIGHT,
     # Linestyle constants (Phase 10.3.8)
@@ -231,7 +233,7 @@ class PLSDADiagnosticPlotMixin:
         logger.debug(f"  Confusion matrix:\n{cm}")
 
         # Plot confusion matrix
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False,
+        sns.heatmap(cm, annot=True, fmt='d', cmap=CMAP_CONFUSION_MATRIX, cbar=False,
                     ax=ax3, square=True, linewidths=LINE_THICK, linecolor='black',
                     annot_kws={'size': 16, 'weight': 'bold'})
 

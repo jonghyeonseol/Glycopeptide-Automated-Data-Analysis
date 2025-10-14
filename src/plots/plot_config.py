@@ -1139,6 +1139,10 @@ CMAP_DIVERGING = 'RdBu_r'  # Red-Blue reversed (Red=high, Blue=low)
 CMAP_DIVERGING_ALT = 'coolwarm'  # Alternative red-blue
 CMAP_DIVERGING_GREEN = 'PiYG'  # Purple-Yellow-Green
 
+# Special-purpose colormaps
+CMAP_MISSING_DATA = 'RdYlGn'  # Red-Yellow-Green for missing data visualization
+CMAP_CONFUSION_MATRIX = 'Blues'  # Sequential blue for confusion matrices (diagnostic)
+
 # Colorblind-safe sequential
 CMAP_COLORBLIND = 'cividis'  # Perceptually uniform + colorblind-safe
 

@@ -22,7 +22,8 @@ from .plot_config import (
     DPI_COMPLEX,
     TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,  # Font constants
     ALPHA_VERY_HIGH,  # Alpha constants
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,  # Edge color standardization
+    HEATMAP_CMAP_FOLDCHANGE  # Colormap constants (Phase 10.3.11)
 )
 
 logger = logging.getLogger(__name__)
@@ -133,7 +134,7 @@ class SiteSpecificHeatmapMixin:
 
         # Plot main heatmap
         sns.heatmap(heatmap_matrix, ax=ax_main,
-                    cmap='RdBu_r', center=0,
+                    cmap=HEATMAP_CMAP_FOLDCHANGE, center=0,
                     cbar_kws={'label': 'Log2 Fold Change\n(Cancer / Normal)', 'shrink': 0.8},
                     yticklabels=['Log2FC'],
                     xticklabels=row_labels,

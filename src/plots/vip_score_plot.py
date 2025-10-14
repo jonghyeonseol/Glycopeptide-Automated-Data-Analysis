@@ -31,6 +31,7 @@ from .plot_config import (
     TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE,
     ALPHA_MEDIUM_LIGHT,  # Alpha constants
     EDGE_COLOR_BLACK,# Edge color standardization
+    HEATMAP_CMAP_FOLDCHANGE,  # Colormap constants (Phase 10.3.11)
     # Zorder constants (Phase 10.3.7)
     ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
     ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
@@ -123,7 +124,7 @@ class VIPScorePlotMixin:
         ax_vip.grid(axis='x', alpha=ALPHA_MEDIUM_LIGHT)
 
         # Plot heatmap (right) with square cells
-        sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
+        sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap=HEATMAP_CMAP_FOLDCHANGE,
                     cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
                               'ticks': [0, 1]},
                     linewidths=0.5, linecolor='white',
@@ -226,7 +227,7 @@ class VIPScorePlotMixin:
         ax_vip.grid(axis='x', alpha=ALPHA_MEDIUM_LIGHT)
 
         # Plot heatmap (right) with square cells
-        sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
+        sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap=HEATMAP_CMAP_FOLDCHANGE,
                     cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
                               'ticks': [0, 1]},
                     linewidths=0.5, linecolor='white',
@@ -329,7 +330,7 @@ class VIPScorePlotMixin:
         ax_vip.grid(axis='x', alpha=ALPHA_MEDIUM_LIGHT)
 
         # Plot heatmap (right) with square cells
-        sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap='RdBu_r',
+        sns.heatmap(heatmap_normalized, ax=ax_heatmap, cmap=HEATMAP_CMAP_FOLDCHANGE,
                     cbar_kws={'label': 'Relative Intensity', 'shrink': 0.5,
                               'ticks': [0, 1]},
                     linewidths=0.5, linecolor='white',
