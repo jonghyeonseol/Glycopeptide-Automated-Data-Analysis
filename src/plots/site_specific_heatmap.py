@@ -32,31 +32,31 @@ logger = logging.getLogger(__name__)
 class SiteSpecificHeatmapMixin:
     """Mixin class for site-specific glycosylation heatmap"""
 
-    def plot_site_specific_heatmap(self, df: pd.DataFrame, vip_df: pd.DataFrame,
-                                   top_n_peptides: int = 20,
-                                   figsize: tuple = (16, 12)):
+    @staticmethod
+    def _calculate_fold_changes_for_peptides(df: pd.DataFrame, top_peptides: list,
+                                             cancer_samples: list, normal_samples: list,
+                                             config: DataPreparationConfig):
         """
-        Create heatmap showing glycan compositions for top peptides
+        Calculate log2 fold changes for all glycopeptides in top peptides
+
+        Eliminates ~30 lines of nested loop logic for fold change calculation.
 
         Args:
             df: Annotated DataFrame with intensity data
-            vip_df: DataFrame with VIP scores
-            top_n_peptides: Number of top peptides to show
-            figsize: Figure size (width, height)
+            top_peptides: List of top peptide sequences
+            cancer_samples: List of cancer sample column names
+            normal_samples: List of normal sample column names
+            config: Data preparation configuration
+
+        Returns:
+            Tuple of (heatmap_data, row_labels, glycan_types)
+
+        Pattern Used:
+            Helper Extraction - consolidates fold change calculation logic
         """
-        # Get sample columns using centralized function
-        cancer_samples, normal_samples = get_sample_columns(df)
-
-        # Get top peptides by max VIP score
-        top_peptides = vip_df.groupby('Peptide')['VIP_Score'].max().nlargest(top_n_peptides).index.tolist()
-
-        # Prepare heatmap data
         heatmap_data = []
         row_labels = []
         glycan_types = []
-
-        # STANDARDIZED: Use centralized statistics calculation
-        config = DataPreparationConfig(missing_data_method='skipna')
 
         for peptide in top_peptides:
             # Get all glycan compositions for this peptide
@@ -90,6 +90,34 @@ class SiteSpecificHeatmapMixin:
                 # Get glycan type
                 glycan_type = row.get('SecondaryClassification', 'Unknown')
                 glycan_types.append(glycan_type)
+
+        return heatmap_data, row_labels, glycan_types
+
+    def plot_site_specific_heatmap(self, df: pd.DataFrame, vip_df: pd.DataFrame,
+                                   top_n_peptides: int = 20,
+                                   figsize: tuple = (16, 12)):
+        """
+        Create heatmap showing glycan compositions for top peptides
+
+        Args:
+            df: Annotated DataFrame with intensity data
+            vip_df: DataFrame with VIP scores
+            top_n_peptides: Number of top peptides to show
+            figsize: Figure size (width, height)
+        """
+        # Get sample columns using centralized function
+        cancer_samples, normal_samples = get_sample_columns(df)
+
+        # Get top peptides by max VIP score
+        top_peptides = vip_df.groupby('Peptide')['VIP_Score'].max().nlargest(top_n_peptides).index.tolist()
+
+        # STANDARDIZED: Use centralized statistics calculation via helper
+        config = DataPreparationConfig(missing_data_method='skipna')
+
+        # Calculate fold changes using extracted helper method
+        heatmap_data, row_labels, glycan_types = self._calculate_fold_changes_for_peptides(
+            df, top_peptides, cancer_samples, normal_samples, config
+        )
 
         # Create DataFrame for heatmap
         heatmap_df = pd.DataFrame({

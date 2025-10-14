@@ -34,6 +34,71 @@ logger = logging.getLogger(__name__)
 class GlycopeptideDotHeatmapMixin:
     """Mixin class for glycopeptide dot heatmap visualization"""
 
+    @staticmethod
+    def _select_top_glycans_by_type(df_filtered: pd.DataFrame, glycan_type_order: list,
+                                    sample_name: str, max_glycans_per_type: int):
+        """
+        Select top glycans for each type based on sample intensity
+
+        Eliminates ~13 lines of duplicated glycan selection logic.
+
+        Args:
+            df_filtered: Filtered DataFrame with top peptides
+            glycan_type_order: List of glycan types in order
+            sample_name: Sample column name
+            max_glycans_per_type: Maximum glycans to select per type
+
+        Returns:
+            List of DataFrames (one per glycan type with data)
+
+        Pattern Used:
+            Helper Extraction - consolidates glycan selection logic
+        """
+        selected_glycans = []
+        for glycan_type in glycan_type_order:
+            type_glycans = df_filtered[df_filtered['GlycanTypeCategory'] == glycan_type]
+
+            if len(type_glycans) > 0:
+                # Sort by mean intensity for this sample
+                type_glycans = type_glycans.copy()
+                type_glycans['SampleIntensity'] = replace_empty_with_zero(
+                    type_glycans[[sample_name]]
+                ).values.flatten()
+
+                # Get top N glycans of this type
+                top_type_glycans = type_glycans.nlargest(
+                    min(max_glycans_per_type, len(type_glycans)),
+                    'SampleIntensity'
+                )
+                selected_glycans.append(top_type_glycans)
+
+        return selected_glycans
+
+    @staticmethod
+    def _calculate_glycan_intensities(df_plot: pd.DataFrame, glycan_order: list, sample_name: str):
+        """
+        Calculate aggregated intensities for each glycan
+
+        Eliminates ~5 lines of aggregation logic.
+
+        Args:
+            df_plot: DataFrame with plot data
+            glycan_order: Ordered list of glycan compositions
+            sample_name: Sample column name
+
+        Returns:
+            List of aggregated intensities
+
+        Pattern Used:
+            Helper Extraction - consolidates intensity calculation
+        """
+        glycan_intensities = []
+        for glycan in glycan_order:
+            glycan_data = df_plot[df_plot['GlycanComposition'] == glycan]
+            intensity = replace_empty_with_zero(glycan_data[[sample_name]]).sum()
+            glycan_intensities.append(intensity)
+        return glycan_intensities
+
     def plot_glycopeptide_dot_heatmap(
         self,
         df: pd.DataFrame,
@@ -76,24 +141,10 @@ class GlycopeptideDotHeatmapMixin:
         peptide_vip_map = vip_scores.groupby('Peptide')['VIP_Score'].mean().to_dict()
         df_filtered['PeptideVIP'] = df_filtered['Peptide'].map(peptide_vip_map)
 
-        # Select glycans by type (limit per type to avoid overcrowding)
-        selected_glycans = []
-        for glycan_type in glycan_type_order:
-            type_glycans = df_filtered[df_filtered['GlycanTypeCategory'] == glycan_type]
-
-            if len(type_glycans) > 0:
-                # Sort by mean intensity for this sample
-                type_glycans = type_glycans.copy()
-                type_glycans['SampleIntensity'] = replace_empty_with_zero(
-                    type_glycans[[sample_name]]
-                ).values.flatten()
-
-                # Get top N glycans of this type
-                top_type_glycans = type_glycans.nlargest(
-                    min(max_glycans_per_type, len(type_glycans)),
-                    'SampleIntensity'
-                )
-                selected_glycans.append(top_type_glycans)
+        # Select glycans by type using helper
+        selected_glycans = self._select_top_glycans_by_type(
+            df_filtered, glycan_type_order, sample_name, max_glycans_per_type
+        )
 
         if len(selected_glycans) == 0:
             logger.warning(f"No glycopeptides found for sample {sample_name}")
@@ -122,11 +173,7 @@ class GlycopeptideDotHeatmapMixin:
         ax_main = fig.add_subplot(gs[1])
 
         # === TOP PANEL: Line plot of aggregated intensity ===
-        glycan_intensities = []
-        for glycan in glycan_order:
-            glycan_data = df_plot[df_plot['GlycanComposition'] == glycan]
-            intensity = replace_empty_with_zero(glycan_data[[sample_name]]).sum()
-            glycan_intensities.append(intensity)
+        glycan_intensities = self._calculate_glycan_intensities(df_plot, glycan_order, sample_name)
 
         ax_top.plot(range(len(glycan_order)), glycan_intensities,
                     color='#333333', linewidth=PLOT_LINE_LINEWIDTH, marker=MARKER_CIRCLE, markersize=MARKER_SIZE_SMALL)

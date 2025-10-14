@@ -55,6 +55,41 @@ logger = logging.getLogger(__name__)
 class PCAPlotMixin:
     """Mixin class for PCA-related plots"""
 
+    def _save_pca_plot(self, fig, pca_df: pd.DataFrame, explained_var: list,
+                       output_filename: str, trace_filename: str):
+        """
+        Unified save method for PCA plots
+
+        Eliminates ~15 lines of duplicated save/trace logic.
+
+        Args:
+            fig: Matplotlib figure
+            pca_df: PCA DataFrame with PC1, PC2, Group columns
+            explained_var: List of explained variance ratios
+            output_filename: PNG output filename
+            trace_filename: CSV trace data filename
+
+        Pattern Used:
+            Helper Extraction - consolidates repeated save/trace pattern
+        """
+        plt.tight_layout()
+
+        # Apply publication theme
+        apply_publication_theme(fig)
+
+        # Save plot
+        output_file = self.output_dir / output_filename
+        save_publication_figure(fig, output_file, dpi=PCA_DPI)
+        logger.info(f"✨ Saved ENHANCED PCA plot to {output_file} ({PCA_DPI} DPI)")
+
+        # Save trace data
+        trace_data = pca_df.copy()
+        trace_data['PC1_variance'] = explained_var[0]
+        trace_data['PC2_variance'] = explained_var[1]
+        save_trace_data(trace_data, self.output_dir, trace_filename)
+
+        plt.close()
+
     def _draw_confidence_ellipse(self, ax, x, y, color, alpha=ALPHA_VERY_LIGHT, n_std=1.96):
         """
         Draw 95% confidence ellipse with ENHANCED gradient fill
@@ -215,23 +250,8 @@ class PCAPlotMixin:
         add_sample_size_annotation(ax, n_cancer=n_cancer, n_normal=n_normal,
                                    location='lower right', fontsize=ANNOTATION_SIZE)
 
-        plt.tight_layout()
-
-        # ✨ ENHANCED: Apply publication theme
-        apply_publication_theme(fig)
-
-        # Save plot
-        output_file = self.output_dir / 'pca_plot.png'
-        save_publication_figure(fig, output_file, dpi=PCA_DPI)
-        logger.info(f"✨ Saved ENHANCED PCA plot to {output_file} ({PCA_DPI} DPI)")
-
-        # Save trace data
-        trace_data = pca_df.copy()
-        trace_data['PC1_variance'] = explained_var[0]
-        trace_data['PC2_variance'] = explained_var[1]
-        save_trace_data(trace_data, self.output_dir, 'pca_plot_data.csv')
-
-        plt.close()
+        # Save plot using unified helper
+        self._save_pca_plot(fig, pca_df, explained_var, 'pca_plot.png', 'pca_plot_data.csv')
 
     def plot_pca_by_glycan_type(self, df: pd.DataFrame, pca_results: dict, figsize: tuple = (12, 8)):
         """
@@ -287,20 +307,6 @@ class PCAPlotMixin:
                                    location='lower right', fontsize=ANNOTATION_SIZE)
 
         ax.grid(True, alpha=ALPHA_MEDIUM_LIGHT)
-        plt.tight_layout()
 
-        # ✨ ENHANCED: Apply publication theme
-        apply_publication_theme(fig)
-
-        # Save plot
-        output_file = self.output_dir / 'pca_samples.png'
-        save_publication_figure(fig, output_file, dpi=PCA_DPI)
-        logger.info(f"✨ Saved ENHANCED PCA plot to {output_file} ({PCA_DPI} DPI)")
-
-        # Save trace data
-        trace_data = pca_df.copy()
-        trace_data['PC1_variance'] = explained_var[0]
-        trace_data['PC2_variance'] = explained_var[1]
-        save_trace_data(trace_data, self.output_dir, 'pca_samples_data.csv')
-
-        plt.close()
+        # Save plot using unified helper
+        self._save_pca_plot(fig, pca_df, explained_var, 'pca_samples.png', 'pca_samples_data.csv')
