@@ -431,6 +431,35 @@ GRID_LINESTYLE_MAJOR = '-'    # Major grid lines (solid for visibility)
 GRID_LINESTYLE_MINOR = ':'    # Minor grid lines (dotted for subtlety)
 SEPARATOR_LINESTYLE = '--'    # Visual separators between groups
 
+# ==============================================================================
+# Marker Style Constants - CENTRALIZED CONFIGURATION
+# Controls marker shapes for scatter plots and line plots
+# ==============================================================================
+
+# Standard markers (matplotlib filled markers)
+MARKER_CIRCLE = 'o'           # Circle - most common marker
+MARKER_SQUARE = 's'           # Square - easily distinguished from circle
+MARKER_TRIANGLE_UP = '^'      # Triangle pointing up
+MARKER_TRIANGLE_DOWN = 'v'    # Triangle pointing down
+MARKER_TRIANGLE_LEFT = '<'    # Triangle pointing left
+MARKER_TRIANGLE_RIGHT = '>'   # Triangle pointing right
+MARKER_DIAMOND = 'D'          # Diamond - combined shape
+MARKER_PENTAGON = 'p'         # Pentagon - 5-sided
+MARKER_HEXAGON = 'h'          # Hexagon - 6-sided
+MARKER_STAR = '*'             # Star - emphasis/highlight
+MARKER_PLUS = '+'             # Plus sign - annotation
+MARKER_CROSS = 'x'            # X mark - annotation
+MARKER_POINT = '.'            # Point - minimal marker
+MARKER_NONE = ''              # No marker (line only)
+
+# Semantic markers (context-specific usage)
+MARKER_CANCER = 'o'           # Cancer group (circle) - from GROUP_MARKERS
+MARKER_NORMAL = 's'           # Normal group (square) - from GROUP_MARKERS
+MARKER_HIGHLIGHT = '*'        # Highlighted/selected points
+MARKER_ANNOTATION = 'x'       # Annotation markers
+MARKER_ANNOTATION_ALT = '+'   # Alternative annotation marker
+MARKER_REFERENCE = 'D'        # Reference/standard points
+
 # PNG Compression Settings (File Size Optimization)
 # Matplotlib supports automatic PNG optimization
 SAVE_KWARGS = {
