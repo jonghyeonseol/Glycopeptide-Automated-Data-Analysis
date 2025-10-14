@@ -34,6 +34,8 @@ from .plot_config import (
     DESIGN_SYSTEM_AVAILABLE,
     ALPHA_HIGH, ALPHA_VERY_HIGH,  # Alpha constants
     EDGE_COLOR_BLACK,  # Edge color standardization,
+    # Font family constants (Phase 10.3.10)
+    FONT_DISPLAY,
     # Linestyle constants (Phase 10.3.8)
     THRESHOLD_LINESTYLE,
     # Zorder constants (Phase 10.3.7)
@@ -365,7 +367,7 @@ class VolcanoPlotMixin:
         # ✨ PREMIUM: Enhance title with better typography
         title = ax.get_title()
         ax.set_title(title, fontsize=TITLE_SIZE, fontweight='bold',
-                    family='Inter', pad=20)
+                    family=FONT_DISPLAY, pad=20)
 
         # Apply standardized legend (positioned outside plot area)
         apply_standard_legend(ax)

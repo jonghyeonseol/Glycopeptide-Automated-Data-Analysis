@@ -37,6 +37,8 @@ from .plot_config import (
     LINE_ALPHA, ALPHA_MEDIUM_LIGHT, THRESHOLD_ALPHA, OVERLAY_ALPHA, POINT_ALPHA,
     MARKER_SIZE_MEDIUM, DIAGNOSTIC_MARKER_SIZE,
     EDGE_COLOR_BLACK,# Edge color standardization,
+    # Font family constants (Phase 10.3.10)
+    FONT_DATA,
     # Marker style constants (Phase 10.3.9)
     MARKER_HIGHLIGHT,
     # Linestyle constants (Phase 10.3.8)
@@ -253,7 +255,7 @@ class PLSDADiagnosticPlotMixin:
         ax3.text(1.05, 0.5, metrics_text, transform=ax3.transAxes,
                  fontsize=ANNOTATION_SIZE, verticalalignment='center',
                  bbox=dict(boxstyle='round', facecolor='wheat', alpha=OVERLAY_ALPHA),
-                 family='monospace')
+                 family=FONT_DATA)
 
         # =====================================================================
         # PANEL 4: VIP Score Distribution
@@ -297,7 +299,7 @@ class PLSDADiagnosticPlotMixin:
         ax4.text(0.98, 0.98, stats_text, transform=ax4.transAxes,
                  fontsize=ANNOTATION_SIZE, verticalalignment='top', horizontalalignment='right',
                  bbox=dict(boxstyle='round', facecolor='lightblue', alpha=OVERLAY_ALPHA),
-                 family='monospace')
+                 family=FONT_DATA)
 
         plt.tight_layout()
 

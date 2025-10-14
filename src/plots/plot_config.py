@@ -68,11 +68,27 @@ TITLE_WEIGHT = 'bold'
 AXIS_LABEL_WEIGHT = 'medium'  # Enhanced from 'normal' (better presence)
 LEGEND_TITLE_WEIGHT = 'bold'
 
+# ==============================================================================
+# Font Family Constants - CENTRALIZED CONFIGURATION (Phase 10.3.10)
+# Provides consistent typography across all visualizations
+# ==============================================================================
+
 # Premium font preferences (fallback chain - macOS optimized)
 # SF Pro Display is the macOS system font, excellent alternative to Inter
 FONT_FAMILY_DISPLAY = 'SF Pro Display'  # Titles (macOS native, similar to Inter)
 FONT_FAMILY_TEXT = 'SF Pro Text'        # Body text (macOS native, similar to Roboto)
 FONT_FAMILY_MONO = 'SF Mono'            # Data/code (macOS native monospace)
+
+# Cross-platform font family constants (for broader compatibility)
+# These are used in specific plot types where Inter/Arial are explicitly requested
+FONT_FAMILY_TITLE = 'Inter'             # Modern sans-serif for titles (enhanced_pie, pca, volcano)
+FONT_FAMILY_DATA = 'monospace'          # Monospaced font for data/statistics display
+FONT_FAMILY_SANS = 'Arial, sans-serif'  # Standard sans-serif for general use (Sankey diagrams)
+
+# Semantic font family mapping (use these in new code)
+FONT_DISPLAY = FONT_FAMILY_TITLE        # For plot titles and headers
+FONT_DATA = FONT_FAMILY_DATA            # For numerical data and statistics
+FONT_GENERAL = FONT_FAMILY_SANS         # For general text elements
 
 # ==============================================================================
 # Colors - Group Comparison (Cancer vs Normal)
@@ -949,7 +965,7 @@ def add_sample_size_annotation(ax, n_cancer: int, n_normal: int,
             verticalalignment=va,
             horizontalalignment=ha,
             bbox=bbox_props,
-            family='monospace',
+            family=FONT_DATA,
             zorder=1000)  # Ensure it's on top
 
 

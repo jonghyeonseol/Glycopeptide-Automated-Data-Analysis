@@ -33,6 +33,8 @@ from .plot_config import (
     SCATTER_SIZE_SMALL, LEGEND_MARKER_SIZE,  # Marker size constants
     EDGE_COLOR_NONE,
     EDGE_COLOR_BLACK,# Edge color standardization,
+    # Font family constants (Phase 10.3.10)
+    FONT_DISPLAY,
     # Linestyle constants (Phase 10.3.8)
     LINESTYLE_DASHED,
     # Zorder constants (Phase 10.3.7)
@@ -202,7 +204,7 @@ class PCAPlotMixin:
         # ✨ PREMIUM: Enhance title with better formatting
         title = ax.get_title()
         ax.set_title(title, fontsize=TITLE_SIZE, fontweight='bold',
-                    family='Inter', pad=20)
+                    family=FONT_DISPLAY, pad=20)
 
         # Apply standardized legend (positioned outside plot area)
         apply_standard_legend(ax)

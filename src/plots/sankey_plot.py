@@ -16,7 +16,10 @@ from ..data_preparation import (
     prepare_visualization_data,
     calculate_statistical_significance
 )
-from .plot_config import EXTENDED_CATEGORY_COLORS, COLOR_CANCER, COLOR_NORMAL
+from .plot_config import (
+    EXTENDED_CATEGORY_COLORS, COLOR_CANCER, COLOR_NORMAL,
+    FONT_GENERAL  # Phase 10.3.10: Font family standardization
+)
 
 logger = logging.getLogger(__name__)
 
@@ -450,9 +453,9 @@ class SankeyPlotMixin:
                 ),
                 x=0.5,
                 xanchor='center',
-                font=dict(size=18, family='Arial, sans-serif', color='#2C3E50')
+                font=dict(size=18, family=FONT_GENERAL, color='#2C3E50')
             ),
-            font=dict(size=12, family='Arial, sans-serif', color='#2C3E50'),
+            font=dict(size=12, family=FONT_GENERAL, color='#2C3E50'),
             height=800,
             width=1400,
             plot_bgcolor='white',
@@ -787,9 +790,9 @@ class SankeyPlotMixin:
                 ),
                 x=0.5,
                 xanchor='center',
-                font=dict(size=18, family='Arial, sans-serif', color='#2C3E50')
+                font=dict(size=18, family=FONT_GENERAL, color='#2C3E50')
             ),
-            font=dict(size=13, family='Arial, sans-serif', color='#2C3E50'),
+            font=dict(size=13, family=FONT_GENERAL, color='#2C3E50'),
             height=1400,  # Increased to accommodate 10 glycan nodes (Up/Down split)
             width=1200,
             plot_bgcolor='white',
@@ -802,7 +805,7 @@ class SankeyPlotMixin:
                     xref='paper', yref='paper',
                     text='<b>Groups</b>',
                     showarrow=False,
-                    font=dict(size=14, family='Arial, sans-serif', color='#2C3E50'),
+                    font=dict(size=14, family=FONT_GENERAL, color='#2C3E50'),
                     xanchor='center'
                 ),
                 dict(
@@ -810,7 +813,7 @@ class SankeyPlotMixin:
                     xref='paper', yref='paper',
                     text='<b>Glycan Types (Up/Down)</b>',
                     showarrow=False,
-                    font=dict(size=14, family='Arial, sans-serif', color='#2C3E50'),
+                    font=dict(size=14, family=FONT_GENERAL, color='#2C3E50'),
                     xanchor='center'
                 ),
                 # Add legend box underneath main diagram
@@ -825,7 +828,7 @@ class SankeyPlotMixin:
                          '<span style="color:#FFA500">━━━</span> SF (Sialofucosylated) | '
                          '<span style="color:#0000FF">━━━</span> C/H (Complex/Hybrid)',
                     showarrow=False,
-                    font=dict(size=13, family='Arial, sans-serif', color='#2C3E50'),
+                    font=dict(size=13, family=FONT_GENERAL, color='#2C3E50'),
                     align='center',
                     xanchor='center',
                     yanchor='top',

@@ -44,6 +44,8 @@ from .plot_config import (
     ANNOTATION_ALPHA,
     ALPHA_MOSTLY_OPAQUE,
     EDGE_COLOR_BLACK,# Edge color standardization,
+    # Font family constants (Phase 10.3.10)
+    FONT_DISPLAY,
     # Linestyle constants (Phase 10.3.8)
     LINESTYLE_DASHED, GRID_LINESTYLE_MAJOR,
     # Zorder constants (Phase 10.3.7)
@@ -288,7 +290,7 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Glycan Type Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family='Inter')
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family=FONT_DISPLAY)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)
@@ -451,7 +453,7 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Primary Classification Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family='Inter')
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family=FONT_DISPLAY)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)
@@ -607,7 +609,7 @@ class PieChartPlotMixin:
 
         # Overall title
         fig.suptitle('Secondary Classification Distribution & Comparative Analysis',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family='Inter')
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=0.98, family=FONT_DISPLAY)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)
@@ -841,7 +843,7 @@ class PieChartPlotMixin:
 
         # Overall title with emphasis on "DIRECTIONAL" (moved above figure)
         fig.suptitle(f'Directional Analysis: Highly Significant Glycan Types\n|Log2 FC| ≥ {log2fc_threshold} (≥4-fold change) | FDR < {fdr_threshold}',
-                     fontsize=TITLE_SIZE + 2, weight='bold', y=1.01, family='Inter')
+                     fontsize=TITLE_SIZE + 2, weight='bold', y=1.01, family=FONT_DISPLAY)
 
         # ✨ ENHANCED: Apply publication theme
         apply_publication_theme(fig)

@@ -25,9 +25,11 @@ from .plot_config import (
     save_publication_figure, COLOR_CANCER, COLOR_NORMAL, DPI_MAIN,
     TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,
     LINE_THIN, LINE_THICK,  # Linewidth constants
-    ALPHA_MEDIUM_LIGHT, ALPHA_VERY_HIGH,  # Alpha constants,
+    ALPHA_MEDIUM_LIGHT, ALPHA_VERY_HIGH, ALPHA_MEDIUM_HIGH,  # Alpha constants
     EDGE_COLOR_NONE,
     EDGE_COLOR_BLACK,# Edge color standardization,
+    # Font family constants (Phase 10.3.10)
+    FONT_DATA,
     # Linestyle constants (Phase 10.3.8)
     THRESHOLD_LINESTYLE,
     # Zorder constants (Phase 10.3.7)
@@ -199,7 +201,7 @@ class MissingDataPlotMixin:
         ax_main.text(0.02, 0.98, stats_text, transform=ax_main.transAxes,
                      fontsize=ANNOTATION_SIZE, verticalalignment='top',
                      bbox=dict(boxstyle='round', facecolor='wheat', alpha=ALPHA_VERY_HIGH),
-                     family='monospace', zorder=ZORDER_TOP)
+                     family=FONT_DATA, zorder=ZORDER_TOP)
 
         # =====================================================================
         # DATA INTEGRITY NOTES
@@ -221,7 +223,7 @@ class MissingDataPlotMixin:
         else:
             integrity_text += f"✓ Balanced detection: C={cancer_mean:.1f}%, N={normal_mean:.1f}%"
 
-        fig.text(0.02, 0.02, integrity_text, fontsize=ANNOTATION_SIZE, family='monospace',
+        fig.text(0.02, 0.02, integrity_text, fontsize=ANNOTATION_SIZE, family=FONT_DATA,
                  verticalalignment='bottom',
                  bbox=dict(boxstyle='round', facecolor='lightblue', alpha=ALPHA_MEDIUM_HIGH))
 

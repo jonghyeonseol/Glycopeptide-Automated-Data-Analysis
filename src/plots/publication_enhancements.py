@@ -12,13 +12,20 @@ Created: 2025-10-06 (Phase 2.2)
 
 from typing import Dict, List, Optional
 
-# Import centralized linewidth constants
+# Import centralized constants
 try:
-    from .plot_config import EDGE_LINEWIDTH_NORMAL, LINE_MEDIUM_THICK
+    from .plot_config import (
+        EDGE_LINEWIDTH_NORMAL, LINE_MEDIUM_THICK,
+        EDGE_COLOR_BLACK, SEPARATOR_EDGE_COLOR,
+        FONT_DATA  # Phase 10.3.10: Font family standardization
+    )
 except ImportError:
     # Fallback values if import fails
     EDGE_LINEWIDTH_NORMAL = 1.0
     LINE_MEDIUM_THICK = 1.5
+    EDGE_COLOR_BLACK = 'black'
+    SEPARATOR_EDGE_COLOR = '#CCCCCC'
+    FONT_DATA = 'monospace'
 
 
 # ==============================================================================
@@ -257,7 +264,7 @@ def add_sample_size_legend(ax, n_cancer: int, n_normal: int,
             verticalalignment=va,
             horizontalalignment=ha,
             bbox=props,
-            family='monospace')
+            family=FONT_DATA)
 
 
 # ==============================================================================
