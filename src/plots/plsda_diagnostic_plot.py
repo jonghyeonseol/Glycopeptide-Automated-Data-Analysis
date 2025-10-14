@@ -37,6 +37,8 @@ from .plot_config import (
     LINE_ALPHA, ALPHA_MEDIUM_LIGHT, THRESHOLD_ALPHA, OVERLAY_ALPHA, POINT_ALPHA,
     MARKER_SIZE_MEDIUM, DIAGNOSTIC_MARKER_SIZE,
     EDGE_COLOR_BLACK,# Edge color standardization,
+    # Marker style constants (Phase 10.3.9)
+    MARKER_HIGHLIGHT,
     # Linestyle constants (Phase 10.3.8)
     LINESTYLE_DOTTED, LINESTYLE_DASHDOT, THRESHOLD_LINESTYLE,
     # Zorder constants (Phase 10.3.7)
@@ -150,7 +152,7 @@ class PLSDADiagnosticPlotMixin:
         selected_r2 = r2_scores[selected_comp - 1]
         selected_q2 = q2_scores[selected_comp - 1]
         ax1.scatter([selected_comp], [selected_r2], s=DIAGNOSTIC_MARKER_SIZE, c='red',
-                    marker='*', edgecolors=EDGE_COLOR_BLACK, linewidths=EDGE_LINEWIDTH_THICK, zorder=ZORDER_THRESHOLD)
+                    marker=MARKER_HIGHLIGHT, edgecolors=EDGE_COLOR_BLACK, linewidths=EDGE_LINEWIDTH_THICK, zorder=ZORDER_THRESHOLD)
         ax1.annotate(f'Selected: {selected_comp} comp\nR²={selected_r2:.3f}, Q²={selected_q2:.3f}',
                      xy =(selected_comp, selected_r2), xytext =(selected_comp + 1, selected_r2 - 0.15),
                      fontsize=ANNOTATION_SIZE, bbox=dict(boxstyle='round', facecolor='yellow', alpha=OVERLAY_ALPHA),

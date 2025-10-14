@@ -16,6 +16,8 @@ from .plot_config import (
     MARKER_SIZE_SMALL, DOT_HEATMAP_SIZE,  # Marker size constants
     SEPARATOR_EDGE_COLOR,  # Edge color standardization
     EDGE_COLOR_BLACK,# Edge color standardization,
+    # Marker style constants (Phase 10.3.9)
+    MARKER_CIRCLE,
     # Linestyle constants (Phase 10.3.8)
     LINESTYLE_DASHED, GRID_LINESTYLE_MINOR,
     # Zorder constants (Phase 10.3.7)
@@ -127,7 +129,7 @@ class GlycopeptideDotHeatmapMixin:
             glycan_intensities.append(intensity)
 
         ax_top.plot(range(len(glycan_order)), glycan_intensities,
-                    color='#333333', linewidth=PLOT_LINE_LINEWIDTH, marker='o', markersize=MARKER_SIZE_SMALL)
+                    color='#333333', linewidth=PLOT_LINE_LINEWIDTH, marker=MARKER_CIRCLE, markersize=MARKER_SIZE_SMALL)
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
         ax_top.set_ylabel('Aggregated\nIntensity', fontsize=ANNOTATION_SIZE)
         ax_top.set_xticks([])

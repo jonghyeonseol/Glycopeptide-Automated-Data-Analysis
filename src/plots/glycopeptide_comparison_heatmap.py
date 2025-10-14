@@ -29,6 +29,8 @@ from .plot_config import (
     SCATTER_SIZE_SMALL, SCATTER_SIZE_LARGE, MARKER_SIZE_SMALL,
     LINE_MARKER_SIZE, LEGEND_MARKER_SIZE, LEGEND_MARKER_SIZE_LARGE,
     EDGE_COLOR_WHITE, FRAME_EDGE_COLOR, SEPARATOR_EDGE_COLOR, MARKER_EDGE_COLOR_LIGHT,
+    # Marker style constants (Phase 10.3.9)
+    MARKER_CANCER, MARKER_NORMAL, MARKER_ANNOTATION, MARKER_ANNOTATION_ALT,
     # Linestyle constants (Phase 10.3.8)
     THRESHOLD_LINESTYLE, GRID_LINESTYLE_MAJOR,
     # Zorder constants (Phase 10.3.7)
@@ -216,10 +218,10 @@ class GlycopeptideComparisonHeatmapMixin:
 
         x_pos = np.arange(len(glycan_order))
         ax_top.plot(x_pos, cancer_intensities, color=COLOR_CANCER, linewidth=PLOT_LINE_LINEWIDTH_THICK,
-                    marker='o', markersize=LINE_MARKER_SIZE, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
+                    marker=MARKER_CANCER, markersize=LINE_MARKER_SIZE, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
                     markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH)
         ax_top.plot(x_pos, normal_intensities, color=COLOR_NORMAL, linewidth=PLOT_LINE_LINEWIDTH_THICK,
-                    marker='s', markersize=LINE_MARKER_SIZE, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
+                    marker=MARKER_NORMAL, markersize=LINE_MARKER_SIZE, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
                     markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
@@ -297,7 +299,7 @@ class GlycopeptideComparisonHeatmapMixin:
             # Plot Cancer marker (× symbol)
             if has_cancer:
                 ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_LARGE,
-                               marker='x',
+                               marker=MARKER_ANNOTATION,
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
@@ -307,7 +309,7 @@ class GlycopeptideComparisonHeatmapMixin:
             # Plot Normal marker (+ symbol)
             if has_normal:
                 ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_LARGE,
-                               marker='+',
+                               marker=MARKER_ANNOTATION_ALT,
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
@@ -360,19 +362,19 @@ class GlycopeptideComparisonHeatmapMixin:
                                              label=f'{gt}', alpha=ALPHA_NEAR_OPAQUE, edgecolor=FRAME_EDGE_COLOR))
 
         # Symbol indicators - linewidth shows qualitative difference
-        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
                                       markeredgewidth=PLOT_LINE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer (both groups)'))
-        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION_ALT, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
                                       markeredgewidth=PLOT_LINE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal (both groups)'))
-        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
                                       markeredgewidth=5.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer only (bold)'))
-        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION_ALT, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE_LARGE,
                                       markeredgewidth=5.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal only (bold)'))
@@ -640,10 +642,10 @@ class GlycopeptideComparisonHeatmapMixin:
 
         x_pos = np.arange(len(glycan_order))
         ax_top.plot(x_pos, cancer_intensities, color=COLOR_CANCER, linewidth=PLOT_LINE_LINEWIDTH,
-                    marker='o', markersize=MARKER_SIZE_SMALL, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
+                    marker=MARKER_CANCER, markersize=MARKER_SIZE_SMALL, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
                     markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
         ax_top.plot(x_pos, normal_intensities, color=COLOR_NORMAL, linewidth=PLOT_LINE_LINEWIDTH,
-                    marker='s', markersize=MARKER_SIZE_SMALL, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
+                    marker=MARKER_NORMAL, markersize=MARKER_SIZE_SMALL, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
                     markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
@@ -718,7 +720,7 @@ class GlycopeptideComparisonHeatmapMixin:
             # Plot Cancer marker (× symbol) - reduced size
             if has_cancer:
                 ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,  # Reduced from 400
-                               marker='x',
+                               marker=MARKER_ANNOTATION,
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
@@ -728,7 +730,7 @@ class GlycopeptideComparisonHeatmapMixin:
             # Plot Normal marker (+ symbol) - reduced size
             if has_normal:
                 ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,  # Reduced from 400
-                               marker='+',
+                               marker=MARKER_ANNOTATION_ALT,
                                c=glycan_type_colors[glycan_type],
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
@@ -781,19 +783,19 @@ class GlycopeptideComparisonHeatmapMixin:
                                              label=f'{gt}', alpha=ALPHA_NEAR_OPAQUE, edgecolor=FRAME_EDGE_COLOR))
 
         # Symbol indicators
-        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer (both groups)'))
-        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION_ALT, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal (both groups)'))
-        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=3.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='× Cancer only (bold)'))
-        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION_ALT, color='w',
                                       markerfacecolor='gray', markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=3.0, markeredgecolor=SEPARATOR_EDGE_COLOR,
                                       label='+ Normal only (bold)'))
@@ -1032,10 +1034,10 @@ class GlycopeptideComparisonHeatmapMixin:
 
         x_pos = np.arange(len(glycan_order))
         ax_top.plot(x_pos, cancer_intensities, color=COLOR_CANCER, linewidth=PLOT_LINE_LINEWIDTH,
-                    marker='o', markersize=MARKER_SIZE_SMALL, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
+                    marker=MARKER_CANCER, markersize=MARKER_SIZE_SMALL, label='Cancer', alpha=ALPHA_NEAR_OPAQUE,
                     markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
         ax_top.plot(x_pos, normal_intensities, color=COLOR_NORMAL, linewidth=PLOT_LINE_LINEWIDTH,
-                    marker='s', markersize=MARKER_SIZE_SMALL, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
+                    marker=MARKER_NORMAL, markersize=MARKER_SIZE_SMALL, label='Normal', alpha=ALPHA_NEAR_OPAQUE,
                     markeredgecolor=MARKER_EDGE_COLOR_LIGHT, markeredgewidth=GRID_LINEWIDTH_THIN)
 
         ax_top.set_xlim(-0.5, len(glycan_order) - 0.5)
@@ -1084,7 +1086,7 @@ class GlycopeptideComparisonHeatmapMixin:
             # Plot Cancer marker (× symbol) - colored by glycan type
             if has_cancer:
                 ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,
-                               marker='x',
+                               marker=MARKER_ANNOTATION,
                                c=glycan_type_color,  # All same color
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
@@ -1094,7 +1096,7 @@ class GlycopeptideComparisonHeatmapMixin:
             # Plot Normal marker (+ symbol) - colored by glycan type
             if has_normal:
                 ax_main.scatter(x_pos, y_pos, s=SCATTER_SIZE_SMALL,
-                               marker='+',
+                               marker=MARKER_ANNOTATION_ALT,
                                c=glycan_type_color,  # All same color
                                linewidths=linewidth,
                                alpha=POINT_ALPHA,
@@ -1134,19 +1136,19 @@ class GlycopeptideComparisonHeatmapMixin:
         legend_elements = []
 
         # Symbol indicators with glycan type color
-        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION, color='w',
                                       markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=glycan_type_color,
                                       label='× Cancer (both groups)'))
-        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION_ALT, color='w',
                                       markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=EDGE_LINEWIDTH_THICK, markeredgecolor=glycan_type_color,
                                       label='+ Normal (both groups)'))
-        legend_elements.append(Line2D([0], [0], marker='x', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION, color='w',
                                       markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=3.0, markeredgecolor=glycan_type_color,
                                       label='× Cancer only (bold)'))
-        legend_elements.append(Line2D([0], [0], marker='+', color='w',
+        legend_elements.append(Line2D([0], [0], marker=MARKER_ANNOTATION_ALT, color='w',
                                       markerfacecolor=glycan_type_color, markersize=LEGEND_MARKER_SIZE,
                                       markeredgewidth=3.0, markeredgecolor=glycan_type_color,
                                       label='+ Normal only (bold)'))
