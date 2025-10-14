@@ -32,7 +32,9 @@ from .plot_config import (
     ALPHA_MEDIUM_LIGHT,
     SCATTER_SIZE_SMALL, LEGEND_MARKER_SIZE,  # Marker size constants
     EDGE_COLOR_NONE,
-    EDGE_COLOR_BLACK,# Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization,
+    # Linestyle constants (Phase 10.3.8)
+    LINESTYLE_DASHED,
     # Zorder constants (Phase 10.3.7)
     ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
     ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
@@ -110,7 +112,7 @@ class PCAPlotMixin:
             edgecolor=color,
             alpha=ALPHA_MODERATE,
             linewidth=LINE_THICK,
-            linestyle='--',
+            linestyle=LINESTYLE_DASHED,
             zorder=ZORDER_DATA_LOW
         )
         ax.add_patch(ellipse_boundary)

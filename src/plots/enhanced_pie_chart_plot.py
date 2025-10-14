@@ -43,7 +43,9 @@ from .plot_config import (
     ALPHA_HIGH,
     ANNOTATION_ALPHA,
     ALPHA_MOSTLY_OPAQUE,
-    EDGE_COLOR_BLACK,# Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization,
+    # Linestyle constants (Phase 10.3.8)
+    LINESTYLE_DASHED, GRID_LINESTYLE_MAJOR,
     # Zorder constants (Phase 10.3.7)
     ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
     ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
@@ -262,7 +264,7 @@ class PieChartPlotMixin:
                          fontsize=AXIS_LABEL_SIZE, weight='bold', color='black')
 
         # Add reference line at FC=1.0 (no change)
-        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH, label='No change')
+        ax3.axhline(y=1.0, color='black', linestyle=LINESTYLE_DASHED, linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH, label='No change')
 
         # Style fold change axis
         ax3.set_xticks(x_pos)
@@ -281,7 +283,7 @@ class PieChartPlotMixin:
         ax3.legend(handles=legend_elements, loc='upper right', fontsize=LEGEND_SIZE)
 
         # Apply Prism-style grid
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR, linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -436,7 +438,7 @@ class PieChartPlotMixin:
                      fontsize=ANNOTATION_SIZE, weight='bold')
 
         # Reference line
-        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
+        ax3.axhline(y=1.0, color='black', linestyle=LINESTYLE_DASHED, linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
 
         # Style axis
         ax3.set_xticks(x_pos)
@@ -444,7 +446,7 @@ class PieChartPlotMixin:
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
                       fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR, linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -592,7 +594,7 @@ class PieChartPlotMixin:
                      fontsize=ANNOTATION_SIZE, weight='bold')
 
         # Reference line
-        ax3.axhline(y=1.0, color='black', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
+        ax3.axhline(y=1.0, color='black', linestyle=LINESTYLE_DASHED, linewidth=PLOT_LINE_LINEWIDTH, alpha=ALPHA_HIGH)
 
         # Style axis
         ax3.set_xticks(x_pos)
@@ -600,7 +602,7 @@ class PieChartPlotMixin:
         ax3.set_ylabel('Fold Change (Cancer / Normal)', fontsize=AXIS_LABEL_SIZE, weight='bold')
         ax3.set_title('Fold Change Analysis (Cancer vs Normal)',
                       fontsize=TITLE_SIZE, weight='bold', pad=15)
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR, linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title
@@ -834,7 +836,7 @@ class PieChartPlotMixin:
         ax3.legend(loc='upper right', fontsize=LEGEND_SIZE)
 
         # Apply Prism-style grid
-        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle='-', linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
+        ax3.grid(True, alpha=ALPHA_TRANSPARENT, linestyle=GRID_LINESTYLE_MAJOR, linewidth=GRID_LINEWIDTH, axis='y', zorder=ZORDER_BACKGROUND)
         ax3.set_axisbelow(True)
 
         # Overall title with emphasis on "DIRECTIONAL" (moved above figure)

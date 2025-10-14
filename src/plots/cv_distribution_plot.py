@@ -30,7 +30,9 @@ from .plot_config import (
     TITLE_SIZE, AXIS_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,  # Font constants
     EDGE_LINEWIDTH_THIN, PLOT_LINE_LINEWIDTH,  # Linewidth constants
     ALPHA_HIGH, ALPHA_VERY_HIGH, ALPHA_MEDIUM_LIGHT,  # Alpha constants,
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,  # Edge color standardization
+    # Linestyle constants (Phase 10.3.8)
+    LINESTYLE_DASHED
 )
 
 logger = logging.getLogger(__name__)
@@ -117,7 +119,7 @@ class CVDistributionPlotMixin:
 
         # Add median line
         cancer_median = cv_df_clean['Cancer_CV'].median()
-        ax1.axvline(cancer_median, color='darkred', linestyle='--',
+        ax1.axvline(cancer_median, color='darkred', linestyle=LINESTYLE_DASHED,
                     linewidth=PLOT_LINE_LINEWIDTH, label=f'Median: {cancer_median:.1f}%')
 
         ax1.set_xlabel('CV (%)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
@@ -145,7 +147,7 @@ class CVDistributionPlotMixin:
 
         # Add median line
         normal_median = cv_df_clean['Normal_CV'].median()
-        ax2.axvline(normal_median, color='darkblue', linestyle='--',
+        ax2.axvline(normal_median, color='darkblue', linestyle=LINESTYLE_DASHED,
                     linewidth=PLOT_LINE_LINEWIDTH, label=f'Median: {normal_median:.1f}%')
 
         ax2.set_xlabel('CV (%)', fontsize=AXIS_LABEL_SIZE, fontweight='bold')

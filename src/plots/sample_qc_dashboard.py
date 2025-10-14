@@ -31,7 +31,9 @@ from .plot_config import (
     QC_DPI, save_publication_figure, COLOR_CANCER, COLOR_NORMAL,
     EDGE_LINEWIDTH_THIN, PLOT_LINE_LINEWIDTH, LINE_BOLD,
     LINE_ALPHA, ALPHA_MEDIUM_LIGHT,
-    EDGE_COLOR_BLACK  # Edge color standardization
+    EDGE_COLOR_BLACK,  # Edge color standardization
+    # Linestyle constants (Phase 10.3.8)
+    THRESHOLD_LINESTYLE
 )
 
 logger = logging.getLogger(__name__)
@@ -96,9 +98,9 @@ class SampleQCDashboardMixin:
         cancer_mean_tic = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'total_intensity'].mean()
         normal_mean_tic = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'total_intensity'].mean()
 
-        ax1.axhline(cancer_mean_tic, color=COLOR_CANCER, linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax1.axhline(cancer_mean_tic, color=COLOR_CANCER, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Cancer mean: {cancer_mean_tic:.2e}', alpha=LINE_ALPHA)
-        ax1.axhline(normal_mean_tic, color=COLOR_NORMAL, linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax1.axhline(normal_mean_tic, color=COLOR_NORMAL, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Normal mean: {normal_mean_tic:.2e}', alpha=LINE_ALPHA)
 
         ax1.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
@@ -123,9 +125,9 @@ class SampleQCDashboardMixin:
         cancer_mean_det = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'detection_count'].mean()
         normal_mean_det = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'detection_count'].mean()
 
-        ax2.axhline(cancer_mean_det, color=COLOR_CANCER, linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax2.axhline(cancer_mean_det, color=COLOR_CANCER, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Cancer mean: {cancer_mean_det:.0f}', alpha=LINE_ALPHA)
-        ax2.axhline(normal_mean_det, color=COLOR_NORMAL, linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax2.axhline(normal_mean_det, color=COLOR_NORMAL, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Normal mean: {normal_mean_det:.0f}', alpha=LINE_ALPHA)
 
         ax2.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
@@ -146,7 +148,7 @@ class SampleQCDashboardMixin:
                         color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
 
         # Add threshold line using centralized constant
-        ax3.axhline(QC_THRESHOLD_DETECTION_RATE, color='red', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax3.axhline(QC_THRESHOLD_DETECTION_RATE, color='red', linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'{QC_THRESHOLD_DETECTION_RATE}% threshold', alpha=LINE_ALPHA)
 
         ax3.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
@@ -171,9 +173,9 @@ class SampleQCDashboardMixin:
         cancer_mean_med = qc_metrics.loc[qc_metrics['group'] == 'Cancer', 'median_intensity'].mean()
         normal_mean_med = qc_metrics.loc[qc_metrics['group'] == 'Normal', 'median_intensity'].mean()
 
-        ax4.axhline(cancer_mean_med, color=COLOR_CANCER, linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax4.axhline(cancer_mean_med, color=COLOR_CANCER, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Cancer mean: {cancer_mean_med:.2e}', alpha=LINE_ALPHA)
-        ax4.axhline(normal_mean_med, color=COLOR_NORMAL, linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax4.axhline(normal_mean_med, color=COLOR_NORMAL, linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Normal mean: {normal_mean_med:.2e}', alpha=LINE_ALPHA)
 
         ax4.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
@@ -195,9 +197,9 @@ class SampleQCDashboardMixin:
                         color=sample_colors, edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
 
         # Add threshold lines using centralized constants
-        ax5.axhline(QC_THRESHOLD_CV_GOOD, color='green', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax5.axhline(QC_THRESHOLD_CV_GOOD, color='green', linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Good QC (<{QC_THRESHOLD_CV_GOOD}%)', alpha=LINE_ALPHA)
-        ax5.axhline(QC_THRESHOLD_CV_ACCEPTABLE, color='orange', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax5.axhline(QC_THRESHOLD_CV_ACCEPTABLE, color='orange', linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Acceptable (<{QC_THRESHOLD_CV_ACCEPTABLE}%)', alpha=LINE_ALPHA)
 
         ax5.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')
@@ -233,7 +235,7 @@ class SampleQCDashboardMixin:
         threshold = stats.chi2.ppf(QC_THRESHOLD_OUTLIER_P, df=n_metrics)
         logger.debug(f"  Outlier threshold: {threshold:.2f} (chi2, p={QC_THRESHOLD_OUTLIER_P}, df={n_metrics})")
 
-        ax6.axhline(threshold, color='red', linestyle='--', linewidth=PLOT_LINE_LINEWIDTH,
+        ax6.axhline(threshold, color='red', linestyle=THRESHOLD_LINESTYLE, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Outlier threshold (p<{1-QC_THRESHOLD_OUTLIER_P:.2f})', alpha=LINE_ALPHA)
 
         ax6.set_xlabel('Sample', fontsize=QC_LABEL_FONTSIZE, fontweight='bold')

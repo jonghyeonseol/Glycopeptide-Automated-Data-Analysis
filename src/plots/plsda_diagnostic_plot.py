@@ -36,7 +36,9 @@ from .plot_config import (
     EDGE_LINEWIDTH_THIN, EDGE_LINEWIDTH_THICK,
     LINE_ALPHA, ALPHA_MEDIUM_LIGHT, THRESHOLD_ALPHA, OVERLAY_ALPHA, POINT_ALPHA,
     MARKER_SIZE_MEDIUM, DIAGNOSTIC_MARKER_SIZE,
-    EDGE_COLOR_BLACK,# Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization,
+    # Linestyle constants (Phase 10.3.8)
+    LINESTYLE_DOTTED, LINESTYLE_DASHDOT, THRESHOLD_LINESTYLE,
     # Zorder constants (Phase 10.3.7)
     ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
     ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
@@ -132,7 +134,7 @@ class PLSDADiagnosticPlotMixin:
                  linewidth=PLOT_LINE_LINEWIDTH, markersize=MARKER_SIZE_MEDIUM, label='Q² (Predictive Ability)')
 
         # Add threshold line at 0.5
-        ax1.axhline(0.5, color='gray', linestyle='--', linewidth=LINE_MEDIUM_THICK,
+        ax1.axhline(0.5, color='gray', linestyle=THRESHOLD_LINESTYLE, linewidth=LINE_MEDIUM_THICK,
                     label='Good model threshold (>0.5)', alpha=LINE_ALPHA)
 
         ax1.set_xlabel('Number of Components', fontsize=AXIS_LABEL_SIZE, fontweight='bold')
@@ -264,15 +266,15 @@ class PLSDADiagnosticPlotMixin:
                  edgecolor=EDGE_COLOR_BLACK, linewidth=EDGE_LINEWIDTH_THIN)
 
         # Add threshold line at VIP=1.0
-        ax4.axvline(1.0, color='red', linestyle='--', linewidth=LINE_BOLD,
+        ax4.axvline(1.0, color='red', linestyle=THRESHOLD_LINESTYLE, linewidth=LINE_BOLD,
                     label='VIP = 1.0 (Important Features)', zorder=ZORDER_THRESHOLD)
 
         # Add mean and median lines
         mean_vip = vip_scores.mean()
         median_vip = np.median(vip_scores)
-        ax4.axvline(mean_vip, color='blue', linestyle=':', linewidth=PLOT_LINE_LINEWIDTH,
+        ax4.axvline(mean_vip, color='blue', linestyle=LINESTYLE_DOTTED, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Mean = {mean_vip:.2f}', alpha=LINE_ALPHA)
-        ax4.axvline(median_vip, color='orange', linestyle='-.', linewidth=PLOT_LINE_LINEWIDTH,
+        ax4.axvline(median_vip, color='orange', linestyle=LINESTYLE_DASHDOT, linewidth=PLOT_LINE_LINEWIDTH,
                     label=f'Median = {median_vip:.2f}', alpha=LINE_ALPHA)
 
         ax4.set_xlabel('VIP Score', fontsize=AXIS_LABEL_SIZE, fontweight='bold')

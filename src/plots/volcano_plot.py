@@ -33,7 +33,9 @@ from .plot_config import (
     TITLE_SIZE, AXIS_LABEL_SIZE, ANNOTATION_SIZE,  # Enhanced typography
     DESIGN_SYSTEM_AVAILABLE,
     ALPHA_HIGH, ALPHA_VERY_HIGH,  # Alpha constants
-    EDGE_COLOR_BLACK,  # Edge color standardization
+    EDGE_COLOR_BLACK,  # Edge color standardization,
+    # Linestyle constants (Phase 10.3.8)
+    THRESHOLD_LINESTYLE,
     # Zorder constants (Phase 10.3.7)
     ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
     ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
@@ -344,11 +346,11 @@ class VolcanoPlotMixin:
             logger.info(f"Added 95% CI error bars for {len(features_with_ci)} significant features")
 
         # Add threshold lines using standardized styling
-        ax.axhline(-np.log10(fdr_threshold), color='gray', linestyle='--',
+        ax.axhline(-np.log10(fdr_threshold), color='gray', linestyle=THRESHOLD_LINESTYLE,
                    linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=ZORDER_SEPARATOR)
-        ax.axvline(log2fc_threshold, color='gray', linestyle='--',
+        ax.axvline(log2fc_threshold, color='gray', linestyle=THRESHOLD_LINESTYLE,
                    linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=ZORDER_SEPARATOR)
-        ax.axvline(-log2fc_threshold, color='gray', linestyle='--',
+        ax.axvline(-log2fc_threshold, color='gray', linestyle=THRESHOLD_LINESTYLE,
                    linewidth=VOLCANO_THRESHOLD_LINEWIDTH, alpha=VOLCANO_THRESHOLD_ALPHA, zorder=ZORDER_SEPARATOR)
 
         # Apply standardized styling

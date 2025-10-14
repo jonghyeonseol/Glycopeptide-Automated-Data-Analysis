@@ -15,7 +15,9 @@ from .plot_config import (
     ALPHA_VERY_LIGHT, ALPHA_MEDIUM_LIGHT, ALPHA_HIGH, ALPHA_VERY_HIGH, ALPHA_MEDIUM_HIGH,  # Alpha constants
     MARKER_SIZE_SMALL, DOT_HEATMAP_SIZE,  # Marker size constants
     SEPARATOR_EDGE_COLOR,  # Edge color standardization
-    EDGE_COLOR_BLACK,# Edge color standardization
+    EDGE_COLOR_BLACK,# Edge color standardization,
+    # Linestyle constants (Phase 10.3.8)
+    LINESTYLE_DASHED, GRID_LINESTYLE_MINOR,
     # Zorder constants (Phase 10.3.7)
     ZORDER_BACKGROUND, ZORDER_GRID, ZORDER_SEPARATOR,
     ZORDER_DATA_LOW, ZORDER_DATA_HIGH,
@@ -184,7 +186,7 @@ class GlycopeptideDotHeatmapMixin:
                 # Add light background
                 rect = Rectangle((x_pos - 0.5, -0.5), type_count, len(peptide_order),
                                  linewidth=EDGE_LINEWIDTH_NORMAL, edgecolor=SEPARATOR_EDGE_COLOR, facecolor='none',
-                                 linestyle='--', alpha=ALPHA_MEDIUM_LIGHT)
+                                 linestyle=LINESTYLE_DASHED, alpha=ALPHA_MEDIUM_LIGHT)
                 ax_main.add_patch(rect)
 
                 # Add glycan type label at top
@@ -213,7 +215,7 @@ class GlycopeptideDotHeatmapMixin:
         ax_main.invert_yaxis()
 
         # Grid
-        ax_main.grid(True, alpha=ALPHA_VERY_LIGHT, linestyle=':', linewidth=LINE_THIN)
+        ax_main.grid(True, alpha=ALPHA_VERY_LIGHT, linestyle=GRID_LINESTYLE_MINOR, linewidth=LINE_THIN)
         ax_main.set_axisbelow(True)
 
         # Create legend

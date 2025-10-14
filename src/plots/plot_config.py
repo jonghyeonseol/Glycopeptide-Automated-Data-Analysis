@@ -413,6 +413,24 @@ ZORDER_EFFECT = 200          # Special visual effects
 ZORDER_TOP = 1000            # Top-level elements (legends, important labels)
 ZORDER_ABSOLUTE_TOP = 1001   # Absolute top priority (critical information)
 
+# ==============================================================================
+# Linestyle Constants - CENTRALIZED CONFIGURATION
+# Controls line appearance for thresholds, grids, and separators
+# ==============================================================================
+
+# Standard linestyles (matplotlib basic styles)
+LINESTYLE_SOLID = '-'         # Solid line (default, data lines)
+LINESTYLE_DASHED = '--'       # Dashed line (thresholds, references)
+LINESTYLE_DOTTED = ':'        # Dotted line (grids, subtle separators)
+LINESTYLE_DASHDOT = '-.'      # Dash-dot line (special cases)
+LINESTYLE_NONE = 'none'       # No line (markers only)
+
+# Semantic linestyles (context-specific usage)
+THRESHOLD_LINESTYLE = '--'    # Threshold/cutoff lines (axhline, axvline)
+GRID_LINESTYLE_MAJOR = '-'    # Major grid lines (solid for visibility)
+GRID_LINESTYLE_MINOR = ':'    # Minor grid lines (dotted for subtlety)
+SEPARATOR_LINESTYLE = '--'    # Visual separators between groups
+
 # PNG Compression Settings (File Size Optimization)
 # Matplotlib supports automatic PNG optimization
 SAVE_KWARGS = {

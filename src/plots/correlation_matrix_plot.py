@@ -29,7 +29,9 @@ from .plot_config import (
     COLOR_CANCER, COLOR_NORMAL,
     TITLE_SIZE, AXIS_LABEL_SIZE, ANNOTATION_SIZE,  # Font constants
     PLOT_LINE_LINEWIDTH,  # Phase 10.3.3: Linewidth unification
-    ALPHA_MEDIUM_HIGH, ALPHA_MEDIUM_LIGHT  # Phase 10.3.4: Alpha unification
+    ALPHA_MEDIUM_HIGH, ALPHA_MEDIUM_LIGHT,  # Phase 10.3.4: Alpha unification
+    # Linestyle constants (Phase 10.3.8)
+    THRESHOLD_LINESTYLE
 )
 
 logger = logging.getLogger(__name__)
@@ -320,8 +322,8 @@ class CorrelationMatrixPlotMixin:
                     annot=False)  # Too many samples for annotations
 
         # Add quadrant boundary lines
-        ax.axhline(y=n_cancer, color='black', linewidth=PLOT_LINE_LINEWIDTH, linestyle='--', alpha=ALPHA_MEDIUM_HIGH)
-        ax.axvline(x=n_cancer, color='black', linewidth=PLOT_LINE_LINEWIDTH, linestyle='--', alpha=ALPHA_MEDIUM_HIGH)
+        ax.axhline(y=n_cancer, color='black', linewidth=PLOT_LINE_LINEWIDTH, linestyle=THRESHOLD_LINESTYLE, alpha=ALPHA_MEDIUM_HIGH)
+        ax.axvline(x=n_cancer, color='black', linewidth=PLOT_LINE_LINEWIDTH, linestyle=THRESHOLD_LINESTYLE, alpha=ALPHA_MEDIUM_HIGH)
 
         # Add group labels
         cancer_center = n_cancer / 2
