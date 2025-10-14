@@ -16,6 +16,13 @@ from ..data_preparation import (
     prepare_visualization_data,
     calculate_group_statistics_standardized
 )
+from .heatmap_helpers import (
+    glycan_sort_key,
+    get_symbol_info,
+    create_peptide_order,
+    create_glycan_order,
+    create_index_mappings
+)
 from .plot_config import (
     EXTENDED_CATEGORY_COLORS, save_publication_figure, DPI_COMPLEX, COLOR_CANCER, COLOR_NORMAL,
     TITLE_SIZE, AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_SIZE, ANNOTATION_SIZE,
@@ -155,46 +162,15 @@ class GlycopeptideComparisonHeatmapMixin:
         df_plot = pd.concat(selected_glycans, ignore_index=False)
 
         # Create peptide order (by max VIP score per peptide, descending)
-        peptide_max_vip = df_plot.groupby('Peptide')['VIP_Score'].max().sort_values(ascending=False)
-        peptide_order = peptide_max_vip.index.tolist()
+        peptide_order = create_peptide_order(df_plot)
 
-        # Create glycan order (grouped by type)
-        glycan_order = []
-        glycan_type_positions = {}  # Track position of each glycan type
-        current_pos = 0
-
-        # Helper function for natural/numeric sorting of glycan compositions
-        def glycan_sort_key(glycan_comp):
-            """Extract numbers from glycan composition for natural sorting"""
-            import re
-            # Extract all monosaccharide types and their counts
-            # Pattern: Letter(number)
-            parts = re.findall(r'([A-Z]+)\((\d+)\)', glycan_comp)
-            # Create a tuple of (monosaccharide, count as int) for sorting
-            # Sort by: H, N, A, F, G order (typical glycan structure)
-            monosaccharide_order = {'H': 0, 'N': 1, 'A': 2, 'F': 3, 'G': 4}
-            sort_tuple = []
-            for mono, count in parts:
-                order = monosaccharide_order.get(mono, 99)
-                sort_tuple.append((order, int(count)))
-            return tuple(sort_tuple)
-
-        for glycan_type in glycan_type_order:
-            type_glycans = df_plot[df_plot['GlycanTypeCategory'] == glycan_type]['GlycanComposition'].unique()
-            if len(type_glycans) > 0:
-                # Sort glycan compositions by numeric values (natural sorting)
-                type_glycans_sorted = sorted(type_glycans, key=glycan_sort_key)
-
-                glycan_type_positions[glycan_type] = {
-                    'start': current_pos,
-                    'end': current_pos + len(type_glycans_sorted)
-                }
-                glycan_order.extend(type_glycans_sorted)
-                current_pos += len(type_glycans_sorted)
+        # Create glycan order (grouped by type with natural sorting)
+        glycan_order, glycan_type_positions = create_glycan_order(
+            df_plot, glycan_type_order, include_positions=True
+        )
 
         # Prepare indices
-        peptide_to_idx = {p: i for i, p in enumerate(peptide_order)}
-        glycan_to_idx = {g: i for i, g in enumerate(glycan_order)}
+        peptide_to_idx, glycan_to_idx = create_index_mappings(peptide_order, glycan_order)
 
         # Create figure with three panels
         # Layout: Line plot (top) → Color bar (middle) → Heatmap (bottom)
@@ -439,29 +415,11 @@ class GlycopeptideComparisonHeatmapMixin:
         )
 
         # Add symbol information based on group presence
-        def get_symbol_info(row):
-            """Determine symbol markers and linewidth based on group presence"""
-            has_cancer = not np.isnan(row['Cancer_Mean']) and row['Cancer_Mean'] > 0
-            has_normal = not np.isnan(row['Normal_Mean']) and row['Normal_Mean'] > 0
-
-            # Qualitative difference: only one group present
-            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
-
-            if is_qualitatively_different:
-                linewidth = 5.0  # Bold for qualitative difference (NOTE: Using literal 5.0 - custom heavy emphasis)
-            else:
-                linewidth = PLOT_LINE_LINEWIDTH_THICK  # Normal for both groups present
-
-            if has_cancer and has_normal:
-                return 'x', '+', linewidth, 'Both groups'
-            elif has_cancer:
-                return 'x', None, linewidth, 'Cancer only'
-            elif has_normal:
-                return None, '+', linewidth, 'Normal only'
-            else:
-                return None, None, 0, 'Neither'
-
-        symbol_info = trace_data.apply(get_symbol_info, axis=1)
+        # NOTE: Using literal 5.0 for linewidth_bold - custom heavy emphasis for standard heatmap
+        symbol_info = trace_data.apply(
+            lambda row: get_symbol_info(row, linewidth_bold=5.0, linewidth_normal=PLOT_LINE_LINEWIDTH_THICK),
+            axis=1
+        )
         trace_data['Cancer_Symbol'] = [x[0] for x in symbol_info]
         trace_data['Normal_Symbol'] = [x[1] for x in symbol_info]
         trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
@@ -574,42 +532,15 @@ class GlycopeptideComparisonHeatmapMixin:
         df_plot = df_with_vip.copy()
 
         # Create peptide order (by max VIP score per peptide, descending)
-        peptide_max_vip = df_plot.groupby('Peptide')['VIP_Score'].max().sort_values(ascending=False)
-        peptide_order = peptide_max_vip.index.tolist()
+        peptide_order = create_peptide_order(df_plot)
 
-        # Create glycan order (grouped by type)
-        glycan_order = []
-        glycan_type_positions = {}
-        current_pos = 0
-
-        # Helper function for natural/numeric sorting of glycan compositions
-        def glycan_sort_key(glycan_comp):
-            """Extract numbers from glycan composition for natural sorting"""
-            import re
-            parts = re.findall(r'([A-Z]+)\((\d+)\)', glycan_comp)
-            monosaccharide_order = {'H': 0, 'N': 1, 'A': 2, 'F': 3, 'G': 4}
-            sort_tuple = []
-            for mono, count in parts:
-                order = monosaccharide_order.get(mono, 99)
-                sort_tuple.append((order, int(count)))
-            return tuple(sort_tuple)
-
-        for glycan_type in glycan_type_order:
-            type_glycans = df_plot[df_plot['GlycanTypeCategory'] == glycan_type]['GlycanComposition'].unique()
-            if len(type_glycans) > 0:
-                # Sort glycan compositions by numeric values
-                type_glycans_sorted = sorted(type_glycans, key=glycan_sort_key)
-
-                glycan_type_positions[glycan_type] = {
-                    'start': current_pos,
-                    'end': current_pos + len(type_glycans_sorted)
-                }
-                glycan_order.extend(type_glycans_sorted)
-                current_pos += len(type_glycans_sorted)
+        # Create glycan order (grouped by type with natural sorting)
+        glycan_order, glycan_type_positions = create_glycan_order(
+            df_plot, glycan_type_order, include_positions=True
+        )
 
         # Prepare indices
-        peptide_to_idx = {p: i for i, p in enumerate(peptide_order)}
-        glycan_to_idx = {g: i for i, g in enumerate(glycan_order)}
+        peptide_to_idx, glycan_to_idx = create_index_mappings(peptide_order, glycan_order)
 
         # Dynamic figure sizing based on data dimensions
         # Base size: 0.2 inches per peptide/glycan
@@ -850,26 +781,11 @@ class GlycopeptideComparisonHeatmapMixin:
         )
 
         # Add symbol information
-        def get_symbol_info(row):
-            has_cancer = not np.isnan(row['Cancer_Mean']) and row['Cancer_Mean'] > 0
-            has_normal = not np.isnan(row['Normal_Mean']) and row['Normal_Mean'] > 0
-            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
-
-            if is_qualitatively_different:
-                linewidth = 3.0  # Bold (NOTE: Using literal 3.0 - custom full-scale emphasis for trace data)
-            else:
-                linewidth = EDGE_LINEWIDTH_THICK
-
-            if has_cancer and has_normal:
-                return 'x', '+', linewidth, 'Both groups'
-            elif has_cancer:
-                return 'x', None, linewidth, 'Cancer only'
-            elif has_normal:
-                return None, '+', linewidth, 'Normal only'
-            else:
-                return None, None, 0, 'Neither'
-
-        symbol_info = trace_data.apply(get_symbol_info, axis=1)
+        # NOTE: Using literal 3.0 for linewidth_bold - custom full-scale emphasis for trace data
+        symbol_info = trace_data.apply(
+            lambda row: get_symbol_info(row, linewidth_bold=3.0, linewidth_normal=EDGE_LINEWIDTH_THICK),
+            axis=1
+        )
         trace_data['Cancer_Symbol'] = [x[0] for x in symbol_info]
         trace_data['Normal_Symbol'] = [x[1] for x in symbol_info]
         trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
@@ -983,27 +899,14 @@ class GlycopeptideComparisonHeatmapMixin:
         df_plot = df_filtered.copy()
 
         # Create peptide order (by max VIP score per peptide, descending)
-        peptide_max_vip = df_plot.groupby('Peptide')['VIP_Score'].max().sort_values(ascending=False)
-        peptide_order = peptide_max_vip.index.tolist()
+        peptide_order = create_peptide_order(df_plot)
 
-        # Create glycan order (naturally sorted)
-        def glycan_sort_key(glycan_comp):
-            """Extract numbers from glycan composition for natural sorting"""
-            import re
-            parts = re.findall(r'([A-Z]+)\((\d+)\)', glycan_comp)
-            monosaccharide_order = {'H': 0, 'N': 1, 'A': 2, 'F': 3, 'G': 4}
-            sort_tuple = []
-            for mono, count in parts:
-                order = monosaccharide_order.get(mono, 99)
-                sort_tuple.append((order, int(count)))
-            return tuple(sort_tuple)
-
+        # Create glycan order (naturally sorted, no type grouping needed)
         glycan_compositions = df_plot['GlycanComposition'].unique()
         glycan_order = sorted(glycan_compositions, key=glycan_sort_key)
 
         # Prepare indices
-        peptide_to_idx = {p: i for i, p in enumerate(peptide_order)}
-        glycan_to_idx = {g: i for i, g in enumerate(glycan_order)}
+        peptide_to_idx, glycan_to_idx = create_index_mappings(peptide_order, glycan_order)
 
         # Dynamic figure sizing
         n_peptides = len(peptide_order)
@@ -1211,26 +1114,11 @@ class GlycopeptideComparisonHeatmapMixin:
         )
 
         # Add symbol information
-        def get_symbol_info(row):
-            has_cancer = not np.isnan(row['Cancer_Mean']) and row['Cancer_Mean'] > 0
-            has_normal = not np.isnan(row['Normal_Mean']) and row['Normal_Mean'] > 0
-            is_qualitatively_different = (has_cancer and not has_normal) or (has_normal and not has_cancer)
-
-            if is_qualitatively_different:
-                linewidth = 3.0  # Bold (NOTE: Using literal 3.0 - custom by-type emphasis for trace data)
-            else:
-                linewidth = EDGE_LINEWIDTH_THICK
-
-            if has_cancer and has_normal:
-                return 'x', '+', linewidth, 'Both groups'
-            elif has_cancer:
-                return 'x', None, linewidth, 'Cancer only'
-            elif has_normal:
-                return None, '+', linewidth, 'Normal only'
-            else:
-                return None, None, 0, 'Neither'
-
-        symbol_info = trace_data.apply(get_symbol_info, axis=1)
+        # NOTE: Using literal 3.0 for linewidth_bold - custom by-type emphasis for trace data
+        symbol_info = trace_data.apply(
+            lambda row: get_symbol_info(row, linewidth_bold=3.0, linewidth_normal=EDGE_LINEWIDTH_THICK),
+            axis=1
+        )
         trace_data['Cancer_Symbol'] = [x[0] for x in symbol_info]
         trace_data['Normal_Symbol'] = [x[1] for x in symbol_info]
         trace_data['Symbol_Linewidth'] = [x[2] for x in symbol_info]
