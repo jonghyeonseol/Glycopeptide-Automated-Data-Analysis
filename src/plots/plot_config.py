@@ -106,6 +106,9 @@ COLOR_NORMAL = '#457B9D'  # Sapphire Blue - Enhanced (cooler, more stable than #
 COLOR_NORMAL_LIGHT = '#7DA3C6'  # Light variant for gradients
 COLOR_NORMAL_DARK = '#2D5670'   # Dark variant for emphasis
 
+# Neutral/utility colors
+COLOR_GRAY = '#95A5A6'  # Medium gray - for neutral/no difference indicators
+
 GROUP_PALETTE = {
     'Cancer': COLOR_CANCER,
     'Normal': COLOR_NORMAL
@@ -553,6 +556,24 @@ VIP_SHOW_FOLD_CHANGE = True                 # Add fold change column
 VIP_SHOW_SIGNIFICANCE = True                # Add significance stars column
 VIP_FC_TEXT_SIZE = 3.5                      # Fold change text size
 VIP_SIG_TEXT_SIZE = 4.0                     # Significance star size
+
+# VIP Score Plots - Seaborn Implementation Constants (Phase 12)
+VIP_BAR_HEIGHT = 0.65                       # Bar height for standard plots
+VIP_BAR_HEIGHT_GROUPED = 0.6                # Bar height for grouped plots (slightly smaller)
+VIP_BAR_ALPHA = 0.85                        # Bar transparency (85% opaque)
+VIP_BAR_EDGE_LINEWIDTH = 0.5                # Bar edge line width
+VIP_GRID_ALPHA = 0.3                        # Grid transparency
+VIP_GRID_LINEWIDTH = 0.5                    # Grid line width
+VIP_XLIM_EXPANSION = 1.1                    # X-axis expansion factor (10% beyond max VIP)
+VIP_GROUP_SPACING = 0.5                     # Spacing between peptide groups (grouped plot)
+VIP_GROUPED_HEIGHT_MULTIPLIER = 1.2         # Height multiplier for grouped plot
+VIP_THRESHOLD_LINE_WIDTH_SEABORN = 1.5      # Threshold line width for Seaborn plots
+VIP_THRESHOLD_LINE_ALPHA = 0.7              # Threshold line transparency
+VIP_THRESHOLD_TEXT_Y_OFFSET = -0.8          # Y offset for threshold text (standard plots)
+VIP_THRESHOLD_TEXT_Y_OFFSET_GROUPED = -1    # Y offset for threshold text (grouped plot)
+VIP_SUBTITLE_FONTSIZE = 10                  # Subtitle font size
+VIP_LEGEND_FONTSIZE = 10                    # Legend font size
+VIP_SPINE_LINEWIDTH = 0.8                   # Spine line width
 
 # ==============================================================================
 # PCA Plot - PUBLICATION OPTIMIZED

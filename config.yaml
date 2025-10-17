@@ -53,6 +53,36 @@ analysis:
     # Especially important for features with small variances
     # Inspired by SAM (Significance Analysis of Microarrays)
 
+  # Phase 11.1: Differential expression thresholds
+  # These thresholds define what constitutes "significant" differential expression
+  differential_expression:
+    log2fc_strict: 2.0  # 4-fold change threshold (highly differential features)
+                        # Used for: Volcano plot, significant feature selection
+    log2fc_moderate: 1.0  # 2-fold change threshold (moderately differential)
+                          # Used for: Sankey diagrams, general filtering
+    fdr_threshold: 0.05  # False discovery rate threshold (5%)
+                         # Controls for multiple testing
+    vip_threshold: 1.0  # VIP score threshold for feature importance
+                        # Features with VIP > 1.0 considered important
+
+  # Phase 11.1: Effect size thresholds (Cohen's d)
+  # Measures biological significance beyond statistical significance
+  effect_sizes:
+    cohens_d_small: 0.2  # Small effect (detectable but minor)
+    cohens_d_medium: 0.5  # Medium effect (moderate biological importance)
+    cohens_d_large: 0.8  # Large effect (strong biological significance)
+                         # Biomarker candidates should have large effects
+
+  # Phase 11.1: Biomarker validation criteria
+  # Stringent criteria for identifying reliable biomarkers
+  biomarker_criteria:
+    stability_threshold: 0.8  # 80% bootstrap stability required
+                              # Feature must be selected in 80% of bootstrap iterations
+    min_detection_rate: 0.6  # 60% detection across samples required
+                             # Feature must be detected in majority of samples
+    min_effect_size: 0.8  # Minimum Cohen's d for biomarker consideration
+                          # Must have large effect size to be considered
+
 # Visualization parameters
 visualization:
   figsize:
@@ -95,3 +125,24 @@ visualization:
       S: "#FF69B4"       # Sialylated (Pink)
       SF: "#FFA500"      # Sialofucosylated (Orange)
       "C/H": "#0000FF"   # Complex/Hybrid (Blue)
+
+# Phase 11.1: Pipeline execution settings
+# Controls progress reporting, timing, and data quality visibility
+execution:
+  # Progress reporting configuration
+  progress_reporting:
+    enabled: true  # Enable progress bars and status updates
+    statistical_tests: true  # Show progress for statistical tests
+    visualizations: true  # Show progress for plot generation
+    data_loading: true  # Show progress for CSV loading
+
+  # Execution timing configuration
+  timing:
+    enabled: true  # Log execution time for each pipeline stage
+    detailed: false  # Log timing for individual operations (very verbose)
+
+  # Data quality reporting configuration
+  data_quality:
+    report_after_loading: true  # Log quality summary after data loading
+    report_after_filtering: true  # Log quality summary after filtering
+    report_after_preprocessing: true  # Log quality summary after preprocessing

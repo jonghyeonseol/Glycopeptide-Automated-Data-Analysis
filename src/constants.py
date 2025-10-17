@@ -156,6 +156,11 @@ FIGSIZE_BOXPLOT: tuple = (12, 6)
 FIGSIZE_HEATMAP: tuple = (14, 10)
 FIGSIZE_COMPARISON_HEATMAP: tuple = (24, 16)
 
+# Correlation visualization sizes (Phase 11.1)
+FIGSIZE_CORRELATION_MATRIX: tuple = (12, 10)  # Standard correlation matrix
+FIGSIZE_CORRELATION_COMBINED: tuple = (18, 16)  # Combined 47x47 matrix
+FIGSIZE_CORRELATION_CLUSTERMAP: tuple = (16, 14)  # Clustermap with dendrograms
+
 # Heatmap parameters
 HEATMAP_TOP_N_DEFAULT: int = 50
 COMPARISON_MAX_PEPTIDES_DEFAULT: int = 50
@@ -168,6 +173,26 @@ VIP_TOP_N_DEFAULT: int = 10
 VOLCANO_PVALUE_THRESHOLD: float = 0.05
 VOLCANO_FC_THRESHOLD: float = 2.0  # Linear fold change
 VOLCANO_LOG2FC_THRESHOLD: float = 1.0  # log2(2) = 1
+
+# ==============================================================================
+# Differential Expression Thresholds (Phase 11.1)
+# ==============================================================================
+
+# Log2 fold change thresholds for different stringency levels
+LOG2FC_THRESHOLD_STRICT: float = 2.0  # 4-fold change (highly differential features)
+LOG2FC_THRESHOLD_MODERATE: float = 1.0  # 2-fold change (moderately differential features)
+
+# Statistical significance thresholds
+FDR_THRESHOLD_DEFAULT: float = 0.05  # False discovery rate threshold (5%)
+PVALUE_THRESHOLD_DEFAULT: float = 0.05  # P-value threshold before FDR correction
+
+# ==============================================================================
+# Detection Filter Defaults (Phase 11.1)
+# ==============================================================================
+
+# Minimum detection frequency thresholds
+DETECTION_FILTER_DEFAULT_PCT: float = 0.30  # 30% minimum detection in at least one group
+DETECTION_FILTER_DEFAULT_SAMPLES: int = 5  # Minimum 5 detected samples for statistical tests
 
 # ==============================================================================
 # File Patterns
@@ -357,6 +382,9 @@ __all__ = [
     'FIGSIZE_BOXPLOT',
     'FIGSIZE_HEATMAP',
     'FIGSIZE_COMPARISON_HEATMAP',
+    'FIGSIZE_CORRELATION_MATRIX',
+    'FIGSIZE_CORRELATION_COMBINED',
+    'FIGSIZE_CORRELATION_CLUSTERMAP',
     'HEATMAP_TOP_N_DEFAULT',
     'COMPARISON_MAX_PEPTIDES_DEFAULT',
     'COMPARISON_MAX_GLYCANS_PER_TYPE_DEFAULT',
@@ -364,6 +392,14 @@ __all__ = [
     'VOLCANO_PVALUE_THRESHOLD',
     'VOLCANO_FC_THRESHOLD',
     'VOLCANO_LOG2FC_THRESHOLD',
+    # Differential Expression Thresholds
+    'LOG2FC_THRESHOLD_STRICT',
+    'LOG2FC_THRESHOLD_MODERATE',
+    'FDR_THRESHOLD_DEFAULT',
+    'PVALUE_THRESHOLD_DEFAULT',
+    # Detection Filter Defaults
+    'DETECTION_FILTER_DEFAULT_PCT',
+    'DETECTION_FILTER_DEFAULT_SAMPLES',
     # File Patterns
     'CSV_FILE_PATTERN',
     'SAMPLE_ID_PATTERN',
